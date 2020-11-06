@@ -10,8 +10,8 @@ function  [torque, T_rw, T_magnetic_effective, V_rw, I_rw, P_thermal_rw, AngVel_
     global flag;
     global Jw;
 
-    Kp_gain= 1e-05*diag([5 10 5]);                                                  % Calculate gain (wrt Markley-Crassidis)
-    Kd_gain= 1e-03*diag([1 1 1]);
+    Kp_gain= 1e-04*diag([5 10 5]);                                                  % Calculate gain (wrt Markley-Crassidis)
+    Kd_gain= 1e-02*diag([1 1 1]);
     w_o_io = [0;-0.00110808802079241;0];
     %w_o = 0.00113308802079241;
     

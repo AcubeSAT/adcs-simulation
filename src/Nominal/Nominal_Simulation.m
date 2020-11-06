@@ -254,7 +254,7 @@ for l=1:n_steps
         [torq, T_rw, T_magnetic_effective, V_rw, I_rw, P_thermal_rw, AngVel_rw_rpm_next, AngVel_rw_radps_next,...
                 acceleration_rw_cur, rw_ang_momentum, init_AngVel_dz, init_accel_dz, V_mtq, I_mtq, P_thermal_mtq, ...
                     timeflag_dz] = ...
-                        PD(q_desired ,q_ob_hat, ekf.theta(5:7) , y_noise(1:3)*norm(mag_field_orbit(:,(k-1)/dt+c)*10^(-9)) , eclipse((k-1)/dt+c), ...
+                        PD(q_desired ,q_ob_hat, y_noise(4:6)-ekf.theta(5:7) , y_noise(1:3)*norm(mag_field_orbit(:,(k-1)/dt+c)*10^(-9)) , eclipse((k-1)/dt+c), ...
                             Const.mtq_max, Const.lim_dz, AngVel_rw_radps(2,1), AngVel_rw_rpm(2,1), ...
                                 acceleration_rw(1,1), init_AngVel_dz, init_accel_dz, timeflag_dz,Const.rw_max_torque);
         tau_rw(1, (k-1)/dt+c+1) = T_rw(3);
@@ -300,61 +300,7 @@ for l=1:n_steps
     end
 
 end
-%% Calculation of performance error
-x_real_euler_perf = quat2eul(q_ob_data(1:4,1:length(q_ob_data)-1)'); 
-x_real_euler_perf = rad2deg(x_real_euler_perf');
 
-instant_error_perform = x_real_euler_perf';
-
-figure();
-for i=1:3
-    subplot(3,1,i);
-    hold on;
-    plot(Time(21:length(instant_error_perform)), instant_error_perform(21:length(instant_error_perform), i), 'LineWidth',1.5, 'Color','blue');
-    if (i==1), title('Absolute Performance Errors', 'interpreter','latex', 'fontsize',17);end
-    if (i==1), ylabel('X-axis'); end
-    if (i==2), ylabel('Y-axis'); end
-    if (i==3), ylabel('Z-axis'); end
-    xlabel('Time [$s$]', 'interpreter','latex', 'fontsize',12);
-    hold off;
-    grid on;
-end
-
-%% Calulation of knowledge error
-x_hat_euler_know = zeros(length(x_hat_data), 6);
-instant_error_know = zeros(length(x_hat_data), 6);
-
-x_real_euler_know = quat2eul(x_real(1:4,1:length(x_hat_data))');
-x_real_euler_know = rad2deg(x_real_euler_know');
-x_hat_euler_know(:, 1:3) = quat2eul(x_hat_data(1:4,:)');
-x_hat_euler_know(:, 1:3) = (rad2deg(x_hat_euler_know(:, 1:3)'))';
-
-instant_error_know(:, 1:3) = x_hat_euler_know(:, 1:3) - x_real_euler_know';
-instant_error_know(:, 4:6) = x_hat_data(5:7, 1:length(x_hat_data))' - x_real(5:7, 1:length(x_hat_data))';
-
-
-for k=1:length(instant_error_know)
-    if instant_error_know(k, 1) > 180
-        instant_error_know(k, 1) = instant_error_know(k, 1) - 180;
-    elseif instant_error_know(k, 1) < -180
-        instant_error_know(k, 1) = instant_error_know(k, 1) + 180;
-    end
-end
-
-figure();
-for i=1:6
-    subplot(6,1,i);
-    hold on;
-    plot(Time(21:length(instant_error_know)), instant_error_know(21:length(instant_error_know), i), 'LineWidth',1.5, 'Color','blue');
-    ylabel(['$\tilde{x}_' num2str(i) '$'], 'interpreter','latex', 'fontsize',14);
-    if (i==1), title('Absolute Knowledge Errors', 'interpreter','latex', 'fontsize',17);end
-    if (i==1), ylabel('X-axis'); end
-    if (i==2), ylabel('Y-axis'); end
-    if (i==3), ylabel('Z-axis'); end
-    xlabel('Time [$s$]', 'interpreter','latex', 'fontsize',12);
-    hold off;
-    grid on;
-end
 
 n_dim = size(x_real,1);
 % figure('Position',[500 0 1420 1080]);
@@ -409,6 +355,12 @@ for i=1:n_dim
     if (i==1), title('State estimation errors', 'interpreter','latex', 'fontsize',11); end
     xlim([3 n_steps]);
     hold off;
+end
+
+figure();
+for i=1:3
+    subplot(3,1,i);
+    plot(Time,x_real(i,1:length(Time)))
 end
 
 eul_diff =zeros(length(Time),3);
