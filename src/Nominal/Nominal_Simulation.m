@@ -111,7 +111,7 @@ for l=1:n_steps
         % We add zeros for every timestep before the initialization is finished
         if (bias_init_counter < bias_wahba_loops + 1)        
             quat_pos(:,bias_init_counter) = q_wahba;    
-            x_hat_data = [x_hat_data zeros(7,7)];  %Set measurements to 0 until bias has initialized
+            x_hat_data = [x_hat_data zeros(7,7)];  %Set measurements to 0 until bias has initialized           
     %         y_hat_data = [y_hat_data zeros(n_msr,10)]; 
     %         P_data = [P_data zeros(10*10,10)];
 
@@ -296,6 +296,7 @@ for l=1:n_steps
 
         end
         x_hat_data = [x_hat_data zeros(10,10)];
+        bias_data = [bias_data zeros(3,1)];
     end
 
 end
@@ -361,8 +362,13 @@ figure();
 for i=1:n_dim
     subplot(n_dim,1,i);
     hold on;
-    plot(Time,x_real(i,1:length(Time)), 'LineWidth',2.0, 'Color','blue');
-    plot(Time(1:length(x_hat_data(i,:))),x_hat_data(i,:), 'LineWidth',2.0, 'Color','magenta');
+    if i<5
+        plot(Time,x_real(i,1:length(Time)), 'LineWidth',2.0, 'Color','blue');       
+    else
+        plot(Time(1:length(bias_data(1,:))),bias_data(i-4,1:length(bias_data(1,:))))
+    end
+    
+    plot(Time(1:length(x_hat_data(i,:))),x_hat_data(i,:), 'LineWidth',2.0, 'Color','magenta');               
     if (i==1),legend({['$x_' num2str(i) '$'],['$\hat{x}_' num2str(i) '$']}, 'interpreter','latex', 'fontsize',15);end
     ylabel(['$x_' num2str(i) '$'], 'interpreter','latex', 'fontsize',17);
     if (i==1), title('EKF estimation results', 'interpreter','latex', 'fontsize',17);end
