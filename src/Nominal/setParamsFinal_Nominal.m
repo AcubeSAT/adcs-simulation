@@ -46,7 +46,7 @@ satrec = orbit_init();
 
 %% ======= Kalman filter params ========
 % Variances
-Q = 1e-04*eye(n_dim,n_dim); % Variance of the process noise w[k]
+Q = 0.5e-05*eye(n_dim,n_dim); % Variance of the process noise w[k]
 
 %MGN noise 1e-3 (norm) | GYRO noise 1.57e-2| SUN noise 8.7e-3(norm)
 % R_coeff=[1e-6;1e-6;1e-6;5e-5;5e-5;5e-5;1.2e-5;1.2e-5;1.2e-5];   
