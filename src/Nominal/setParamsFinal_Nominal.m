@@ -3,14 +3,14 @@ dt = .1; %Timestep for Orbit Propagator
 orbits=1;
 orbitPeriod=5545;
 % tf = orbits*orbitPeriod+0.9; %Total Simulation Seconds
-tf =(5545+0.9); %Total Simulation Seconds
+tf =(6545+0.9); %Total Simulation Seconds
 np = uint32((tf+dt)/dt); %Number of timesteps
 q_desired = [ 1 0 0 0 ] ; %Desired quaternion
 Q0 = [0.5; 0.5; 0.5; 0.5]; %Initial Quaternion in ECI frame
 Q0 = Q0/norm(Q0); %Normalised Quaternion
 init_bias = [.01;0.15;-.08]; % bias initialization
 % vRot0 = [pi/4; pi/2; pi/8];
-vRot0 = [0.1; 0.1; 0.1]; %Initial Angular Velocities from Body to ECI frame expressed in Body.
+vRot0 = [0.035; 0.035; 0.035]; %Initial Angular Velocities from Body to ECI frame expressed in Body.
 x0 = [Q0;vRot0]; %Initial state consists of [Quaternion;Angular Velocity]
 % Random Initial State Estimation
 Q0_hat = [.6;.1;-.7;.01];

@@ -419,7 +419,7 @@ end
 figure();
 for i=1:3
     subplot(3,1,i);
-    plot(Time,x_real(i,1:length(Time)),'LineWidth',2.0, 'Color','blue');
+    plot(Time,x_real(4+i,1:length(Time)),'LineWidth',2.0, 'Color','blue');
     xlabel('Time [$s$]', 'interpreter','latex', 'fontsize',12);
     ylabel(['$\omega_' num2str(i) '$'], 'interpreter','latex', 'fontsize',14);
     if (i==1), legend('Angular Velocity');end
