@@ -111,7 +111,8 @@ for l=1:n_steps
         % We add zeros for every timestep before the initialization is finished
         if (bias_init_counter < bias_wahba_loops + 1)        
             quat_pos(:,bias_init_counter) = q_wahba;    
-            x_hat_data = [x_hat_data zeros(7,7)];  %Set measurements to 0 until bias has initialized           
+            x_hat_data = [x_hat_data zeros(7,bias_wahba_loops)];  %Set measurements to 0 until bias has initialized
+            
     %         y_hat_data = [y_hat_data zeros(n_msr,10)]; 
     %         P_data = [P_data zeros(10*10,10)];
 
@@ -301,6 +302,62 @@ for l=1:n_steps
 
 end
 
+%% Calculation and plotting of performance error
+x_real_euler_perf = quat2eul(q_ob_data(1:4,1:length(q_ob_data)-1)'); 
+x_real_euler_perf = rad2deg(x_real_euler_perf');
+
+instant_error_perform = x_real_euler_perf';
+
+figure();
+for i=1:3
+    subplot(3,1,i);
+    hold on;
+    plot(Time(21:length(instant_error_perform)), instant_error_perform(21:length(instant_error_perform), i), 'LineWidth',1.5, 'Color','blue');
+    if (i==1), title('Absolute Performance Errors', 'interpreter','latex', 'fontsize',17);end
+    if (i==1), ylabel('X-axis'); end
+    if (i==2), ylabel('Y-axis'); end
+    if (i==3), ylabel('Z-axis'); end
+    xlabel('Time [$s$]', 'interpreter','latex', 'fontsize',12);
+    hold off;
+    grid on;
+end
+
+%% Calulation and plotting of knowledge error
+x_hat_euler_know = zeros(length(x_hat_data), 6);
+instant_error_know = zeros(length(x_hat_data), 6);
+
+x_real_euler_know = quat2eul(x_real(1:4,1:length(x_hat_data))');
+x_real_euler_know = rad2deg(x_real_euler_know');
+x_hat_euler_know(:, 1:3) = quat2eul(x_hat_data(1:4,:)');
+x_hat_euler_know(:, 1:3) = (rad2deg(x_hat_euler_know(:, 1:3)'))';
+
+instant_error_know(:, 1:3) = x_hat_euler_know(:, 1:3) - x_real_euler_know';
+instant_error_know(:, 4:6) = x_hat_data(5:7, 1:length(x_hat_data))' - bias_data';
+
+for i=1:3
+    for k=1:length(instant_error_know)
+        if instant_error_know(k, i) > 180
+            instant_error_know(k, i) = instant_error_know(k, i) - 360;
+        elseif instant_error_know(k, i) < -180
+            instant_error_know(k, i) = instant_error_know(k, i) + 360;
+        end
+    end
+end
+
+figure();
+for i=1:6
+    subplot(6,1,i);
+    hold on;
+    plot(Time(21:length(instant_error_know)), instant_error_know(21:length(instant_error_know), i), 'LineWidth',1.5, 'Color','blue');
+    ylabel(['$\tilde{x}_' num2str(i) '$'], 'interpreter','latex', 'fontsize',14);
+    if (i==1), title('Absolute Knowledge Errors', 'interpreter','latex', 'fontsize',17);end
+    if (i==1), ylabel('X-axis'); end
+    if (i==2), ylabel('Y-axis'); end
+    if (i==3), ylabel('Z-axis'); end
+    xlabel('Time [$s$]', 'interpreter','latex', 'fontsize',12);
+    hold off;
+    grid on;
+end
 
 n_dim = size(x_real,1);
 % figure('Position',[500 0 1420 1080]);
@@ -344,7 +401,9 @@ xlabel('Time [$s$]', 'interpreter','latex', 'fontsize',12);
 ylabel(['Eclipse'], 'interpreter','latex', 'fontsize',14);
 if (i==1), title('Umbral, Penumbral or no Eclipse', 'interpreter','latex', 'fontsize',17);end
 
-x_err_data = x_real(:,1:length(x_hat_data))-x_hat_data(1:7,:);
+x_err_data(1:4,:) = x_real(1:4,1:length(x_hat_data))-x_hat_data(1:4,:);
+x_err_data(5:7,:) = bias_data - x_hat_data(5:7,:);
+
 figure();
 for i=1:n_dim
     subplot(n_dim,1,i);
@@ -360,7 +419,21 @@ end
 figure();
 for i=1:3
     subplot(3,1,i);
-    plot(Time,x_real(i,1:length(Time)))
+    plot(Time,x_real(i,1:length(Time)),'LineWidth',2.0, 'Color','blue');
+    xlabel('Time [$s$]', 'interpreter','latex', 'fontsize',12);
+    ylabel(['$\omega_' num2str(i) '$'], 'interpreter','latex', 'fontsize',14);
+    if (i==1), legend('Angular Velocity');end
+    if (i==1), title('Angular Velocities'); end
+end
+
+figure();
+for i=1:3
+    subplot(3,1,i);
+    plot(Time(1:length(x_hat_data(1,:))),x_real(4+i,1:length(x_hat_data(1,:))) - x_hat_data(4+i,:),'LineWidth',2.0, 'Color','blue');
+    xlabel('Time [$s$]', 'interpreter','latex', 'fontsize',12);
+    ylabel(['$\omega_' num2str(i) '$'], 'interpreter','latex', 'fontsize',14);
+    if (i==1), legend('Angular Velocity estimation error');end
+    if (i==1), title('Angular Velocity estimation error'); end
 end
 
 eul_diff =zeros(length(Time),3);
