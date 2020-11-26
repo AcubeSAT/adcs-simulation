@@ -48,6 +48,7 @@ x_hat_data = []; % Estimated state
 x = x0(1:7);
 x_real(:,1) = x0(1:7);
 bias_data = init_bias;
+gyro_noise_data = zeros(3,1);
 t = 0;
 n_steps = length(Time)*dt; % Number of time steps
 n_steps = uint16(n_steps);
@@ -84,7 +85,8 @@ for l=1:n_steps
         y_noise = y_real + sqrt(R)*randn(size(y_real));
         [gyro_noise,real_bias] = gyro_noise_func(real_bias,dt,sigma_u,sigma_v);
         bias_data = [bias_data real_bias];
-        
+        gyro_noise_data = [gyro_noise_data gyro_noise];
+
     %     y_noise=y_real;
         y_noise(4:6) = y_real(4:6) + gyro_noise;
         sign=randi([0 1]); 
@@ -172,6 +174,7 @@ for l=1:n_steps
         y_noise = y_real + sqrt(R)*randn(size(y_real));
         [gyro_noise,real_bias] = gyro_noise_func(real_bias,dt,sigma_u,sigma_v);
         bias_data = [bias_data real_bias];
+	gyro_noise_data = [gyro_noise_data gyro_noise];
         y_noise(4:6) = y_real(4:6) + gyro_noise;
         sign=randi([0 1]); 
         if sign==0 
@@ -213,7 +216,7 @@ for l=1:n_steps
         % P[k+1|k]. These will be utilized by the filter at the next time step.
         
         gyro = y_noise(4:6);
-        ekf.predict(stateTransCookieFinalNominal(torq,rw_ang_momentum,gyro));
+        ekf.predict(stateTransCookieFinalNominal(torq,rw_ang_momentum,gyro),dt);
      end 
     %  
     %  q_ob_hat_prev =quat_EB2OB(x_hat(1:4), nodem(1,(k-1)/dt+c),inclm(1,(k-1)/dt+c),argpm(1,(k-1)/dt+c),mm(1,(k-1)/dt+c) );
@@ -227,6 +230,7 @@ for l=1:n_steps
             sun_pos_eci(:,(k-1)/dt+c),eclipse((k-1)/dt+c),[0;0;0]));
         [gyro_noise,real_bias] = gyro_noise_func(real_bias,dt,sigma_u,sigma_v);
         bias_data = [bias_data real_bias];
+	gyro_noise_data = [gyro_noise_data gyro_noise];
         y_noise(4:6) = y_real(4:6) + gyro_noise; 
         
         x_hat = ekf.theta;
@@ -282,7 +286,7 @@ for l=1:n_steps
 %         end  
     %     q_prev = q_ob_data(:,(k-1)/dt+c+1);
         gyro = y_noise(4:6);
-        ekf.predict(stateTransCookieFinalNominal(torq,rw_ang_momentum,gyro));
+        ekf.predict(stateTransCookieFinalNominal(torq,rw_ang_momentum,gyro),dt);
      end
         end
         break;
@@ -298,6 +302,7 @@ for l=1:n_steps
         end
         x_hat_data = [x_hat_data zeros(10,10)];
         bias_data = [bias_data zeros(3,1)];
+	gyro_noise_data = [gyro_noise_data zeros(3,1)];
     end
 
 end
@@ -429,7 +434,7 @@ end
 figure();
 for i=1:3
     subplot(3,1,i);
-    plot(Time(1:length(x_hat_data(1,:))),x_real(4+i,1:length(x_hat_data(1,:))) - x_hat_data(4+i,:),'LineWidth',2.0, 'Color','blue');
+    plot(Time(1:length(x_hat_data(1,:))), x_hat_data(4+i,:) - gyro_noise_data(i,:),'LineWidth',2.0, 'Color','blue');
     xlabel('Time [$s$]', 'interpreter','latex', 'fontsize',12);
     ylabel(['$\omega_' num2str(i) '$'], 'interpreter','latex', 'fontsize',14);
     if (i==1), legend('Angular Velocity estimation error');end

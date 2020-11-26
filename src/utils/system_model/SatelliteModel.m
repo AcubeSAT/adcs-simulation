@@ -66,7 +66,7 @@ classdef SatelliteModel
              
             %y(4:6) = this.gyro - x(5:7); %      Should I update?   We
             %don't propagate angular velocity
-            y(4:6) = 0;   
+            y(4:6) = this.gyro;   
             
             % Calculating magnetometer measurements
             y1 = quatProd( quatInv(Q), quatProd([0; this.magn_ref], Q) );
@@ -95,8 +95,10 @@ classdef SatelliteModel
         %
         function H = msrFunJacob(this, x, cookie)
             
-            error('[SatelliteModel::msrFunJacob]: Not implemented!');
+           z_hat = this.msrFun(x, cookie);
             
+           H = [skew(z_hat(1:3)) zeros(3,3);...
+                skew(z_hat(4:6)) zeros(3,3);skew(z_hat(7:9)) zeros(3,3)]; % Crassidis MEKF H_k 
         end
 
 
@@ -107,7 +109,7 @@ classdef SatelliteModel
         %
         function F = stateTransFunJacob(this, x, cookie)
             
-            error('[SatelliteModel::msrFunJacob]: Not implemented!');
+            F = [-skew(cookie.gyro-x(5:7)) -eye(3,3);zeros(3,6)];
             
         end
 

@@ -3,7 +3,7 @@ dt = .1; %Timestep for Orbit Propagator
 orbits=1;
 orbitPeriod=5545;
 % tf = orbits*orbitPeriod+0.9; %Total Simulation Seconds
-tf =(6545+0.9); %Total Simulation Seconds
+tf =(5545+0.9); %Total Simulation Seconds
 np = uint32((tf+dt)/dt); %Number of timesteps
 q_desired = [ 1 0 0 0 ] ; %Desired quaternion
 Q0 = [0.5; 0.5; 0.5; 0.5]; %Initial Quaternion in ECI frame
@@ -30,7 +30,8 @@ model = SatelliteModel(dt, Const.I); %Initialize Satellite Model Class
 real_model = real_SatelliteModel(dt, Const.I);
 disturbancesEnabled = "total";
 %% ======= Simulation Constants ========
-n_dim = length(x0); %state length
+n_dim = length(x0); % state length
+n_dim_error = 6; % error state length
 n_msr = 9; %Measurements length
 Kp=100;
 mtq_max = 0.2;
@@ -46,7 +47,7 @@ satrec = orbit_init();
 
 %% ======= Kalman filter params ========
 % Variances
-Q = 0.5e-05*eye(n_dim,n_dim); % Variance of the process noise w[k]
+Q = 0.5e-05*eye(n_dim_error,n_dim_error); % Variance of the process noise w[k]
 
 %MGN noise 1e-3 (norm) | GYRO noise 1.57e-2| SUN noise 8.7e-3(norm)
 % R_coeff=[1e-6;1e-6;1e-6;5e-5;5e-5;5e-5;1.2e-5;1.2e-5;1.2e-5];   
@@ -64,9 +65,9 @@ R_hat_coeff=[.5e-3;.5e-3;.5e-3;4e-3;4e-3;4e-3;1e-3;1e-3;1e-3];
 R_hat = R_hat_coeff.*eye(n_msr,n_msr);
 
 % Initialize Covariance matrix
-P0 = 1*eye(n_dim,n_dim);
+P0 = 1*eye(n_dim_error,n_dim_error);
 
-use_analytic_jacob = false;
+use_analytic_jacob = true;
 
 
 

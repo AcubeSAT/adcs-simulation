@@ -154,7 +154,7 @@ classdef EKF < handle
         %% Performs the EKF prediction (time update).
         %  @params[in] cookie: Void pointer to additional arguments needed by the 
         %                      state transition function and its Jacobian (default = []).
-        function predict(this, cookie)
+        function predict(this, cookie, dt)
             
             if (nargin < 2), cookie=[]; end
             % ==== Jacobian Matrix and state estimation calculation ====
@@ -166,8 +166,13 @@ classdef EKF < handle
                 this.theta = this.stateTransFun_ptr(this.theta);
             end
             % =====  Calculate new covariance  =====
-            this.P = this.a_p^2*this.F_k*this.P*this.F_k' + this.Q;
-    
+            A = [        -this.F_k, this.Q;
+                 zeros(6,6),     this.F_k'];
+            B = expm(A*dt);
+            Phi = B(7:12, 7:12)';
+            Qs = Phi * B(1:6, 7:12);
+            this.P = Phi*this.P*Phi' + Qs;
+                
         end
         
         %% Performs the EKF correction (measurement update).
@@ -186,9 +191,14 @@ classdef EKF < handle
             
             this.H_k;
             Kg = this.P*this.H_k'/(this.H_k*this.P*this.H_k' + this.R);
-
-            this.theta = this.theta + Kg * (z - z_hat);
-
+                                           
+            error_state =  Kg * (z - z_hat);
+            
+            error_quaternion = [1 ; 0.5 * error_state(1:3)];
+                                  
+            this.theta(1:4) = quatProd(this.theta(1:4),error_quaternion);
+            this.theta(1:4) = this.theta(1:4)/norm(this.theta(1:4));
+            this.theta(5:7) = this.theta(5:7) + error_state(4:6);
             
             % =====  Apply projection if enabled  ===== 
             proj_flag = false;
@@ -203,7 +213,7 @@ classdef EKF < handle
                 end     
             end
             
-            N_params = length(this.theta);
+            N_params = 6;
             I = eye(N_params, N_params);
             
             if (proj_flag)
@@ -228,7 +238,7 @@ classdef EKF < handle
 
             % =====  Calculate new covariance  =====
 %             this.P = (I - Kg*this.H_k) * this.P;
-            this.P = (I - Kg*this.H_k) * this.P * (I - Kg*this.H_k)' + Kg*this.R*Kg';
+            this.P = (I - Kg*this.H_k) * this.P;
             this.K = Kg;
 
         end
