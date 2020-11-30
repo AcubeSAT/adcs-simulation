@@ -3,8 +3,6 @@ clc;
 
 clear variables;
 
-set_matlab_utils_path();
-
 %% Initialize Parameters Script
 Const=constants();
 setParamsFinal_Nominal();
