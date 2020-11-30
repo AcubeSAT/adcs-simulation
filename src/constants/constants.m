@@ -34,6 +34,21 @@ function Const = constants()
     Iy = (m / 12) * (lx^2 + lz^2); % Yaxis inertia
     Iz = (m / 12) * (lx^2 + ly^2); % Zaxis inertia
 
+%% Current Inertia
+    PMI = diag([0.03868845951 0.03899129965 0.00696263029]); %Principal Moments of Inertia
+    PAI = [-0.89 0.46 0; 0.46 0.89 -0.01; 0 0.01 1]; %Principal Axes of Inertia
+%% Modified Inertia
+%     PMI = diag([0.03928052501	0.03948290041	0.00720041142]); %Principal Moments of Inertia
+%     PAI = [-1 0.07 -0.01; 0.07 1 -0.02; -0.01 0.02 1]; %Principal Axes of Inertia
+
+    for j=1:3
+        PAI(:,j) = PAI(:,j)/norm(PAI(:,j));
+    end
+    I = PAI*PMI*PAI';
+    I_inv = eye(3,3)/I;
+    
+    
+    
    I = [0.89 0.46 0; 0.46 0.89 0.01; 0 0.01 1] * diag([0.03868845951 0.03899129965 0.00696263029]);
     I_inv = eye(3) / I;
 
