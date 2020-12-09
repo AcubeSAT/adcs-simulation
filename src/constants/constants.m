@@ -29,7 +29,10 @@ function Const = constants()
     Jw = 1.9e-6;         % Inertia of the RW
     A = 0.12;            % Used when desaturation of the RW
     lim_dz = 300;         % The absolute value of the limits of the deadzone (in rpm)
-
+  
+    p_400 = 7.55e-12;   % Atmospheric density [kg/m^3]
+    p_500 = 1.80e-12;
+    
     Ix = (m / 12) * (ly^2 + lz^2); % Xaxis inertia
     Iy = (m / 12) * (lx^2 + lz^2); % Yaxis inertia
     Iz = (m / 12) * (lx^2 + ly^2); % Zaxis inertia
@@ -37,21 +40,18 @@ function Const = constants()
 %% Current Inertia
     PMI = diag([0.03868845951 0.03899129965 0.00696263029]); %Principal Moments of Inertia
     PAI = [-0.89 0.46 0; 0.46 0.89 -0.01; 0 0.01 1]; %Principal Axes of Inertia
+    Cm =  [0.03228 -0.02314 0.08244]'; % Center of mass
 %% Modified Inertia
 %     PMI = diag([0.03928052501	0.03948290041	0.00720041142]); %Principal Moments of Inertia
 %     PAI = [-1 0.07 -0.01; 0.07 1 -0.02; -0.01 0.02 1]; %Principal Axes of Inertia
+%     Cm = [0.03111 -0.02099 0.08135]';  % Center of mass
 
     for j=1:3
         PAI(:,j) = PAI(:,j)/norm(PAI(:,j));
     end
     I = PAI*PMI*PAI';
     I_inv = eye(3,3)/I;
-    
-    
-    
-   I = [0.89 0.46 0; 0.46 0.89 0.01; 0 0.01 1] * diag([0.03868845951 0.03899129965 0.00696263029]);
-    I_inv = eye(3) / I;
-
+       
     Re = 6371.2e3;                        % Earth radius [m]
     Rs = 500e3;                           % Satellite altitude [m]
     Radius = Re + Rs;                     % Distance from earth center to satellite [m]
@@ -97,5 +97,6 @@ function Const = constants()
     Const.lim_dz = lim_dz;
     Const.mtq_max = mtq_max;
     Const.rw_max_torque = rw_max_torque;
-
+    Const.p = p_400;
+    Const.Cm = Cm;
 end
