@@ -23,7 +23,7 @@ B = R_OB*B; % orbit to body
 
 %% Gravitational Torque
 
-z_0 = R_BO(1,:)'; % Unit vector towards nadir
+z_0 = R_BO(:,1); % Unit vector towards nadir
 
 tau_g = 3 * Const.w_o^2 * cross(z_0, Const.I * z_0);
 
@@ -34,7 +34,7 @@ p = Const.p;     % Atmospheric density
 Cm = Const.Cm;    % Center of mass
 % A_s = 0.01*cos(angles(2))*cos(angles(3)) + 0.034*sin(angles(2))*cos(angles(3)) + 0.034*sin(angles(3)); % Drag area, calculated by Trajectory
 
-x_0 = R_BO(3,:)';  % Velocity vector
+x_0 = R_BO(:,3);  % Velocity vector
 
 projxb_zo = ([1 0 0]*x_0)*x_0'; % Projection of each body frame axis unit vector to orbit frame z-axis unit vector
 projyb_zo = ([0 1 0]*x_0)*x_0';
@@ -48,17 +48,11 @@ Ax = 0.034*norm(cross(projYb_XYo,projZb_XYo)); % Surface projections to orbit fr
 Ay = 0.034*norm(cross(projXb_XYo,projZb_XYo));
 Az = 0.01*norm(cross(projXb_XYo,projYb_XYo));
 
-ux_o = [1 0 0];
-uy_o = [0 1 0];
 uz_o = [0 0 1];
 
-uXb_o = R_BO*ux_o';
-uYb_o = R_BO*uy_o';
-uZb_o = R_BO*uz_o';
-
-cos_Xb_Xo = uXb_o'*uz_o';
-cos_Yb_Yo = uYb_o'*uz_o';
-cos_Zb_Zo = uZb_o'*uz_o';
+cos_Xb_Xo = R_BO(1,:)*uz_o'; % Cosine of angle between Body frame axes and Orbit frame z-axis
+cos_Yb_Yo = R_BO(2,:)*uz_o';
+cos_Zb_Zo = R_BO(3,:)*uz_o';
 
 Cpa = diag([0.05 0.05 0.17]);     % Center of atmospheric pressure for each side
 
