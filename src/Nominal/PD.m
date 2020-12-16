@@ -3,7 +3,7 @@ function  [torque, T_rw, T_magnetic_effective, V_rw, I_rw, P_thermal_rw, AngVel_
                 timeflag_dz] = ...
                     PD(q_desired , q_orbit_body , w_b_ib , B_body , eclipse, mtq_max, ...
                         lim_dz, AngVel_rw_radps_cur, AngVel_rw_rpm_cur, acceleration_rw_old, init_AngVel_dz, ...
-                            init_accel_dz,timeflag_dz,rw_max_torque)
+                            init_accel_dz,timeflag_dz,rw_max_torque,B_body_real)
     
     global T_rw_data;
     global T_magnetic_data;
@@ -118,8 +118,8 @@ function  [torque, T_rw, T_magnetic_effective, V_rw, I_rw, P_thermal_rw, AngVel_
     elseif T_rw(3) < -rw_max_torque
         T_rw(3) = -rw_max_torque;
     end
-
-
+    
+    T_magnetic_effective = cross(M,B_body_real);
     T_rw_data = [T_rw_data T_rw];
     T_magnetic_data= [T_magnetic_data T_magnetic_effective];
     torque = T_magnetic_effective + T_rw;
