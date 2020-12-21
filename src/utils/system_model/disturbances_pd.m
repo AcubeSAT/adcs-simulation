@@ -79,6 +79,8 @@ c  = 3e8;   % Speed of light [m/s]
 q  = 0.6;   % Reflectance factor
 y_0 = R_OB*sun_vector; % Sun vector in body frame
 
+y_0 = y_0 /norm(y_0);
+
 projxb_zo = ([1 0 0]*y_0)*y_0';
 projyb_zo = ([0 1 0]*y_0)*y_0';
 projzb_zo = ([0 0 1]*y_0)*y_0';
@@ -91,7 +93,6 @@ Ax = 0.034*norm(cross(projYb_XYo,projZb_XYo)); % Surface projections to orbit fr
 Ay = 0.034*norm(cross(projXb_XYo,projZb_XYo));
 Az = 0.01*norm(cross(projXb_XYo,projYb_XYo));
 
-y_0 = y_0 /norm(y_0);
 
 cos_Xb_Xo = [1 0 0]*y_0;
 cos_Yb_Yo = [0 1 0]*y_0;
