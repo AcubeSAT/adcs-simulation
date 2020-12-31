@@ -1,0 +1,1071 @@
+Library {
+  Name			  "albedo_lib"
+  Version		  6.3
+  MdlSubVersion		  0
+  SavedCharacterEncoding  "windows-1252"
+  LibraryType		  "BlockLibrary"
+  SaveDefaultBlockParams  on
+  SampleTimeColors	  off
+  LibraryLinkDisplay	  "all"
+  WideLines		  off
+  ShowLineDimensions	  off
+  ShowPortDataTypes	  off
+  ShowLoopsOnError	  on
+  IgnoreBidirectionalLines off
+  ShowStorageClass	  off
+  ShowTestPointIcons	  on
+  ShowViewerIcons	  on
+  SortedOrder		  off
+  ExecutionContextIcon	  off
+  ShowLinearizationAnnotations on
+  CovSaveName		  "covdata"
+  CovMetricSettings	  "dw"
+  CovNameIncrementing	  off
+  CovHtmlReporting	  on
+  covSaveCumulativeToWorkspaceVar on
+  CovSaveSingleToWorkspaceVar on
+  CovCumulativeReport	  off
+  CovReportOnPause	  on
+  ScopeRefreshTime	  0.035000
+  OverrideScopeRefreshTime on
+  DisableAllScopes	  off
+  BlockNameDataTip	  off
+  BlockParametersDataTip  off
+  BlockDescriptionStringDataTip	off
+  ToolBar		  on
+  StatusBar		  on
+  BrowserShowLibraryLinks off
+  BrowserLookUnderMasks	  off
+  Created		  "Tue Oct 26 13:40:28 2004"
+  UpdateHistory		  "UpdateHistoryNever"
+  ModifiedByFormat	  "%<Auto>"
+  LastModifiedBy	  "danji"
+  ModifiedDateFormat	  "%<Auto>"
+  LastModifiedDate	  "Wed May 17 14:36:35 2006"
+  ModelVersionFormat	  "1.%<AutoIncrement:37>"
+  ConfigurationManager	  "None"
+  LinearizationMsg	  "none"
+  Profile		  off
+  ParamWorkspaceSource	  "MATLABWorkspace"
+  ExtModeBatchMode	  off
+  ExtModeEnableFloating	  on
+  ExtModeTrigType	  "manual"
+  ExtModeTrigMode	  "normal"
+  ExtModeTrigPort	  "1"
+  ExtModeTrigElement	  "any"
+  ExtModeTrigDuration	  1000
+  ExtModeTrigDurationFloating "auto"
+  ExtModeTrigHoldOff	  0
+  ExtModeTrigDelay	  0
+  ExtModeTrigDirection	  "rising"
+  ExtModeTrigLevel	  0
+  ExtModeArchiveMode	  "off"
+  ExtModeAutoIncOneShot	  off
+  ExtModeIncDirWhenArm	  off
+  ExtModeAddSuffixToVar	  off
+  ExtModeWriteAllDataToWs off
+  ExtModeArmWhenConnect	  on
+  ExtModeSkipDownloadWhenConnect off
+  ExtModeLogAll		  on
+  ExtModeAutoUpdateStatusClock on
+  StrictBusMsg		  "None"
+  ProdHWDeviceType	  "32-bit Generic"
+  ShowModelReferenceBlockVersion off
+  ShowModelReferenceBlockIO off
+  BlockDefaults {
+    Orientation		    "right"
+    ForegroundColor	    "black"
+    BackgroundColor	    "white"
+    DropShadow		    off
+    NamePlacement	    "normal"
+    FontName		    "Helvetica"
+    FontSize		    10
+    FontWeight		    "normal"
+    FontAngle		    "normal"
+    ShowName		    on
+  }
+  BlockParameterDefaults {
+    Block {
+      BlockType		      Constant
+      Value		      "1"
+      VectorParams1D	      on
+      OutDataTypeMode	      "Inherit from 'Constant value'"
+      OutDataType	      "sfix(16)"
+      ConRadixGroup	      "Use specified scaling"
+      OutScaling	      "2^0"
+      SampleTime	      "inf"
+    }
+    Block {
+      BlockType		      EnablePort
+      StatesWhenEnabling      "held"
+      ShowOutputPort	      off
+      ZeroCross		      on
+    }
+    Block {
+      BlockType		      Inport
+      Port		      "1"
+      UseBusObject	      off
+      BusObject		      "BusObject"
+      BusOutputAsStruct	      off
+      PortDimensions	      "-1"
+      SampleTime	      "-1"
+      DataType		      "auto"
+      OutDataType	      "sfix(16)"
+      OutScaling	      "2^0"
+      SignalType	      "auto"
+      SamplingMode	      "auto"
+      LatchByDelayingOutsideSignal off
+      LatchByCopyingInsideSignal off
+      Interpolate	      on
+    }
+    Block {
+      BlockType		      MATLABFcn
+      MATLABFcn		      "sin"
+      OutputDimensions	      "-1"
+      OutputSignalType	      "auto"
+      Output1D		      on
+      SampleTime	      "-1"
+    }
+    Block {
+      BlockType		      Mux
+      Inputs		      "4"
+      DisplayOption	      "none"
+      UseBusObject	      off
+      BusObject		      "BusObject"
+      NonVirtualBus	      off
+    }
+    Block {
+      BlockType		      Outport
+      Port		      "1"
+      UseBusObject	      off
+      BusObject		      "BusObject"
+      BusOutputAsStruct	      off
+      PortDimensions	      "-1"
+      SampleTime	      "-1"
+      DataType		      "auto"
+      OutDataType	      "sfix(16)"
+      OutScaling	      "2^0"
+      SignalType	      "auto"
+      SamplingMode	      "auto"
+      OutputWhenDisabled      "held"
+      InitialOutput	      "[]"
+    }
+    Block {
+      BlockType		      Probe
+      ProbeWidth	      on
+      ProbeSampleTime	      on
+      ProbeComplexSignal      on
+      ProbeSignalDimensions   off
+      ProbeFramedSignal	      off
+      ProbeWidthDataType      "double"
+      ProbeSampleTimeDataType "double"
+      ProbeComplexityDataType "double"
+      ProbeDimensionsDataType "double"
+      ProbeFrameDataType      "double"
+    }
+    Block {
+      BlockType		      Reference
+    }
+    Block {
+      BlockType		      SubSystem
+      ShowPortLabels	      on
+      Permissions	      "ReadWrite"
+      PermitHierarchicalResolution "All"
+      SystemSampleTime	      "-1"
+      RTWFcnNameOpts	      "Auto"
+      RTWFileNameOpts	      "Auto"
+      SimViewingDevice	      off
+      DataTypeOverride	      "UseLocalSettings"
+      MinMaxOverflowLogging   "UseLocalSettings"
+    }
+    Block {
+      BlockType		      ZeroOrderHold
+      SampleTime	      "1"
+    }
+  }
+  AnnotationDefaults {
+    HorizontalAlignment	    "center"
+    VerticalAlignment	    "middle"
+    ForegroundColor	    "black"
+    BackgroundColor	    "white"
+    DropShadow		    off
+    FontName		    "Helvetica"
+    FontSize		    10
+    FontWeight		    "normal"
+    FontAngle		    "normal"
+  }
+  LineDefaults {
+    FontName		    "Helvetica"
+    FontSize		    9
+    FontWeight		    "normal"
+    FontAngle		    "normal"
+  }
+  System {
+    Name		    "albedo_lib"
+    Location		    [778, 103, 967, 409]
+    Open		    on
+    ModelBrowserVisibility  off
+    ModelBrowserWidth	    200
+    ScreenColor		    "white"
+    PaperOrientation	    "landscape"
+    PaperPositionMode	    "auto"
+    PaperType		    "A4"
+    PaperUnits		    "centimeters"
+    ZoomFactor		    "100"
+    ReportName		    "simulink-default.rpt"
+    Block {
+      BlockType		      SubSystem
+      Name		      "Earth Albedo\nModel"
+      Ports		      [2, 1]
+      Position		      [45, 111, 135, 164]
+      TreatAsAtomicUnit	      on
+      MinAlgLoopOccurrences   off
+      RTWSystemCode	      "Auto"
+      MaskHideContents	      off
+      MaskType		      "Earth Albedo Model"
+      MaskDescription	      "Calculcates the Earth albedo from satellite and"
+" Sun positions and static reflectivity data."
+      MaskHelp		      "<b>Input</b><br>\nSat: Vector to satellite in E"
+"CEF [m].<br>\nSun: Vector to the Sun in ECEF [m].<p>\n<b>Parameters</b><br>\n"
+"Reflectivity Data (REFL Struct): TOMS Reflectivity data [E.U].<br>\nReduction"
+" factor: Reduce data resolution by this factor.<br>\nSample Time (-1 for inhe"
+"rited): Sample Time [s]. The block cannot inherit continuous sample time.<br>"
+"\nEnable: Enable or disable albedo calculation.<p>\n<b>Output</b><br>\nAlbedo"
+": Fraction of solar irradiance received on the satellite. The incoming solar "
+"irradiance is 1366.5 W/m^2.<p>\n"
+      MaskPromptString	      "Reflectivity Data (REFL Struct):|Reduction fact"
+"or:|Sample Time (-1 for inherited):|Enable:"
+      MaskStyleString	      "edit,edit,edit,checkbox"
+      MaskTunableValueString  "on,on,off,on"
+      MaskCallbackString      "|||enable = strcmp(get_param(gcb,'enable'),'on'"
+");"
+      MaskEnableString	      "on,on,on,on"
+      MaskVisibilityString    "on,on,on,on"
+      MaskToolTipString	      "on,on,on,on"
+      MaskVarAliasString      ",,,"
+      MaskVariables	      "refldata=@1;redfac=@2;Ts=@3;enable=@4;"
+      MaskInitialization      "global sy;\nglobal sx;\nsy = floor(180/redfac);"
+"\nsx = floor(288/redfac);\n"
+      MaskDisplay	      "image(imread('private/albedoicon.png'));\nport_"
+"label('output', 1, 'Albedo');\nport_label('input', 1, 'Sat');\nport_label('in"
+"put', 2, 'Sun');"
+      MaskIconFrame	      on
+      MaskIconOpaque	      on
+      MaskIconRotate	      "none"
+      MaskIconUnits	      "autoscale"
+      MaskValueString	      "mean_refl|4|-1|on"
+      MaskTabNameString	      ",,,"
+      System {
+	Name			"Earth Albedo\nModel"
+	Location		[894, 733, 1451, 1033]
+	Open			off
+	ModelBrowserVisibility	off
+	ModelBrowserWidth	200
+	ScreenColor		"white"
+	PaperOrientation	"landscape"
+	PaperPositionMode	"auto"
+	PaperType		"A4"
+	PaperUnits		"centimeters"
+	ZoomFactor		"100"
+	Block {
+	  BlockType		  Inport
+	  Name			  "r_sat_ecef"
+	  Position		  [55, 143, 85, 157]
+	  BackgroundColor	  "yellow"
+	  IconDisplay		  "Port number"
+	  SampleTime		  "Ts"
+	}
+	Block {
+	  BlockType		  Inport
+	  Name			  "r_sun_ecef"
+	  Position		  [100, 178, 130, 192]
+	  BackgroundColor	  "yellow"
+	  Port			  "2"
+	  IconDisplay		  "Port number"
+	  SampleTime		  "Ts"
+	}
+	Block {
+	  BlockType		  SubSystem
+	  Name			  "Albedo"
+	  Ports			  [2, 1, 1]
+	  Position		  [210, 132, 330, 203]
+	  TreatAsAtomicUnit	  off
+	  MinAlgLoopOccurrences	  off
+	  RTWSystemCode		  "Auto"
+	  MaskHideContents	  off
+	  System {
+	    Name		    "Albedo"
+	    Location		    [486, 695, 906, 947]
+	    Open		    off
+	    ModelBrowserVisibility  off
+	    ModelBrowserWidth	    200
+	    ScreenColor		    "white"
+	    PaperOrientation	    "landscape"
+	    PaperPositionMode	    "auto"
+	    PaperType		    "A4"
+	    PaperUnits		    "centimeters"
+	    ZoomFactor		    "100"
+	    Block {
+	      BlockType		      Inport
+	      Name		      "r_sat_ecef"
+	      Position		      [65, 98, 95, 112]
+	      BackgroundColor	      "yellow"
+	      IconDisplay	      "Port number"
+	      PortDimensions	      "3"
+	    }
+	    Block {
+	      BlockType		      Inport
+	      Name		      "r_sun_ecef"
+	      Position		      [120, 118, 150, 132]
+	      BackgroundColor	      "yellow"
+	      Port		      "2"
+	      IconDisplay	      "Port number"
+	      PortDimensions	      "3"
+	    }
+	    Block {
+	      BlockType		      EnablePort
+	      Name		      "Enable"
+	      Ports		      []
+	      Position		      [320, 40, 340, 60]
+	      StatesWhenEnabling      "reset"
+	    }
+	    Block {
+	      BlockType		      MATLABFcn
+	      Name		      "AlbedoFcn"
+	      Position		      [220, 100, 280, 130]
+	      MATLABFcn		      "albedo_wrapper(u(1:3),u(4:6),refldata,r"
+"edfac)"
+	      OutputDimensions	      "[sy sx]"
+	      OutputSignalType	      "real"
+	      Output1D		      off
+	    }
+	    Block {
+	      BlockType		      Mux
+	      Name		      "Mux"
+	      Ports		      [2, 1]
+	      Position		      [185, 96, 190, 134]
+	      ShowName		      off
+	      Inputs		      "2"
+	      DisplayOption	      "bar"
+	    }
+	    Block {
+	      BlockType		      Outport
+	      Name		      "a"
+	      Position		      [315, 108, 345, 122]
+	      BackgroundColor	      "darkGreen"
+	      IconDisplay	      "Port number"
+	      BusOutputAsStruct	      off
+	      OutputWhenDisabled      "reset"
+	      InitialOutput	      "0"
+	    }
+	    Line {
+	      SrcBlock		      "r_sun_ecef"
+	      SrcPort		      1
+	      DstBlock		      "Mux"
+	      DstPort		      2
+	    }
+	    Line {
+	      SrcBlock		      "AlbedoFcn"
+	      SrcPort		      1
+	      DstBlock		      "a"
+	      DstPort		      1
+	    }
+	    Line {
+	      SrcBlock		      "r_sat_ecef"
+	      SrcPort		      1
+	      DstBlock		      "Mux"
+	      DstPort		      1
+	    }
+	    Line {
+	      SrcBlock		      "Mux"
+	      SrcPort		      1
+	      DstBlock		      "AlbedoFcn"
+	      DstPort		      1
+	    }
+	  }
+	}
+	Block {
+	  BlockType		  Constant
+	  Name			  "On"
+	  Position		  [242, 90, 298, 105]
+	  Orientation		  "down"
+	  NamePlacement		  "alternate"
+	  ShowName		  off
+	  Value			  "enable"
+	}
+	Block {
+	  BlockType		  ZeroOrderHold
+	  Name			  "Zero-Order\nHold1"
+	  Position		  [160, 176, 180, 194]
+	  ShowName		  off
+	  SampleTime		  "Ts"
+	}
+	Block {
+	  BlockType		  ZeroOrderHold
+	  Name			  "Zero-Order\nHold2"
+	  Position		  [160, 141, 180, 159]
+	  ShowName		  off
+	  SampleTime		  "Ts"
+	}
+	Block {
+	  BlockType		  Outport
+	  Name			  "a"
+	  Position		  [365, 163, 395, 177]
+	  BackgroundColor	  "darkGreen"
+	  IconDisplay		  "Port number"
+	  BusOutputAsStruct	  off
+	}
+	Line {
+	  SrcBlock		  "On"
+	  SrcPort		  1
+	  DstBlock		  "Albedo"
+	  DstPort		  enable
+	}
+	Line {
+	  SrcBlock		  "r_sat_ecef"
+	  SrcPort		  1
+	  DstBlock		  "Zero-Order\nHold2"
+	  DstPort		  1
+	}
+	Line {
+	  SrcBlock		  "Albedo"
+	  SrcPort		  1
+	  DstBlock		  "a"
+	  DstPort		  1
+	}
+	Line {
+	  SrcBlock		  "r_sun_ecef"
+	  SrcPort		  1
+	  DstBlock		  "Zero-Order\nHold1"
+	  DstPort		  1
+	}
+	Line {
+	  SrcBlock		  "Zero-Order\nHold2"
+	  SrcPort		  1
+	  DstBlock		  "Albedo"
+	  DstPort		  1
+	}
+	Line {
+	  SrcBlock		  "Zero-Order\nHold1"
+	  SrcPort		  1
+	  DstBlock		  "Albedo"
+	  DstPort		  2
+	}
+      }
+    }
+    Block {
+      BlockType		      SubSystem
+      Name		      "Earth Albedo\nSimulation"
+      Ports		      [3, 1]
+      Position		      [45, 19, 135, 71]
+      TreatAsAtomicUnit	      on
+      MinAlgLoopOccurrences   off
+      RTWSystemCode	      "Auto"
+      MaskHideContents	      off
+      MaskType		      "Earth Albedo Simuation"
+      MaskDescription	      "Calculcates the Earth albedo from satellite and"
+" Sun positions and time. The time input is used to search the reflecitivity l"
+"ibrary for daile reflectivity data."
+      MaskHelp		      "<b>Input</b><br>\nSat: Vector to satellite in E"
+"CEF [m].<br>\nSun: Vector to the Sun in ECEF [m].<br>\nTime: Time in Julian D"
+"ate [days].<p>\n<b>Parameters</b><br>\nPath to reflectivity data directories:"
+" System path to TOMS Earth Reflectivity Data. The data must be structured in "
+"i directiry for each year. The path is searched for the newest data, determin"
+"ed from the Time input.<br>\nReduction factor: Reduce data resolution by this"
+" factor.<br>\nSample Time (-1 for inherited): Sample Time [s]. The block cann"
+"ot inherit continuous sample time.<br>\nEnable: Enable or disable albedo calc"
+"ulation.<p>\n<b>Output</b><br>\nAlbedo: Fraction of solar irradiance received"
+" on the satellite. The incoming solar irradiance is 1366.5 W/m^2.<p>\n"
+      MaskPromptString	      "Path to reflectivity data directories:|Reductio"
+"n factor:|Sample Time (-1 for inherited):|Enable:"
+      MaskStyleString	      "edit,edit,edit,checkbox"
+      MaskTunableValueString  "on,on,off,on"
+      MaskCallbackString      "|||enable = strcmp(get_param(gcb,'enable'),'on'"
+");"
+      MaskEnableString	      "on,on,on,on"
+      MaskVisibilityString    "on,on,on,on"
+      MaskToolTipString	      "on,on,on,on"
+      MaskVarAliasString      ",,,"
+      MaskVariables	      "pathstr=@1;redfac=@2;Ts=@3;enable=@4;"
+      MaskInitialization      "global sy;\nglobal sx;\nsy = floor(180/redfac);"
+"\nsx = floor(288/redfac);\n"
+      MaskDisplay	      "image(imread('private/albedoicon.png'));\nport_"
+"label('output', 1, 'Albedo');\nport_label('input', 1, 'Sat');\nport_label('in"
+"put', 2, 'Sun');\nport_label('input', 3, 'Time');"
+      MaskIconFrame	      on
+      MaskIconOpaque	      on
+      MaskIconRotate	      "none"
+      MaskIconUnits	      "autoscale"
+      MaskValueString	      "[albedo_path filesep 'refl_data']|4|-1|on"
+      MaskTabNameString	      ",,,"
+      System {
+	Name			"Earth Albedo\nSimulation"
+	Location		[978, 157, 1476, 457]
+	Open			off
+	ModelBrowserVisibility	off
+	ModelBrowserWidth	200
+	ScreenColor		"white"
+	PaperOrientation	"landscape"
+	PaperPositionMode	"auto"
+	PaperType		"A4"
+	PaperUnits		"centimeters"
+	ZoomFactor		"100"
+	Block {
+	  BlockType		  Inport
+	  Name			  "r_sat_ecef"
+	  Position		  [65, 133, 95, 147]
+	  BackgroundColor	  "yellow"
+	  IconDisplay		  "Port number"
+	  PortDimensions	  "3"
+	  SampleTime		  "Ts"
+	  SignalType		  "real"
+	}
+	Block {
+	  BlockType		  Inport
+	  Name			  "r_sun_ecef"
+	  Position		  [115, 158, 145, 172]
+	  BackgroundColor	  "yellow"
+	  Port			  "2"
+	  IconDisplay		  "Port number"
+	  PortDimensions	  "3"
+	  SampleTime		  "Ts"
+	  SignalType		  "real"
+	}
+	Block {
+	  BlockType		  Inport
+	  Name			  "JD"
+	  Position		  [165, 183, 195, 197]
+	  BackgroundColor	  "yellow"
+	  Port			  "3"
+	  IconDisplay		  "Port number"
+	  PortDimensions	  "1"
+	  SampleTime		  "Ts"
+	  SignalType		  "real"
+	}
+	Block {
+	  BlockType		  SubSystem
+	  Name			  "Albedo"
+	  Ports			  [3, 1, 1]
+	  Position		  [285, 130, 405, 200]
+	  TreatAsAtomicUnit	  off
+	  MinAlgLoopOccurrences	  off
+	  RTWSystemCode		  "Auto"
+	  MaskHideContents	  off
+	  System {
+	    Name		    "Albedo"
+	    Location		    [631, 127, 1116, 421]
+	    Open		    off
+	    ModelBrowserVisibility  off
+	    ModelBrowserWidth	    200
+	    ScreenColor		    "white"
+	    PaperOrientation	    "landscape"
+	    PaperPositionMode	    "auto"
+	    PaperType		    "A4"
+	    PaperUnits		    "centimeters"
+	    ZoomFactor		    "100"
+	    Block {
+	      BlockType		      Inport
+	      Name		      "r_sat_ecef"
+	      Position		      [70, 83, 100, 97]
+	      BackgroundColor	      "yellow"
+	      IconDisplay	      "Port number"
+	      PortDimensions	      "3"
+	    }
+	    Block {
+	      BlockType		      Inport
+	      Name		      "r_sun_ecef"
+	      Position		      [125, 93, 155, 107]
+	      BackgroundColor	      "yellow"
+	      Port		      "2"
+	      IconDisplay	      "Port number"
+	      PortDimensions	      "3"
+	    }
+	    Block {
+	      BlockType		      Inport
+	      Name		      "JD"
+	      Position		      [175, 103, 205, 117]
+	      BackgroundColor	      "yellow"
+	      Port		      "3"
+	      IconDisplay	      "Port number"
+	      PortDimensions	      "1"
+	    }
+	    Block {
+	      BlockType		      EnablePort
+	      Name		      "Enable"
+	      Ports		      []
+	      Position		      [375, 30, 395, 50]
+	      StatesWhenEnabling      "reset"
+	    }
+	    Block {
+	      BlockType		      MATLABFcn
+	      Name		      "AlbedoFcn"
+	      Position		      [275, 85, 335, 115]
+	      MATLABFcn		      "albedo_wrapper(u(1:3),u(4:6),u(7),redfa"
+"c,pathstr)"
+	      OutputDimensions	      "[sy sx]"
+	      OutputSignalType	      "real"
+	      Output1D		      off
+	    }
+	    Block {
+	      BlockType		      Mux
+	      Name		      "Mux"
+	      Ports		      [3, 1]
+	      Position		      [240, 81, 245, 119]
+	      ShowName		      off
+	      Inputs		      "3"
+	      DisplayOption	      "bar"
+	    }
+	    Block {
+	      BlockType		      Outport
+	      Name		      "a"
+	      Position		      [370, 93, 400, 107]
+	      BackgroundColor	      "darkGreen"
+	      IconDisplay	      "Port number"
+	      BusOutputAsStruct	      off
+	      OutputWhenDisabled      "reset"
+	      InitialOutput	      "0"
+	    }
+	    Line {
+	      SrcBlock		      "Mux"
+	      SrcPort		      1
+	      DstBlock		      "AlbedoFcn"
+	      DstPort		      1
+	    }
+	    Line {
+	      SrcBlock		      "r_sat_ecef"
+	      SrcPort		      1
+	      DstBlock		      "Mux"
+	      DstPort		      1
+	    }
+	    Line {
+	      SrcBlock		      "AlbedoFcn"
+	      SrcPort		      1
+	      DstBlock		      "a"
+	      DstPort		      1
+	    }
+	    Line {
+	      SrcBlock		      "r_sun_ecef"
+	      SrcPort		      1
+	      DstBlock		      "Mux"
+	      DstPort		      2
+	    }
+	    Line {
+	      SrcBlock		      "JD"
+	      SrcPort		      1
+	      DstBlock		      "Mux"
+	      DstPort		      3
+	    }
+	  }
+	}
+	Block {
+	  BlockType		  Constant
+	  Name			  "On"
+	  Position		  [317, 90, 373, 105]
+	  Orientation		  "down"
+	  NamePlacement		  "alternate"
+	  ShowName		  off
+	  Value			  "enable"
+	}
+	Block {
+	  BlockType		  ZeroOrderHold
+	  Name			  "Zero-Order\nHold"
+	  Position		  [225, 131, 245, 149]
+	  ShowName		  off
+	  SampleTime		  "Ts"
+	}
+	Block {
+	  BlockType		  ZeroOrderHold
+	  Name			  "Zero-Order\nHold1"
+	  Position		  [225, 156, 245, 174]
+	  ShowName		  off
+	  SampleTime		  "Ts"
+	}
+	Block {
+	  BlockType		  ZeroOrderHold
+	  Name			  "Zero-Order\nHold2"
+	  Position		  [225, 181, 245, 199]
+	  ShowName		  off
+	  SampleTime		  "Ts"
+	}
+	Block {
+	  BlockType		  Outport
+	  Name			  "a"
+	  Position		  [440, 158, 470, 172]
+	  BackgroundColor	  "darkGreen"
+	  IconDisplay		  "Port number"
+	  BusOutputAsStruct	  off
+	}
+	Line {
+	  SrcBlock		  "r_sun_ecef"
+	  SrcPort		  1
+	  DstBlock		  "Zero-Order\nHold1"
+	  DstPort		  1
+	}
+	Line {
+	  SrcBlock		  "Albedo"
+	  SrcPort		  1
+	  DstBlock		  "a"
+	  DstPort		  1
+	}
+	Line {
+	  SrcBlock		  "r_sat_ecef"
+	  SrcPort		  1
+	  DstBlock		  "Zero-Order\nHold"
+	  DstPort		  1
+	}
+	Line {
+	  SrcBlock		  "On"
+	  SrcPort		  1
+	  DstBlock		  "Albedo"
+	  DstPort		  enable
+	}
+	Line {
+	  SrcBlock		  "JD"
+	  SrcPort		  1
+	  DstBlock		  "Zero-Order\nHold2"
+	  DstPort		  1
+	}
+	Line {
+	  SrcBlock		  "Zero-Order\nHold"
+	  SrcPort		  1
+	  DstBlock		  "Albedo"
+	  DstPort		  1
+	}
+	Line {
+	  SrcBlock		  "Zero-Order\nHold1"
+	  SrcPort		  1
+	  DstBlock		  "Albedo"
+	  DstPort		  2
+	}
+	Line {
+	  SrcBlock		  "Zero-Order\nHold2"
+	  SrcPort		  1
+	  DstBlock		  "Albedo"
+	  DstPort		  3
+	}
+      }
+    }
+    Block {
+      BlockType		      SubSystem
+      Name		      "Perpendicular\nEquivalent"
+      Ports		      [3, 1]
+      Position		      [45, 204, 135, 256]
+      BackgroundColor	      "lightBlue"
+      TreatAsAtomicUnit	      off
+      MinAlgLoopOccurrences   off
+      RTWSystemCode	      "Auto"
+      MaskHideContents	      off
+      MaskType		      "Perpendicular Equivalent"
+      MaskDescription	      "Projects all incoming Earth albedo irradiances "
+"onto a normal to the exposed surface. The scalar result is the norm of an equ"
+"ivalent perpendicular incident irradiance."
+      MaskHelp		      "<b>Input</b><br>\nNadir: Vector from satellite "
+"position to Earth center in ECEF [m].<br>\nNss:: Normal vector of exposed sur"
+"face in ECEF.<br>\nAlbedo: Earth albedo matrix.<p>\n<b>Parameters</b><br>\nSa"
+"mple Time (-1 for inherited): Sample Time [s]. The block cannot inherit conti"
+"nuous sample time.<br>\nEnable: Enable or disable albedo calculation<p>\n<b>O"
+"utput</b><br>\nIRad: Norm of equivalent incident irradiance vector [W/m^2].<p"
+">\n"
+      MaskPromptString	      "Sample Time (-1 for inherited)|Enable:"
+      MaskStyleString	      "edit,checkbox"
+      MaskTunableValueString  "off,on"
+      MaskCallbackString      "|"
+      MaskEnableString	      "on,on"
+      MaskVisibilityString    "on,on"
+      MaskToolTipString	      "on,on"
+      MaskVarAliasString      ","
+      MaskVariables	      "Ts=@1;enable=@2;"
+      MaskDisplay	      "image(imread('private/projectionicon.png'));\np"
+"ort_label('output', 1, 'IRad');\nport_label('input', 1, 'Nadir');\nport_label"
+"('input', 2, 'Nss');\nport_label('input', 3, 'Albedo');"
+      MaskIconFrame	      on
+      MaskIconOpaque	      on
+      MaskIconRotate	      "none"
+      MaskIconUnits	      "autoscale"
+      MaskValueString	      "-1|on"
+      MaskTabNameString	      ","
+      System {
+	Name			"Perpendicular\nEquivalent"
+	Location		[546, 275, 930, 502]
+	Open			off
+	ModelBrowserVisibility	off
+	ModelBrowserWidth	200
+	ScreenColor		"white"
+	PaperOrientation	"landscape"
+	PaperPositionMode	"auto"
+	PaperType		"A4"
+	PaperUnits		"centimeters"
+	ZoomFactor		"100"
+	Block {
+	  BlockType		  Inport
+	  Name			  "r_earth_ecef"
+	  Position		  [25, 48, 55, 62]
+	  BackgroundColor	  "yellow"
+	  IconDisplay		  "Port number"
+	  PortDimensions	  "3"
+	  SampleTime		  "Ts"
+	  SignalType		  "real"
+	}
+	Block {
+	  BlockType		  Inport
+	  Name			  "n_ecef"
+	  Position		  [25, 83, 55, 97]
+	  BackgroundColor	  "yellow"
+	  Port			  "2"
+	  IconDisplay		  "Port number"
+	  PortDimensions	  "3"
+	  SampleTime		  "Ts"
+	  SignalType		  "real"
+	}
+	Block {
+	  BlockType		  Inport
+	  Name			  "albedo"
+	  Position		  [25, 118, 55, 132]
+	  BackgroundColor	  "yellow"
+	  Port			  "3"
+	  IconDisplay		  "Port number"
+	  SampleTime		  "Ts"
+	  SignalType		  "real"
+	}
+	Block {
+	  BlockType		  Constant
+	  Name			  "On"
+	  Position		  [187, 20, 243, 35]
+	  Orientation		  "down"
+	  NamePlacement		  "alternate"
+	  ShowName		  off
+	  Value			  "enable"
+	}
+	Block {
+	  BlockType		  SubSystem
+	  Name			  "Projection"
+	  Ports			  [3, 1, 1]
+	  Position		  [145, 59, 285, 121]
+	  TreatAsAtomicUnit	  on
+	  MinAlgLoopOccurrences	  off
+	  RTWSystemCode		  "Auto"
+	  MaskHideContents	  off
+	  System {
+	    Name		    "Projection"
+	    Location		    [686, 393, 1081, 639]
+	    Open		    off
+	    ModelBrowserVisibility  off
+	    ModelBrowserWidth	    200
+	    ScreenColor		    "white"
+	    PaperOrientation	    "landscape"
+	    PaperPositionMode	    "auto"
+	    PaperType		    "A4"
+	    PaperUnits		    "centimeters"
+	    ZoomFactor		    "100"
+	    Block {
+	      BlockType		      Inport
+	      Name		      "r_earth_ecef"
+	      Position		      [60, 63, 90, 77]
+	      BackgroundColor	      "yellow"
+	      IconDisplay	      "Port number"
+	    }
+	    Block {
+	      BlockType		      Inport
+	      Name		      "n_ecef"
+	      Position		      [60, 98, 90, 112]
+	      BackgroundColor	      "yellow"
+	      Port		      "2"
+	      IconDisplay	      "Port number"
+	    }
+	    Block {
+	      BlockType		      Inport
+	      Name		      "albedo"
+	      Position		      [65, 168, 95, 182]
+	      BackgroundColor	      "yellow"
+	      Port		      "3"
+	      IconDisplay	      "Port number"
+	    }
+	    Block {
+	      BlockType		      EnablePort
+	      Name		      "Enable"
+	      Ports		      []
+	      Position		      [235, 20, 255, 40]
+	    }
+	    Block {
+	      BlockType		      Probe
+	      Name		      "Dimension"
+	      Ports		      [1, 1]
+	      Position		      [130, 132, 175, 148]
+	      ProbeWidth	      off
+	      ProbeSampleTime	      off
+	      ProbeComplexSignal      off
+	      ProbeSignalDimensions   on
+	    }
+	    Block {
+	      BlockType		      Mux
+	      Name		      "Mux"
+	      Ports		      [4, 1]
+	      Position		      [200, 52, 205, 193]
+	      ShowName		      off
+	      DisplayOption	      "bar"
+	    }
+	    Block {
+	      BlockType		      Reference
+	      Name		      "Reshape"
+	      Ports		      [1, 1]
+	      Position		      [135, 163, 165, 187]
+	      SourceBlock	      "simulink/Math\nOperations/Reshape"
+	      SourceType	      "Reshape"
+	      OutputDimensionality    "1-D array"
+	      OutputDimensions	      "[1,1]"
+	    }
+	    Block {
+	      BlockType		      MATLABFcn
+	      Name		      "ss_proj"
+	      Position		      [225, 110, 285, 140]
+	      MATLABFcn		      "ss_proj(u(1:3),u(4:6),reshape(u(9:u(7)*"
+"u(8)+8),u(7),u(8)) );"
+	      OutputDimensions	      "1"
+	    }
+	    Block {
+	      BlockType		      Outport
+	      Name		      "irradiance"
+	      Position		      [310, 118, 340, 132]
+	      BackgroundColor	      "darkGreen"
+	      IconDisplay	      "Port number"
+	      BusOutputAsStruct	      off
+	    }
+	    Line {
+	      SrcBlock		      "Mux"
+	      SrcPort		      1
+	      DstBlock		      "ss_proj"
+	      DstPort		      1
+	    }
+	    Line {
+	      SrcBlock		      "r_earth_ecef"
+	      SrcPort		      1
+	      DstBlock		      "Mux"
+	      DstPort		      1
+	    }
+	    Line {
+	      SrcBlock		      "n_ecef"
+	      SrcPort		      1
+	      DstBlock		      "Mux"
+	      DstPort		      2
+	    }
+	    Line {
+	      SrcBlock		      "ss_proj"
+	      SrcPort		      1
+	      DstBlock		      "irradiance"
+	      DstPort		      1
+	    }
+	    Line {
+	      SrcBlock		      "albedo"
+	      SrcPort		      1
+	      Points		      [10, 0]
+	      Branch {
+		DstBlock		"Reshape"
+		DstPort			1
+	      }
+	      Branch {
+		Points			[0, -35]
+		DstBlock		"Dimension"
+		DstPort			1
+	      }
+	    }
+	    Line {
+	      SrcBlock		      "Dimension"
+	      SrcPort		      1
+	      DstBlock		      "Mux"
+	      DstPort		      3
+	    }
+	    Line {
+	      SrcBlock		      "Reshape"
+	      SrcPort		      1
+	      DstBlock		      "Mux"
+	      DstPort		      4
+	    }
+	  }
+	}
+	Block {
+	  BlockType		  ZeroOrderHold
+	  Name			  "Zero-Order\nHold 1"
+	  Position		  [85, 46, 105, 64]
+	  ShowName		  off
+	  SampleTime		  "Ts"
+	}
+	Block {
+	  BlockType		  ZeroOrderHold
+	  Name			  "Zero-Order\nHold 2"
+	  Position		  [85, 81, 105, 99]
+	  ShowName		  off
+	  SampleTime		  "Ts"
+	}
+	Block {
+	  BlockType		  ZeroOrderHold
+	  Name			  "Zero-Order\nHold 3"
+	  Position		  [85, 116, 105, 134]
+	  ShowName		  off
+	  SampleTime		  "Ts"
+	}
+	Block {
+	  BlockType		  Outport
+	  Name			  "irradiance"
+	  Position		  [320, 83, 350, 97]
+	  BackgroundColor	  "darkGreen"
+	  IconDisplay		  "Port number"
+	  BusOutputAsStruct	  off
+	  PortDimensions	  "1"
+	  SampleTime		  "Ts"
+	  SignalType		  "real"
+	}
+	Line {
+	  SrcBlock		  "r_earth_ecef"
+	  SrcPort		  1
+	  DstBlock		  "Zero-Order\nHold 1"
+	  DstPort		  1
+	}
+	Line {
+	  SrcBlock		  "n_ecef"
+	  SrcPort		  1
+	  DstBlock		  "Zero-Order\nHold 2"
+	  DstPort		  1
+	}
+	Line {
+	  SrcBlock		  "Projection"
+	  SrcPort		  1
+	  DstBlock		  "irradiance"
+	  DstPort		  1
+	}
+	Line {
+	  SrcBlock		  "albedo"
+	  SrcPort		  1
+	  Points		  [0, 0]
+	  DstBlock		  "Zero-Order\nHold 3"
+	  DstPort		  1
+	}
+	Line {
+	  SrcBlock		  "Zero-Order\nHold 1"
+	  SrcPort		  1
+	  Points		  [20, 0]
+	  DstBlock		  "Projection"
+	  DstPort		  1
+	}
+	Line {
+	  SrcBlock		  "Zero-Order\nHold 2"
+	  SrcPort		  1
+	  DstBlock		  "Projection"
+	  DstPort		  2
+	}
+	Line {
+	  SrcBlock		  "Zero-Order\nHold 3"
+	  SrcPort		  1
+	  Points		  [20, 0]
+	  DstBlock		  "Projection"
+	  DstPort		  3
+	}
+	Line {
+	  SrcBlock		  "On"
+	  SrcPort		  1
+	  DstBlock		  "Projection"
+	  DstPort		  enable
+	}
+      }
+    }
+  }
+}
