@@ -196,12 +196,20 @@ for l=1:n_steps
 
         %% Propagate the system
         torq=zeros(3,1);
+        
+        [~, ~, ~, AngVel_rw_radps(3,1), acceleration_rw(2,1), T_rw_total] = rw_model(0, AngVel_rw_radps(3,1)); 
+        torq(3,1) = T_rw_total;
+        
         [T_dist,~] = disturbances_pd(q_ob_data(:,(k-1)/dt+c), sun_pos_orbit(:,(k-1)/dt+c), mag_field_orbit(:,(k-1)/dt+c)*10^(-9), disturbancesEnabled);
         torq = torq + T_dist;
         x = real_model.stateTransFun(x, stateTransCookieFinalNominal(torq,rw_ang_momentum,[0;0;0])); 
         x_real(:,(k-1)/dt+c+1)=x;
         q_ob_data(:,(k-1)/dt+c+1) = quat_EB2OB(x(1:4), nodem(1,(k-1)/dt+c),inclm(1,(k-1)/dt+c),argpm(1,(k-1)/dt+c),mm(1,(k-1)/dt+c) );
-        rw_ang_vel_rpm(1,(k-1)/dt+c+1) = AngVel_rw_rpm(3,1); 
+        
+        AngVel_rw_rpm(3,1) = AngVel_rw_radps(3,1)*30/pi; 
+        rw_ang_vel_rpm(1,(k-1)/dt+c+1) = AngVel_rw_rpm(3,1);  
+        rw_accel(1,(k-1)/dt+c+1) = acceleration_rw(2,1);
+        
     %     if norm(q_prev - q_ob_data(:,(k-1)/dt+c+1))^2 > norm(q_prev + q_ob_data(:,(k-1)/dt+c+1))^2
     %         q_ob_data(:,(k-1)/dt+c+1) = -q_ob_data(:,(k-1)/dt+c+1);
     %     end
@@ -259,7 +267,7 @@ for l=1:n_steps
                     timeflag_dz] = ...
                         PD(q_desired ,q_ob_hat, y_noise(4:6)-ekf.theta(5:7) , y_noise(1:3)*norm(mag_field_orbit(:,(k-1)/dt+c)*10^(-9)) , eclipse((k-1)/dt+c), ...
                             Const.mtq_max, Const.lim_dz, AngVel_rw_radps(2,1), AngVel_rw_rpm(2,1), ...
-                                acceleration_rw(1,1), init_AngVel_dz, init_accel_dz, timeflag_dz,Const.rw_max_torque,y_real(1:3)*norm(mag_field_orbit(:,(k-1)/dt+c)*10^(-9)));
+                                acceleration_rw(1,1), init_AngVel_dz, init_accel_dz, timeflag_dz,Const.rw_max_torque,y_real(1:3)*norm(mag_field_orbit(:,(k-1)/dt+c)*10^(-9)), l);
         tau_rw(1, (k-1)/dt+c+1) = T_rw(3);
         tau_mtq(:, (k-1)/dt+c+1) = T_magnetic_effective;
         rw_ang_vel_rpm(1,(k-1)/dt+c+1) = AngVel_rw_rpm(3,1); 
@@ -485,4 +493,4 @@ end
  title('Angular velocity of RW'); 
  ylabel('Angular Velocity [rpm]'); 
  xlabel('Time [s]'); 
- grid on; 
+ grid on;

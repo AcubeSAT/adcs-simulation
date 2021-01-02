@@ -3,13 +3,14 @@ function  [torque, T_rw, T_magnetic_effective, V_rw, I_rw, P_thermal_rw, AngVel_
                 timeflag_dz] = ...
                     PD(q_desired , q_orbit_body , w_b_ib , B_body , eclipse, mtq_max, ...
                         lim_dz, AngVel_rw_radps_cur, AngVel_rw_rpm_cur, acceleration_rw_old, init_AngVel_dz, ...
-                            init_accel_dz,timeflag_dz,rw_max_torque,B_body_real)
+                            init_accel_dz,timeflag_dz,rw_max_torque,B_body_real,time)
     
     global T_rw_data;
     global T_magnetic_data;
     global flag;
     global Jw;
-
+    global Max_RW_torq;
+    
     Kp_gain= 1e-04*diag([5 10 5]);                                                  % Calculate gain (wrt Markley-Crassidis)
     Kd_gain= 1e-02*diag([1 1 1]);
     w_o_io = [0;-0.00110808802079241;0];
@@ -58,15 +59,24 @@ function  [torque, T_rw, T_magnetic_effective, V_rw, I_rw, P_thermal_rw, AngVel_
     T_magnetic_effective = cross(M,B_body);
 
     %%  Saturation of the RW
-    if acceleration_rw_old ~= 0
-       [T_magnetic_effective, T_rw] = ...
-            rw_saturation(T_magnetic_effective, T_rw, acceleration_rw_old, AngVel_rw_rpm_cur, B_body);
+   
+    if time > 1 
+    [T_magnetic_effective, T_rw] = ...
+        rw_saturation(T_magnetic_effective, T_rw, acceleration_rw_old, AngVel_rw_rpm_cur, B_body);
+    
+    if T_rw(3) > Max_RW_torq
+        T_rw(3) = Max_RW_torq;
+    elseif T_rw(3) < -Max_RW_torq
+        T_rw(3) = -Max_RW_torq;
     end
+    
+    T_commanded = T_magnetic_effective + T_rw;
+   end
 
     %% Calculation of V_rw, I_rw, P_Rw in case of no-zero crossing
 
     if timeflag_dz == 0 && flag == 0
-        [V_rw, I_rw, P_thermal_rw, AngVel_rw_radps_new, acceleration_rw_cur] = ...
+        [V_rw, I_rw, P_thermal_rw, AngVel_rw_radps_new, acceleration_rw_cur, T_rw_total] = ...
                                                 rw_model(T_rw(3), AngVel_rw_radps_cur);
         AngVel_rw_rpm_new = 30/pi * AngVel_rw_radps_new;  
     end
@@ -119,7 +129,6 @@ function  [torque, T_rw, T_magnetic_effective, V_rw, I_rw, P_thermal_rw, AngVel_
         T_rw(3) = -rw_max_torque;
     end
     
-    T_magnetic_effective = cross(M,B_body_real);
     T_rw_data = [T_rw_data T_rw];
     T_magnetic_data= [T_magnetic_data T_magnetic_effective];
     torque = T_magnetic_effective + T_rw;

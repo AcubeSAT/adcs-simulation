@@ -1,5 +1,4 @@
-function [V_rw, I_rw, P_thermal_rw, AngVel_rw_new, acceleration] = rw_model(T_rw, AngVel_rw)
-
+function [V_rw, I_rw, P_thermal_rw, AngVel_rw_new, acceleration, T_rw_total] = rw_model(T_rw_desired, AngVel_rw)
     % The angular velocity of the Reaction Wheel is given by a sensor
     % placed on the RW.
     
@@ -18,8 +17,10 @@ function [V_rw, I_rw, P_thermal_rw, AngVel_rw_new, acceleration] = rw_model(T_rw
     
     %% V, I, W Calculation
     
-    acceleration = (T_rw - b_friction*AngVel_rw - c_friction*sign(AngVel_rw))/Jw;     %In rad/sec^2
-    I_rw = T_rw / Km + AngVel_rw / (Kv * Rb);
+    T_rw_total = T_rw_desired - b_friction*AngVel_rw - c_friction*sign(AngVel_rw);
+    acceleration = (T_rw_total)/Jw;      %In rad/sec^2
+    
+    I_rw = T_rw_desired / Km + AngVel_rw / (Kv * Rb);
     
 %     % If T_friction is considered = 0, may be omitted
 %     V_rw = Kv * AngVel_rw - Rb * (1/Km) * (Ai * (-T_desired(1) - T_friction));

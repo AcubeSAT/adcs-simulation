@@ -10,7 +10,7 @@ function [T_mtq_effective, T_rw] = rw_saturation(T_magnetic_effective, T_rw, acc
     AngVel_rw_lim = 10000;
     T_mtq_effective = T_magnetic_effective;
 
-    if abs(AngVel_rw) > AngVel_rw_lim
+    if abs(AngVel_rw) > AngVel_rw_lim && abs(T_rw(3))> 0
         T_added = [0; 0; A * Jw * accel_rw];
         T_magnetic = T_magnetic_effective + T_added;
         M = -cross(T_magnetic,B_body)/(norm(B_body))^2;
