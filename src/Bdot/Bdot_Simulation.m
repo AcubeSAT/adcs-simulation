@@ -18,10 +18,22 @@ t = 0;
 B_body_ctrl = zeros(3,length(Time));
 % torq = zeros(3,length(Time));
 w_b_ob = zeros(3,length(Time));
+accel_b_ob = zeros(3,length(Time));
 Bdot_body = zeros(3,length(Time));
+Bdot_body_new = zeros(3, length(Time));
 w_b_ob_magn = zeros(1,length(Time));
 Mag = zeros(3,length(Time));
-% T_disturbances = zeros(3,length(Time));
+tau_mtq = zeros(3, length(Time));
+q_error = zeros(4, length(Time));
+w_b_ob_Bdot = zeros(3, length(Time)); 
+accel_b_ob_Bdot = zeros(3,length(Time));
+tau_dist = zeros(3,length(Time));
+w_b_ob_Bdot_magn = zeros(1,length(Time));
+nominal_activation_matrix = zeros(2, length(Time)); % 1 - Bdot, 2 - nonBdot
+threshold_times = 0; 
+threshold_exceptions = 0;
+%N2D_threshold = 0.087; % rad/sec 
+D2N_threshold = 0.035; % rad/sec
 
 %% Disturbances Once & Correct Control Cycle
 for i=1:length(Time)
@@ -35,6 +47,8 @@ for i=1:length(Time)
     q_eci_body = x(1:4);
     q_orbit_body = quatProd(q_orbit_eci,q_eci_body);
 
+    q_error(:, i) = q_orbit_body;
+    
     R_OB = quat2dcm(q_orbit_body'); % Calculating the transformation matrix from orbit to body frame
     B_body_ctrl(:,i)=R_OB*mag_field_orbit(:,i)*10^(-9);
 
@@ -43,6 +57,9 @@ for i=1:length(Time)
 
     w_b_io = R_OB(:,3)*Const.w_o; 
     w_b_ob(:,i) = x(5:7) - w_b_io; % Calculating angular rate of satellite relative to ECI frame
+    if i > 1
+        accel_b_ob(:,i) = (w_b_ob(:,i) - w_b_ob(:,i-1))/1;
+    end
     w_b_ob_magn(i) = norm(w_b_ob(:,i));
     [T_disturbances, disturbancesMessage] = disturbances_bdot(R_BO, quat2eul(q_orbit_body'), ... 
       sun_pos_orbit(:,i), B_body_ctrl(:,i), setDisturbances);
@@ -66,6 +83,7 @@ end
     
     %% Bdot
         Bdot_body(:,i) = (B_body_ctrl2 - B_body_ctrl(:,i))/0.1;
+        Bdot_body_new(:,i) = cross(B_body_ctrl(:,i), w_b_ob(:,i));
 
     %% Torque Calculation
 %         rm = [0.05; 0.05; 0.05];
@@ -79,6 +97,70 @@ end
 
         %[V_mtq, I_mtq, P_thermal_mtq] = mtq_model(M);    
 
+    %% Calculate the angular velocity using the B-dot 
+        %w_b_ob_Bdot(:, i) = -Kp.*(Bdot_body(:,i)'*Bdot_body(:,i))/M; 
+        w = skew(B_body_ctrl(:,i))*(-Bdot_body(:, i)-B_body_ctrl(:,i))/(B_body_ctrl(:,i)'*B_body_ctrl(:,i)); 
+        %w = skew(B_body_ctrl(:,i))*(-Bdot_body(:, i)+B_body_ctrl(:,i))/(B_body_ctrl(:,i)'*B_body_ctrl(:,i)); 
+        %w = skew(B_body_ctrl(:,i))*(-Bdot_body(:, i))/(B_body_ctrl(:,i)'*B_body_ctrl(:,i)); 
+ 
+        w_b_ob_Bdot(:, i) = w; 
+        
+        if i > 1
+            accel_b_ob_Bdot(:,i) = (w_b_ob_Bdot(:,i) - w_b_ob_Bdot(:,i-1))/1;
+        end
+        w_b_ob_Bdot_magn(i) = norm(w_b_ob_Bdot(:,i)); 
+    
+    %% Calculate when Nominal is ready to be activated
+        
+        bdot_activation = 0;
+        nonBdot_activation = 0;
+%         total_limit = 520;
+        
+        if i > 1 
+            if abs(w_b_ob_Bdot(1,i)) < D2N_threshold ... 
+                    && abs(w_b_ob_Bdot(2,i)) < D2N_threshold ... 
+                        && abs(w_b_ob_Bdot(3,i)) < D2N_threshold 
+                 if threshold_times == 0 
+                    threshold_times = 1; 
+                 end 
+                 if threshold_times >= 1    
+                     if abs(w_b_ob_Bdot(1,i-1)) < D2N_threshold ... 
+                        && abs(w_b_ob_Bdot(2,i-1)) < D2N_threshold ... 
+                            && abs(w_b_ob_Bdot(3,i-1)) < D2N_threshold 
+                        threshold_times = threshold_times + 1;
+                     elseif (abs(w_b_ob_Bdot(1,i-1)) >= D2N_threshold ... 
+                             || abs(w_b_ob_Bdot(2,i-1)) >= D2N_threshold ... 
+                                || abs(w_b_ob_Bdot(3,i-1)) >= D2N_threshold) ...
+                                    && threshold_exceptions < exceptions_limit
+                        threshold_times = threshold_times + 1;
+                        threshold_exceptions = threshold_exceptions + 1;
+                     elseif (abs(w_b_ob_Bdot(1,i-1)) >= D2N_threshold ... 
+                             || abs(w_b_ob_Bdot(2,i-1)) >= D2N_threshold ... 
+                                || abs(w_b_ob_Bdot(3,i-1)) >= D2N_threshold) ...
+                                    && threshold_exceptions >= exceptions_limit
+                        threshold_times = 0;
+                        threshold_exceptions = 0; 
+                     end 
+                 end 
+                 if threshold_times >= total_limit
+                     bdot_activation = 1;
+                 end     
+            end 
+        end
+        
+        if i > 1 
+            if abs(w_b_ob(1,i)) < D2N_threshold ... 
+                    && abs(w_b_ob(2,i)) < D2N_threshold ... 
+                        && abs(w_b_ob(3,i)) < D2N_threshold 
+                    
+                    nonBdot_activation = 1;
+                    
+            end
+        end
+        
+        nominal_activation_matrix(1,i) = bdot_activation;
+        nominal_activation_matrix(2,i) = nonBdot_activation;
+        
     %%
     [T_disturbances, disturbancesMessage] = disturbances_bdot(R_BO, quat2eul(q_orbit_body'), ... 
       sun_pos_orbit(:,i), B_body_ctrl(:,i), setDisturbances);
@@ -238,42 +320,63 @@ fprintf("\n\n\n");
     subplot(3,1,1)
     plot(1:plotter_step:length(Time),w_b_ob(1,1:plotter_step:end))
     title('Velocities-x');
-    xlabel('Time(s)');
-    ylabel('Velocity (rad/sec)');
+    xlabel('Time [s]');
+    ylabel('Velocity [rad/sec]');
     subplot(3,1,2)
     plot(1:plotter_step:length(Time),w_b_ob(2,1:plotter_step:end))
     title('Velocities-y');
-    xlabel('Time(s)');
-    ylabel('Velocity (rad/sec)');
+    xlabel('Time [s]');
+    ylabel('Velocity [rad/sec]');
     subplot(3,1,3)
     plot(1:plotter_step:length(Time),w_b_ob(3,1:plotter_step:end))
     title('Velocities-z');
-    xlabel('Time(s)');
-    ylabel('Velocity (rad/sec)');
-    
+    xlabel('Time [s]');
+    ylabel('Velocity [rad/sec]');
+
+%% Plotting the angular velocity using Bdot 
+    figure() 
+    subplot(3,1,1) 
+    plot(1:plotter_step:length(Time),w_b_ob_Bdot(1,1:plotter_step:end)) 
+    title('Angular Velocity using Bdot') 
+    xlabel('Time [s]'); 
+    ylabel('Angular Velocity-x [rad/sec]'); 
+    grid on; 
+    subplot(3,1,2) 
+    plot(1:plotter_step:length(Time),w_b_ob_Bdot(2,1:plotter_step:end)) 
+    xlabel('Time [s]'); 
+    ylabel('Angular Velocity-y [rad/sec]'); 
+    grid on; 
+    subplot(3,1,3) 
+    plot(1:plotter_step:length(Time),w_b_ob_Bdot(3,1:plotter_step:end)) 
+    xlabel('Time [s]'); 
+    ylabel('Angular Velocity-z [rad/sec]'); 
+    grid on; 
+
+%% Bdot 
+
     figure()
     subplot(3,1,1)
     plot(1:plotter_step:length(Time),Bdot_body(1,1:plotter_step:end))
     title('Bdot-x');
-    xlabel('Time(s)');
-    ylabel('Bdot (T/sec)');
+    xlabel('Time[s]');
+    ylabel('Bdot [T/sec)]');
     subplot(3,1,2)
     plot(1:plotter_step:length(Time),Bdot_body(2,1:plotter_step:end))
     title('Bdot-y');
-    xlabel('Time(s)');
-    ylabel('Bdot (T/sec)');
+    xlabel('Time[s]');
+    ylabel('Bdot [T/sec)]');
     subplot(3,1,3)
     plot(1:plotter_step:length(Time),Bdot_body(3,1:plotter_step:end))
     title('Bdot-z');
-    xlabel('Time(s)');
-    ylabel('Bdot (T/sec)');
+    xlabel('Time[s]');
+    ylabel('Bdot [T/sec)]');
 %%  Plotting the Angular Velocity Magnitude
 
     figure()
     plot(1:plotter_step:length(Time),w_b_ob_magn(1:plotter_step:end))
     title('Angular Velocity Magnitude');
-    xlabel('Time(s)');
-    ylabel('|Velocity| (rad/sec)');
+    xlabel('Time [s]');
+    ylabel('|Velocity| [rad/sec]');
     
 %%  Plotting the produced Torques
 
@@ -304,18 +407,18 @@ fprintf("\n\n\n");
     subplot(3,1,1)
     plot(1:plotter_step:length(Time),Mag(1,1:plotter_step:end))
     title('Magnetic Dipole-x');
-    xlabel('Time(s)');
-    ylabel({'Magnetic'; 'Dipole (Am^2)'});
+    xlabel('Time [s]');
+    ylabel({'Magnetic'; 'Dipole [Am^2]'});
     subplot(3,1,2)
     plot(1:plotter_step:length(Time),Mag(2,1:plotter_step:end))
     title('Magnetic Dipole-y');
-    xlabel('Time(s)');
-    ylabel({'Magnetic'; 'Dipole (Am^2)'});
+    xlabel('Time [s]');
+    ylabel({'Magnetic'; 'Dipole [Am^2]'});
     subplot(3,1,3)
     plot(1:plotter_step:length(Time),Mag(3,1:plotter_step:end))
     title('Magnetic Dipole-z');
-    xlabel('Time(s)');
-    ylabel({'Magnetic'; 'Dipole (Am^2)'});
+    xlabel('Time [s]');
+    ylabel({'Magnetic'; 'Dipole [Am^2]'});
     
 %% Plotting Magnitudes Comparison [Disturbances, MTQs Torques]
 %     figure()
