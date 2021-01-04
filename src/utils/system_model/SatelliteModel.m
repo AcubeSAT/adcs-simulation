@@ -64,9 +64,9 @@ classdef SatelliteModel
             
             y = zeros(6,1); %measurements
              
-            %y(4:6) = this.gyro - x(5:7); %      Should I update?   We
+            y(4:6) = this.gyro - x(5:7); %      Should I update?   We
             %don't propagate angular velocity
-            y(4:6) = this.gyro;   
+%             y(4:6) = this.gyro;   
             
             % Calculating magnetometer measurements
             y1 = quatProd( quatInv(Q), quatProd([0; this.magn_ref], Q) );
