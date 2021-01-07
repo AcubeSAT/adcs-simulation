@@ -324,6 +324,18 @@ x_desired = quat2eul(qd(1:4,1:length(qd))');
 x_desired = rad2deg(x_desired');
 instant_error_perform = x_real_euler_perf' - x_desired';
 
+for i=1:3
+    for k=1:length(instant_error_perform)
+        if instant_error_perform(k, i) > 180
+            instant_error_perform(k, i) = instant_error_perform(k, i) - 360;
+        elseif instant_error_perform(k, i) < -180
+            instant_error_perform(k, i) = instant_error_perform(k, i) + 360;
+        end
+    end
+end
+
+
+
 figure();
 for i=1:3
     subplot(3,1,i);
