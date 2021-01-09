@@ -42,8 +42,19 @@ plotter_step=10;
 %% ======= Orbit Propagation ========
 satrec = orbit_init();
 [xsat_ecf, vsat_ecf,xsat_eci,vsat_eci, sat_llh,eclipse, mag_field_ned,mag_field_eci,mag_field_ecef,mag_field_orbit, sun_pos_ned,sun_pos_eci,sun_pos_ecef,sun_pos_orbit,satrec,argpm,nodem,inclm,mm,xnode,xinc] = orbit_sgp4(satrec,dt,tf+dt);
+
+for(i=1:length(xsat_eci))
+    xsat_eci_normalized(:,i) = xsat_eci(:,i)/norm(xsat_eci(:,i));
+end
+
 %eclipse = zeros(1,55460);
 % save('mag_orbit_10.mat','mag_field_orbit');
+
+%% ======= Albedo ========
+albedo = load("sso_albedo.mat");  % Choose albedo depending on orbit
+%albedo = load("iss_albedo.mat");
+
+albedo = albedo.new;
 
 %% ======= Kalman filter params ========
 % Variances

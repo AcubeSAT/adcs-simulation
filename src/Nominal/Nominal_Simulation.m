@@ -91,7 +91,7 @@ for l=1:n_steps
         if sign==0 
             sign=-1; 
         end 
-        y_noise(7:9) = y_real(7:9) + sign*0.01*y_real(7:9).*poissrnd(lambda,3,1); 
+        y_noise(7:9) = css_noise(sun_pos_eci(:,(l-1)/dt+1),x_real(1:4,(l-1)/dt+1),xsat_eci(:,(l-1)/dt+1),albedo(:,(l-1)/dt+1),lambda);
         if eclipse((l-1)/dt+1)~=0
             y_noise(7:9)=zeros(3,1);
         else
@@ -172,13 +172,12 @@ for l=1:n_steps
         y_noise = y_real + sqrt(R)*randn(size(y_real));
         [gyro_noise,real_bias] = gyro_noise_func(real_bias,dt,sigma_u,sigma_v);
         bias_data = [bias_data real_bias];
-	gyro_noise_data = [gyro_noise_data gyro_noise];
+        gyro_noise_data = [gyro_noise_data gyro_noise];
         y_noise(4:6) = y_real(4:6) + gyro_noise;
-        sign=randi([0 1]); 
-        if sign==0 
-            sign=-1; 
-        end 
-        y_noise(7:9) = y_real(7:9) + sign*0.01*y_real(7:9).*poissrnd(lambda,3,1); 
+             
+        y_noise(7:9) = css_noise(sun_pos_eci(:,(k-1)/dt+c),x_real(1:4,(k-1)/dt+c),xsat_eci(:,(k-1)/dt+c),albedo(:,(k-1)/dt+c),lambda);
+              
+        
         if eclipse((k-1)/dt+c)~=0
             y_noise(7:9)=zeros(3,1);
         else
@@ -187,8 +186,8 @@ for l=1:n_steps
         y_noise(1:3)=y_noise(1:3)/norm(y_noise(1:3)); 
         
         gyro = y_noise(4:6);
-        ekf.correct(y_noise, msrCookieFinal(mag_field_eci(:,(k-1)/dt+c),...
-            sun_pos_eci(:,(k-1)/dt+c),eclipse((k-1)/dt+c),gyro));
+        ekf.correct(y_noise, msrCookieFinalExtended(mag_field_eci(:,(k-1)/dt+c),...
+            sun_pos_eci(:,(k-1)/dt+c),eclipse((k-1)/dt+c),gyro,xsat_eci(:,(k-1)/dt+c),albedo(:,(k-1)/dt+c),lambda));
 
         x_hat = ekf.theta;
         x_hat(1:4) = x_hat(1:4) / norm(x_hat(1:4));
@@ -236,7 +235,7 @@ for l=1:n_steps
             sun_pos_eci(:,(k-1)/dt+c),eclipse((k-1)/dt+c),[0;0;0]));
         [gyro_noise,real_bias] = gyro_noise_func(real_bias,dt,sigma_u,sigma_v);
         bias_data = [bias_data real_bias];
-	gyro_noise_data = [gyro_noise_data gyro_noise];
+        gyro_noise_data = [gyro_noise_data gyro_noise];
         y_noise(4:6) = y_real(4:6) + gyro_noise; 
         
         x_hat = ekf.theta;
@@ -308,7 +307,7 @@ for l=1:n_steps
         end
         x_hat_data = [x_hat_data zeros(10,10)];
         bias_data = [bias_data zeros(3,1)];
-	gyro_noise_data = [gyro_noise_data zeros(3,1)];
+        gyro_noise_data = [gyro_noise_data zeros(3,1)];
     end
 
 end
