@@ -77,7 +77,7 @@ classdef SatelliteModel
 
             %If we have eclipse, we dont have a sun estimate
             if this.eclipse == 0
-                
+                %y2 = quatProd( quatInv(Q), quatProd([0; this.sun_ref], Q) );
                 y(7:9) = css_noise(this.sun_ref,Q,cookie.xsat_eci,cookie.albedo,cookie.lambda);
                 %y(7:9) = y2(2:4);                
             else
