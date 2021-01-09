@@ -1,4 +1,4 @@
-function total_sun_vector = css_noise(sun_eci,q_eci_body,xsat_eci,albedo_perc)
+function total_sun_vector = css_noise(sun_eci,q_eci_body,xsat_eci,albedo_perc,lambda)
     
     sun_eci = sun_eci/norm(sun_eci);
     temp = quatProd(quatconj(q_eci_body'),quatProd([0;sun_eci],q_eci_body));
@@ -51,7 +51,12 @@ function total_sun_vector = css_noise(sun_eci,q_eci_body,xsat_eci,albedo_perc)
         total_current(i) = current_sun(i) + current_albedo(i);
     end
 
+    sign=randi([0 1]); 
+    if sign==0 
+       sign=-1; 
+    end
+    
     total_sun_vector = [total_current(1)-total_current(4), total_current(6)-total_current(5),total_current(2)-total_current(3)];
     total_sun_vector = total_sun_vector/norm(total_sun_vector); % Sun vector in body frame
-    total_sun_vector = total_sun_vector';
+    total_sun_vector = total_sun_vector' + sign*0.01*total_sun_vector*poissrnd(lambda,3,1); 
 end
