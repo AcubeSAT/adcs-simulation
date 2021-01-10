@@ -1,6 +1,7 @@
 function [satrec]=orbit_init()
 %% Get tle
-infilename = input('input elset filename: ','s');
+infilename = "SSO-500-11PM.TLE";
+%infilename = input('input elset filename: ','s');
 infile = fopen(infilename, 'r');
 if (infile == -1)
         fprintf(1,'Failed to open file: %s\n', infilename);

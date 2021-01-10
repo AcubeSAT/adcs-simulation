@@ -1,7 +1,7 @@
 function  [torque, T_rw, T_magnetic_effective, V_rw, I_rw, P_thermal_rw, AngVel_rw_rpm_new, AngVel_rw_radps_new,...
             acceleration_rw_cur, rw_ang_momentum, init_AngVel_dz, init_accel_dz, V_mtq, I_mtq, P_thermal_mtq, ...
                 timeflag_dz] = ...
-                    PD(q_desired , q_orbit_body , w_b_ib , B_body , eclipse, mtq_max, ...
+                    PD(Kp_gain, Kd_gain, q_desired , q_orbit_body , w_b_ib , B_body , eclipse, mtq_max, ...
                         lim_dz, AngVel_rw_radps_cur, AngVel_rw_rpm_cur, acceleration_rw_old, init_AngVel_dz, ...
                             init_accel_dz,timeflag_dz,rw_max_torque,B_body_real,time)
     
@@ -11,8 +11,8 @@ function  [torque, T_rw, T_magnetic_effective, V_rw, I_rw, P_thermal_rw, AngVel_
     global Jw;
     global Max_RW_torq;
     
-    Kp_gain= 1e-04*diag([5 10 5]);                                                  % Calculate gain (wrt Markley-Crassidis)
-    Kd_gain= 1e-02*diag([1 1 1]);
+%     Kp_gain= 1e-04*diag([5 10 5]);                                                  % Calculate gain (wrt Markley-Crassidis)
+%     Kd_gain= 1e-02*diag([1 1 1]);
     w_o_io = [0;-0.00110808802079241;0];
     %w_o = 0.00113308802079241;
     

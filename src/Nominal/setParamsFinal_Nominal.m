@@ -1,3 +1,6 @@
+function Param = setParamsFinal_Nominal(I)
+
+
 %% ======= Satellite ========
 dt = .1; %Timestep for Orbit Propagator
 orbits=1;
@@ -6,11 +9,13 @@ orbitPeriod=5545;
 tf =(5545+0.9); %Total Simulation Seconds
 np = uint32((tf+dt)/dt); %Number of timesteps
 q_desired = [ 1 0 0 0 ] ; %Desired quaternion
-Q0 = [0.5; 0.5; 0.5; 0.5]; %Initial Quaternion in ECI frame
+%Q0 = [0.5; 0.5; 0.5; 0.5]; %Initial Quaternion in ECI frame
+Q0 = [0.0894; -0.0058; 0.0641; -0.9939];% [1, 0, 0, 0] 
 Q0 = Q0/norm(Q0); %Normalised Quaternion
 init_bias = [.01;0.15;-.08]; % bias initialization
+vRot0 = [0.001; 0.001; 0.001];
 % vRot0 = [pi/4; pi/2; pi/8];
-vRot0 = [0.035; 0.035; 0.035]; %Initial Angular Velocities from Body to ECI frame expressed in Body.
+%vRot0 = [0.035; 0.035; 0.035]; %Initial Angular Velocities from Body to ECI frame expressed in Body.
 x0 = [Q0;vRot0]; %Initial state consists of [Quaternion;Angular Velocity]
 % Random Initial State Estimation
 Q0_hat = [.6;.1;-.7;.01];
@@ -26,8 +31,8 @@ kd=1e-5; %Atrificial Detumbling gain
 torq = zeros(3,1); %Random Initial Torque
 magn_ref = 1.0e+04 * [2; 0.15; 3.25]; %Random Mag_Field Initial value
 sun_ref = 1.0e1 * [.8;.2;.45];  %Random Sun_pos Initial value
-model = SatelliteModel(dt, Const.I); %Initialize Satellite Model Class
-real_model = real_SatelliteModel(dt, Const.I);
+model = SatelliteModel(dt, I); %Initialize Satellite Model Class
+real_model = real_SatelliteModel(dt, I);
 disturbancesEnabled = "total";
 %% ======= Simulation Constants ========
 n_dim = length(x0); % state length
@@ -79,6 +84,67 @@ R_hat = R_hat_coeff.*eye(n_msr,n_msr);
 P0 = 1*eye(n_dim_error,n_dim_error);
 
 use_analytic_jacob = true;
+
+%%  Passing the values of the parameters in a struct.
+
+    Param.dt = dt;
+    Param.orbits = orbits;
+    Param.orbitPeriod = orbitPeriod;
+    Param.tf = tf;
+    Param.np = np;
+    Param.q_desired = q_desired;
+    Param.x0 = x0;
+    Param.x0_hat = x0_hat;
+    Param.torq = torq;
+    Param.magn_ref = magn_ref;
+    Param.sun_ref = sun_ref;
+    Param.real_model = real_model;
+    Param.model = model;
+    Param.n_msr = n_msr;
+    Param.n_dim = n_dim;
+    Param.kd = kd;
+
+    Param.disturbancesEnabled = disturbancesEnabled;
+    Param.setDisturbances = setDisturbances;
+    Param.plotter_step = plotter_step;
+    Param.mtq_max = mtq_max;
+    
+
+    Param.xsat_ecf = xsat_ecf;
+    Param.vsat_ecf = vsat_ecf;
+    Param.xsat_eci = xsat_eci;
+    Param.vsat_eci = vsat_eci;
+    Param.sat_llh = sat_llh;
+    Param.eclipse = eclipse;
+    Param.mag_field_ned = mag_field_ned;
+    Param.mag_field_eci = mag_field_eci;
+    Param.mag_field_ecef = mag_field_ecef;
+    Param.mag_field_orbit = mag_field_orbit;
+    Param.sun_pos_ned = sun_pos_ned;
+    Param.sun_pos_eci = sun_pos_eci;
+    Param.sun_pos_ecef = sun_pos_ecef;
+    Param.sun_pos_orbit = sun_pos_orbit;
+    Param.satrec = satrec;
+    Param.argpm = argpm;
+    Param.nodem = nodem;
+    Param.inclm = inclm;
+    Param.mm = mm;
+    Param.xnode = xnode;
+    Param.xinc = xinc;
+
+    Param.init_bias = init_bias;
+    Param.Q = Q;
+    Param.Kp = Kp;
+    Param.R_coeff = R_coeff;
+    Param.R = R;
+    Param.R_hat = R_hat;
+    Param.sigma_u = sigma_u;
+    Param.sigma_v = sigma_v;
+    Param.P0 = P0;
+    Param.use_analytic_jacob = use_analytic_jacob;
+
+
+end
 
 
 
