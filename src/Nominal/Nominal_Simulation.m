@@ -243,6 +243,18 @@ for l=1:n_steps
         end
         y_noise(1:3)=y_noise(1:3)/norm(y_noise(1:3)); 
         
+%         if (eclipse((k-1)/dt+c))
+%             % Variances
+%             Q = 0.5e-05*eye(n_dim_error,n_dim_error); % Variance of the process noise w[k]
+% 
+%             % R Variances used in EKF
+%             % R_hat_coeff=[1e-3;1e-3;1e-3;8e-3;8e-3;8e-3;5e-3;5e-3;5e-3];
+%             R_hat_coeff=[.5e-3;.5e-3;.5e-3;4e-3;4e-3;4e-3;1e-3;1e-3;1e-3];
+%             R_hat = R_hat_coeff.*eye(n_msr,n_msr);
+%             ekf.setProcessNoiseCov(Q); %Q variance matrix
+%             ekf.setMeasureNoiseCov(R_hat); %R variance matrix
+%         end
+        
         gyro = y_noise(4:6);
         ekf.correct(y_noise, msrCookieFinalExtended(mag_field_eci(:,(k-1)/dt+c),...
             sun_pos_eci(:,(k-1)/dt+c),eclipse((k-1)/dt+c),gyro,xsat_eci(:,(k-1)/dt+c),0,lambda));
@@ -296,6 +308,18 @@ for l=1:n_steps
         bias_data = [bias_data real_bias];
         gyro_noise_data = [gyro_noise_data gyro_noise];
         y_noise(4:6) = y_real(4:6) + gyro_noise; 
+        
+%         if (eclipse((k-1)/dt+c))
+%             % Variances
+%             Q = 0.5e-05*eye(n_dim_error,n_dim_error); % Variance of the process noise w[k]
+% 
+%             % R Variances used in EKF
+%             % R_hat_coeff=[1e-3;1e-3;1e-3;8e-3;8e-3;8e-3;5e-3;5e-3;5e-3];
+%             R_hat_coeff=[.5e-3;.5e-3;.5e-3;4e-3;4e-3;4e-3;1e-3;1e-3;1e-3];
+%             R_hat = R_hat_coeff.*eye(n_msr,n_msr);
+%             ekf.setProcessNoiseCov(Q); %Q variance matrix
+%             ekf.setMeasureNoiseCov(R_hat); %R variance matrix
+%         end
         
         x_hat = ekf.theta;
         x_hat(1:4) = x_hat(1:4) / norm(x_hat(1:4));
