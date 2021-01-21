@@ -9,8 +9,7 @@ npts = npts/(dt*60);
 npts=uint32(npts);
 
 %% Initialize and calculate time
-%tsince_offset =0000/60;
-tsince_offset =1000/60;
+tsince_offset =2000/60;
 
 t_array=double([0:npts-1]);
 tsince=tsince_offset+t_array*dt;%minutes

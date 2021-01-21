@@ -5,16 +5,18 @@ function Param = setParamsFinal_Nominal(I)
 dt = .1; %Timestep for Orbit Propagator
 orbits=1;
 orbitPeriod=5545;
-% tf = orbits*orbitPeriod+0.9; %Total Simulation Seconds
-tf =(5545+0.9); %Total Simulation Seconds
+tf = orbits*orbitPeriod+0.9; %Total Simulation Seconds
+%tf =(5545+0.9); %Total Simulation Seconds
 np = uint32((tf+dt)/dt); %Number of timesteps
 q_desired = [ 1 0 0 0 ] ; %Desired quaternion
 %Q0 = [0.5; 0.5; 0.5; 0.5]; %Initial Quaternion in ECI frame
-Q0 = [0.0894; -0.0058; 0.0641; -0.9939];% [1, 0, 0, 0] 
+%Q0 = [0.0894; -0.0058; 0.0641; -0.9939];% [1, 0, 0, 0] TLE -> 29_08
+%Q0 = [0.9928; -0.0641; -0.0054; 0.1007];% [1, 0, 0, 0] TLE -> 6PM 0-offset
+Q0 = [-0.4493; 0.1189; -0.8854; 0.0122];% [1, 0, 0, 0] TLE -> 6PM 2-offset
 Q0 = Q0/norm(Q0); %Normalised Quaternion
 init_bias = [.01;0.15;-.08]; % bias initialization
-vRot0 = [0.001; 0.001; 0.001];
-% vRot0 = [pi/4; pi/2; pi/8];
+vRot0 = [0; 0; 0];
+%vRot0 = [pi/4; pi/2; pi/8];
 %vRot0 = [0.035; 0.035; 0.035]; %Initial Angular Velocities from Body to ECI frame expressed in Body.
 x0 = [Q0;vRot0]; %Initial state consists of [Quaternion;Angular Velocity]
 % Random Initial State Estimation
@@ -56,10 +58,16 @@ end
 % save('mag_orbit_10.mat','mag_field_orbit');
 
 %% ======= Albedo ========
-albedo = load("sso_albedo.mat");  % Choose albedo depending on orbit
+%albedo = load("sso_albedo.mat");  % Choose albedo depending on orbit
 %albedo = load("iss_albedo.mat");
+albedo = load("SSO_500_6PM_1_Orbit_051231.mat");
+
 
 albedo = albedo.new;
+albedo = [albedo albedo];
+albedo_inaccurate = load("SSO_500_6PM_1_Orbit_050101");
+
+albedo_inaccurate = albedo_inaccurate.new;
 
 %% ======= Kalman filter params ========
 % Variances
@@ -103,6 +111,9 @@ use_analytic_jacob = true;
     Param.n_msr = n_msr;
     Param.n_dim = n_dim;
     Param.kd = kd;
+    Param.albedo = albedo;
+    Param.albedo_inaccurate = albedo_inaccurate;
+    Param.n_dim_error = n_dim_error;
 
     Param.disturbancesEnabled = disturbancesEnabled;
     Param.setDisturbances = setDisturbances;

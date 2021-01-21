@@ -1,5 +1,5 @@
-error_struct = load('instant_error_know');
-error = error_struct.instant_error_know';
+error_struct = load('instant_error_perf.mat');
+error = error_struct.instant_error_perform';
 final_error = abs(error(:,:));
 
 median_error(1) = median(final_error(1,:),'omitnan');

@@ -64,7 +64,7 @@ for i=1:length(Time)
     [T_disturbances, disturbancesMessage] = disturbances_bdot(R_BO, quat2eul(q_orbit_body'), ... 
       sun_pos_orbit(:,i), B_body_ctrl(:,i), setDisturbances);
 for j=1:(dt/dt_model*0.1)
-        x = real_model.stateTransFun(x, stateTransCookieFinalNominal(T_disturbances,0)); 
+        x = real_model.stateTransFun(x, stateTransCookieFinalNominal(T_disturbances,0,0)); 
 end
     
     [~, ~,~,~, ~,~, ~,~,~,mag_field_orbit2, ~,~,~,~,~,argpm2,nodem2,inclm2,mm2,~,~] =...
@@ -114,7 +114,8 @@ end
         
         bdot_activation = 0;
         nonBdot_activation = 0;
-%         total_limit = 520;
+        total_limit = 520;
+        exceptions_limit = 30;
         
         if i > 1 
             if abs(w_b_ob_Bdot(1,i)) < D2N_threshold ... 
@@ -166,14 +167,14 @@ end
       sun_pos_orbit(:,i), B_body_ctrl(:,i), setDisturbances);
     torq = T_magnetic + T_disturbances; 
     for j=1:(dt/dt_model*0.1)
-        x = real_model.stateTransFun(x, stateTransCookieFinalNominal(T_disturbances,0)); 
+        x = real_model.stateTransFun(x, stateTransCookieFinalNominal(T_disturbances,0,0)); 
     end
 
     for j=1:(dt/dt_model*0.7)
-        x = real_model.stateTransFun(x, stateTransCookieFinalNominal(torq,0)); 
+        x = real_model.stateTransFun(x, stateTransCookieFinalNominal(torq,0,0)); 
     end
     for j=1:(dt/dt_model*0.1)
-        x = real_model.stateTransFun(x, stateTransCookieFinalNominal(T_disturbances,0)); 
+        x = real_model.stateTransFun(x, stateTransCookieFinalNominal(T_disturbances,0,0)); 
     end
     t = t + dt;
 end

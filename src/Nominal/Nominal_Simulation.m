@@ -10,52 +10,54 @@ Const=constants();
 Param = setParamsFinal_Nominal(Const.I);
 %setParamsFinal_Nominal();
     dt = Param.dt;
-    orbits = Param.orbits;
-    orbitPeriod = Param.orbitPeriod;
+    %orbits = Param.orbits;
+    %orbitPeriod = Param.orbitPeriod;
     tf = Param.tf;
-    np = Param.np;
+    %np = Param.np;
     q_desired = Param.q_desired;
     x0 = Param.x0;
     x0_hat = Param.x0_hat;
     torq = Param.torq;
-    magn_ref = Param.magn_ref;
-    sun_ref = Param.sun_ref;
+    %magn_ref = Param.magn_ref;
+    %sun_ref = Param.sun_ref;
     real_model = Param.real_model;
     model = Param.model;
     n_msr = Param.n_msr;
-    n_dim = Param.n_dim;
+    %n_dim = Param.n_dim;
     kd = Param.kd;
+    albedo = Param.albedo;
 
     disturbancesEnabled = Param.disturbancesEnabled;
-    setDisturbances = Param.setDisturbances;
-    plotter_step = Param.plotter_step;
+    %setDisturbances = Param.setDisturbances;
+    %plotter_step = Param.plotter_step;
 
-    xsat_ecf = Param.xsat_ecf;
-    vsat_ecf = Param.vsat_ecf;
+    %xsat_ecf = Param.xsat_ecf;
+    %vsat_ecf = Param.vsat_ecf;
     xsat_eci = Param.xsat_eci;
-    vsat_eci = Param.vsat_eci;
-    sat_llh = Param.sat_llh;
+    %vsat_eci = Param.vsat_eci;
+    %sat_llh = Param.sat_llh;
     eclipse = Param.eclipse;
-    mag_field_ned = Param.mag_field_ned;
+    %mag_field_ned = Param.mag_field_ned;
     mag_field_eci = Param.mag_field_eci;
-    mag_field_ecef = Param.mag_field_ecef;
+    %mag_field_ecef = Param.mag_field_ecef;
     mag_field_orbit = Param.mag_field_orbit;
-    sun_pos_ned = Param.sun_pos_ned;
+    %sun_pos_ned = Param.sun_pos_ned;
     sun_pos_eci = Param.sun_pos_eci;
-    sun_pos_ecef = Param.sun_pos_ecef;
+    %sun_pos_ecef = Param.sun_pos_ecef;
     sun_pos_orbit = Param.sun_pos_orbit;
-    satrec = Param.satrec;
+    %satrec = Param.satrec;
     argpm = Param.argpm;
     nodem = Param.nodem;
     inclm = Param.inclm;
     mm = Param.mm;
-    xnode = Param.xnode;
-    xinc = Param.xinc;
+    %xnode = Param.xnode;
+    %xinc = Param.xinc;
+    n_dim_error = Param.n_dim_error;
 
     init_bias = Param.init_bias;
     Q = Param.Q;
-    Kp = Param.Kp;
-    R_coeff = Param.R_coeff;
+    %Kp = Param.Kp;
+    %R_coeff = Param.R_coeff;
     R = Param.R;
     R_hat = Param.R_hat;
     sigma_u = Param.sigma_u;
@@ -111,10 +113,10 @@ timeflag_dz = 0;
 init_AngVel_dz = 0;
 init_accel_dz = 0;
 rw_ang_momentum=0;
-rw_ang_vel_rpm = zeros(1, length(Time));    % RW angular velocity in rpm
-rw_accel = zeros(1, length(Time));          % RW acceleration
-tau_mtq = zeros(3, length(Time));           % Torques produced by MTQs
-tau_rw = zeros(1, length(Time));            % Torques produced by the RW
+%rw_ang_vel_rpm = zeros(1, length(Time));    % RW angular velocity in rpm
+%rw_accel = zeros(1, length(Time));          % RW acceleration
+%tau_mtq = zeros(3, length(Time));           % Torques produced by MTQs
+%tau_rw = zeros(1, length(Time));            % Torques produced by the RW
 lambda=1;
 
 %% Initialize matrices
@@ -128,6 +130,7 @@ bias_init_counter = 0;  % how many Wahba's have we solved for bias init
 bias_wahba_loops = 2;   % Total times to be solved
 quat_pos = zeros(4,bias_wahba_loops); % Wahba results are stored here
 real_bias=init_bias;
+% offset = 2000;
 
 for l=1:n_steps
     
@@ -142,14 +145,14 @@ for l=1:n_steps
         bias_data = [bias_data real_bias];
         gyro_noise_data = [gyro_noise_data gyro_noise];
 
-    %     y_noise=y_real;
+        % y_noise=y_real;
         y_noise(4:6) = y_real(4:6) + gyro_noise;
         sign=randi([0 1]); 
         if sign==0 
             sign=-1; 
         end 
-        %y_noise(7:9) = css_noise(sun_pos_eci(:,(l-1)/dt+1),x_real(1:4,(l-1)/dt+1),xsat_eci(:,(l-1)/dt+1),albedo(:,(l-1)/dt+1),lambda);
-        y_noise(7:9) = css_noise(sun_pos_eci(:,(l-1)/dt+1),x_real(1:4,(l-1)/dt+1),xsat_eci(:,(l-1)/dt+1),0,lambda);
+        y_noise(7:9) = css_noise(sun_pos_eci(:,(l-1)/dt+1),x_real(1:4,(l-1)/dt+1),xsat_eci(:,(l-1)/dt+1),albedo(:,(l-1)/dt+1),lambda);
+        %y_noise(7:9) = css_noise(sun_pos_eci(:,(l-1)/dt+1),x_real(1:4,(l-1)/dt+1),xsat_eci(:,(l-1)/dt+1),0,lambda);
         if eclipse((l-1)/dt+1)~=0
             y_noise(7:9)=zeros(3,1);
         else
@@ -157,7 +160,7 @@ for l=1:n_steps
         end
         y_noise(1:3)=y_noise(1:3)/norm(y_noise(1:3)); 
 
-    %     y_noise=y_real;
+        % y_noise=y_real;
 
         %% Wahba
         [q_wahba,~]=wahba(y_noise(7:9),y_noise(1:3),sun_pos_eci(:,(l-1)/dt+1),mag_field_eci(:,(l-1)/dt+1));
@@ -171,8 +174,8 @@ for l=1:n_steps
             quat_pos(:,bias_init_counter) = q_wahba;    
             x_hat_data = [x_hat_data zeros(7,bias_wahba_loops)];  %Set measurements to 0 until bias has initialized
             
-    %         y_hat_data = [y_hat_data zeros(n_msr,10)]; 
-    %         P_data = [P_data zeros(10*10,10)];
+            % y_hat_data = [y_hat_data zeros(n_msr,10)]; 
+            % P_data = [P_data zeros(10*10,10)];
 
             for i=1:1/dt
                 %% Propagate the system
@@ -225,6 +228,7 @@ for l=1:n_steps
 
      q_ob_data(:,(k-1)/dt+1) = quat_EB2OB(x(1:4), nodem(1,(k-1)/dt+1),inclm(1,(k-1)/dt+1),argpm(1,(k-1)/dt+1),mm(1,(k-1)/dt+1) );   
      for c=1:3
+         
         y_real = real_model.msrFun(x_real(:,(k-1)/dt+c),msrCookieFinal(mag_field_eci(:,(k-1)/dt+c),...
             sun_pos_eci(:,(k-1)/dt+c),eclipse((k-1)/dt+c),[0;0;0]));
         y_noise = y_real + sqrt(R)*randn(size(y_real));
@@ -233,8 +237,8 @@ for l=1:n_steps
         gyro_noise_data = [gyro_noise_data gyro_noise];
         y_noise(4:6) = y_real(4:6) + gyro_noise;
              
-        %y_noise(7:9) = css_noise(sun_pos_eci(:,(k-1)/dt+c),x_real(1:4,(k-1)/dt+c),xsat_eci(:,(k-1)/dt+c),albedo(:,(k-1)/dt+c),lambda);
-        y_noise(7:9) = css_noise(sun_pos_eci(:,(k-1)/dt+c),x_real(1:4,(k-1)/dt+c),xsat_eci(:,(k-1)/dt+c),0,lambda);      
+        y_noise(7:9) = css_noise(sun_pos_eci(:,(k-1)/dt+c),x_real(1:4,(k-1)/dt+c),xsat_eci(:,(k-1)/dt+c),albedo(:,(k-1)/dt+c),lambda);
+        %y_noise(7:9) = css_noise(sun_pos_eci(:,(k-1)/dt+c),x_real(1:4,(k-1)/dt+c),xsat_eci(:,(k-1)/dt+c),0,lambda);      
         
         if eclipse((k-1)/dt+c)~=0
             y_noise(7:9)=zeros(3,1);
@@ -243,22 +247,26 @@ for l=1:n_steps
         end
         y_noise(1:3)=y_noise(1:3)/norm(y_noise(1:3)); 
         
-%         if (eclipse((k-1)/dt+c))
-%             % Variances
-%             Q = 0.5e-05*eye(n_dim_error,n_dim_error); % Variance of the process noise w[k]
-% 
-%             % R Variances used in EKF
-%             % R_hat_coeff=[1e-3;1e-3;1e-3;8e-3;8e-3;8e-3;5e-3;5e-3;5e-3];
-%             R_hat_coeff=[.5e-3;.5e-3;.5e-3;4e-3;4e-3;4e-3;1e-3;1e-3;1e-3];
-%             R_hat = R_hat_coeff.*eye(n_msr,n_msr);
-%             ekf.setProcessNoiseCov(Q); %Q variance matrix
-%             ekf.setMeasureNoiseCov(R_hat); %R variance matrix
-%         end
+        if (eclipse((k-1)/dt+c))
+            % Variances
+            Q = 0.5e-08*eye(n_dim_error,n_dim_error); % Variance of the process noise w[k]
+
+            % R Variances used in EKF
+            % R_hat_coeff=[1e-3;1e-3;1e-3;8e-3;8e-3;8e-3;5e-3;5e-3;5e-3];
+            R_hat_coeff=1000*[.5e-3;.5e-3;.5e-3;4e-3;4e-3;4e-3;1e-3;1e-3;1e-3];
+            R_hat = R_hat_coeff.*eye(n_msr,n_msr);
+            ekf.setProcessNoiseCov(Q); %Q variance matrix
+             ekf.setMeasureNoiseCov(R_hat); %R variance matrix
+        else
+            ekf.setProcessNoiseCov(Param.Q); %Q variance matrix
+             ekf.setMeasureNoiseCov(Param.R_hat); %R variance matrix
+        end
+        
         
         gyro = y_noise(4:6);
         ekf.correct(y_noise, msrCookieFinalExtended(mag_field_eci(:,(k-1)/dt+c),...
-            sun_pos_eci(:,(k-1)/dt+c),eclipse((k-1)/dt+c),gyro,xsat_eci(:,(k-1)/dt+c),0,lambda));
-            %sun_pos_eci(:,(k-1)/dt+c),eclipse((k-1)/dt+c),gyro,xsat_eci(:,(k-1)/dt+c),albedo(:,(k-1)/dt+c),lambda));
+            sun_pos_eci(:,(k-1)/dt+c),eclipse((k-1)/dt+c),gyro,xsat_eci(:,(k-1)/dt+c),albedo_inaccurate(:,(k-1)/dt+c),lambda));
+            %sun_pos_eci(:,(k-1)/dt+c),eclipse((k-1)/dt+c),gyro,xsat_eci(:,(k-1)/dt+c),0,lambda));
         
         x_hat = ekf.theta;
         x_hat(1:4) = x_hat(1:4) / norm(x_hat(1:4));
@@ -277,8 +285,8 @@ for l=1:n_steps
         q_ob_data(:,(k-1)/dt+c+1) = quat_EB2OB(x(1:4), nodem(1,(k-1)/dt+c),inclm(1,(k-1)/dt+c),argpm(1,(k-1)/dt+c),mm(1,(k-1)/dt+c) );
         
         AngVel_rw_rpm(3,1) = AngVel_rw_radps(3,1)*30/pi; 
-        rw_ang_vel_rpm(1,(k-1)/dt+c+1) = AngVel_rw_rpm(3,1);  
-        rw_accel(1,(k-1)/dt+c+1) = acceleration_rw(2,1);
+        %rw_ang_vel_rpm(1,(k-1)/dt+c+1) = AngVel_rw_rpm(3,1);  
+        %rw_accel(1,(k-1)/dt+c+1) = acceleration_rw(2,1);
         
     %     if norm(q_prev - q_ob_data(:,(k-1)/dt+c+1))^2 > norm(q_prev + q_ob_data(:,(k-1)/dt+c+1))^2
     %         q_ob_data(:,(k-1)/dt+c+1) = -q_ob_data(:,(k-1)/dt+c+1);
@@ -309,17 +317,20 @@ for l=1:n_steps
         gyro_noise_data = [gyro_noise_data gyro_noise];
         y_noise(4:6) = y_real(4:6) + gyro_noise; 
         
-%         if (eclipse((k-1)/dt+c))
-%             % Variances
-%             Q = 0.5e-05*eye(n_dim_error,n_dim_error); % Variance of the process noise w[k]
-% 
-%             % R Variances used in EKF
-%             % R_hat_coeff=[1e-3;1e-3;1e-3;8e-3;8e-3;8e-3;5e-3;5e-3;5e-3];
-%             R_hat_coeff=[.5e-3;.5e-3;.5e-3;4e-3;4e-3;4e-3;1e-3;1e-3;1e-3];
-%             R_hat = R_hat_coeff.*eye(n_msr,n_msr);
-%             ekf.setProcessNoiseCov(Q); %Q variance matrix
-%             ekf.setMeasureNoiseCov(R_hat); %R variance matrix
-%         end
+        if (eclipse((k-1)/dt+c))
+            % Variances
+            Q = 0.5e-08*eye(n_dim_error,n_dim_error); % Variance of the process noise w[k]
+
+            % R Variances used in EKF
+            % R_hat_coeff=[1e-3;1e-3;1e-3;8e-3;8e-3;8e-3;5e-3;5e-3;5e-3];
+            R_hat_coeff=1000*[.5e-3;.5e-3;.5e-3;4e-3;4e-3;4e-3;1e-3;1e-3;1e-3];
+            R_hat = R_hat_coeff.*eye(n_msr,n_msr);
+            ekf.setProcessNoiseCov(Q); %Q variance matrix
+            ekf.setMeasureNoiseCov(R_hat); %R variance matrix
+        else
+            ekf.setProcessNoiseCov(Param.Q); %Q variance matrix
+             ekf.setMeasureNoiseCov(Param.R_hat); %R variance matrix
+        end
         
         x_hat = ekf.theta;
         x_hat(1:4) = x_hat(1:4) / norm(x_hat(1:4));
@@ -350,9 +361,9 @@ for l=1:n_steps
                         PD(Kp_gain, Kd_gain, q_desired ,q_ob_hat, y_noise(4:6)-ekf.theta(5:7) , y_noise(1:3)*norm(mag_field_orbit(:,(k-1)/dt+c)*10^(-9)) , eclipse((k-1)/dt+c), ...
                             Const.mtq_max, Const.lim_dz, AngVel_rw_radps(2,1), AngVel_rw_rpm(2,1), ...
                                 acceleration_rw(1,1), init_AngVel_dz, init_accel_dz, timeflag_dz,Const.rw_max_torque,y_real(1:3)*norm(mag_field_orbit(:,(k-1)/dt+c)*10^(-9)), l);
-        tau_rw(1, (k-1)/dt+c+1) = T_rw(3);
-        tau_mtq(:, (k-1)/dt+c+1) = T_magnetic_effective;
-        rw_ang_vel_rpm(1,(k-1)/dt+c+1) = AngVel_rw_rpm(3,1); 
+        %tau_rw(1, (k-1)/dt+c+1) = T_rw(3);
+        %tau_mtq(:, (k-1)/dt+c+1) = T_magnetic_effective;
+        %rw_ang_vel_rpm(1,(k-1)/dt+c+1) = AngVel_rw_rpm(3,1); 
         acceleration_rw(2,1) = acceleration_rw_cur;
         AngVel_rw_rpm(3,1) = AngVel_rw_rpm_next;
         AngVel_rw_radps(3,1) = AngVel_rw_radps_next;
@@ -401,56 +412,56 @@ x_real_euler_perf = rad2deg(x_real_euler_perf');
 
 instant_error_perform = x_real_euler_perf';
 
-% figure();
-% for i=1:3
-%     subplot(3,1,i);
-%     hold on;
-%     plot(Time(21:length(instant_error_perform)), instant_error_perform(21:length(instant_error_perform), i), 'LineWidth',1.5, 'Color','blue');
-%     if (i==1), title('Absolute Performance Errors', 'interpreter','latex', 'fontsize',17);end
-%     if (i==1), ylabel('X-axis'); end
-%     if (i==2), ylabel('Y-axis'); end
-%     if (i==3), ylabel('Z-axis'); end
-%     xlabel('Time [$s$]', 'interpreter','latex', 'fontsize',12);
-%     hold off;
-%     grid on;
-% end
+figure();
+for i=1:3
+    subplot(3,1,i);
+    hold on;
+    plot(Time(21:length(instant_error_perform)), instant_error_perform(21:length(instant_error_perform), i), 'LineWidth',1.5, 'Color','blue');
+    if (i==1), title('Absolute Performance Errors', 'interpreter','latex', 'fontsize',17);end
+    if (i==1), ylabel('X-axis'); end
+    if (i==2), ylabel('Y-axis'); end
+    if (i==3), ylabel('Z-axis'); end
+    xlabel('Time [$s$]', 'interpreter','latex', 'fontsize',12);
+    hold off;
+    grid on;
+end
 
 % %% Calulation and plotting of knowledge error
-% x_hat_euler_know = zeros(length(x_hat_data), 6);
-% instant_error_know = zeros(length(x_hat_data), 6);
-% 
-% x_real_euler_know = quat2eul(x_real(1:4,1:length(x_hat_data))');
-% x_real_euler_know = rad2deg(x_real_euler_know');
-% x_hat_euler_know(:, 1:3) = quat2eul(x_hat_data(1:4,:)');
-% x_hat_euler_know(:, 1:3) = (rad2deg(x_hat_euler_know(:, 1:3)'))';
-% 
-% instant_error_know(:, 1:3) = x_hat_euler_know(:, 1:3) - x_real_euler_know';
-% instant_error_know(:, 4:6) = x_hat_data(5:7, 1:length(x_hat_data))' - bias_data';
-% 
-% for i=1:3
-%     for k=1:length(instant_error_know)
-%         if instant_error_know(k, i) > 180
-%             instant_error_know(k, i) = instant_error_know(k, i) - 360;
-%         elseif instant_error_know(k, i) < -180
-%             instant_error_know(k, i) = instant_error_know(k, i) + 360;
-%         end
-%     end
-% end
-% 
-% figure();
-% for i=1:6
-%     subplot(6,1,i);
-%     hold on;
-%     plot(Time(21:length(instant_error_know)), instant_error_know(21:length(instant_error_know), i), 'LineWidth',1.5, 'Color','blue');
-%     ylabel(['$\tilde{x}_' num2str(i) '$'], 'interpreter','latex', 'fontsize',14);
-%     if (i==1), title('Absolute Knowledge Errors', 'interpreter','latex', 'fontsize',17);end
-%     if (i==1), ylabel('X-axis'); end
-%     if (i==2), ylabel('Y-axis'); end
-%     if (i==3), ylabel('Z-axis'); end
-%     xlabel('Time [$s$]', 'interpreter','latex', 'fontsize',12);
-%     hold off;
-%     grid on;
-% end
+x_hat_euler_know = zeros(length(x_hat_data), 6);
+instant_error_know = zeros(length(x_hat_data), 6);
+
+x_real_euler_know = quat2eul(x_real(1:4,1:length(x_hat_data))');
+x_real_euler_know = rad2deg(x_real_euler_know');
+x_hat_euler_know(:, 1:3) = quat2eul(x_hat_data(1:4,:)');
+x_hat_euler_know(:, 1:3) = (rad2deg(x_hat_euler_know(:, 1:3)'))';
+
+instant_error_know(:, 1:3) = x_hat_euler_know(:, 1:3) - x_real_euler_know';
+instant_error_know(:, 4:6) = x_hat_data(5:7, 1:length(x_hat_data))' - bias_data';
+
+for i=1:3
+    for k=1:length(instant_error_know)
+        if instant_error_know(k, i) > 180
+            instant_error_know(k, i) = instant_error_know(k, i) - 360;
+        elseif instant_error_know(k, i) < -180
+            instant_error_know(k, i) = instant_error_know(k, i) + 360;
+        end
+    end
+end
+
+figure();
+for i=1:6
+    subplot(6,1,i);
+    hold on;
+    plot(Time(21:length(instant_error_know)), instant_error_know(21:length(instant_error_know), i), 'LineWidth',1.5, 'Color','blue');
+    ylabel(['$\tilde{x}_' num2str(i) '$'], 'interpreter','latex', 'fontsize',14);
+    if (i==1), title('Absolute Knowledge Errors', 'interpreter','latex', 'fontsize',17);end
+    if (i==1), ylabel('X-axis'); end
+    if (i==2), ylabel('Y-axis'); end
+    if (i==3), ylabel('Z-axis'); end
+    xlabel('Time [$s$]', 'interpreter','latex', 'fontsize',12);
+    hold off;
+    grid on;
+end
 % 
 % n_dim = size(x_real,1);
 % % figure('Position',[500 0 1420 1080]);
@@ -488,12 +499,12 @@ instant_error_perform = x_real_euler_perf';
 %     hold off;
 % end
 % 
-% figure()
-% plot(1:length(eclipse),eclipse, 'LineWidth',2.0, 'Color','blue');
-% xlabel('Time [$s$]', 'interpreter','latex', 'fontsize',12);
-% ylabel(['Eclipse'], 'interpreter','latex', 'fontsize',14);
-% if (i==1), title('Umbral, Penumbral or no Eclipse', 'interpreter','latex', 'fontsize',17);end
-% 
+figure()
+plot(1:length(eclipse),eclipse, 'LineWidth',2.0, 'Color','blue');
+xlabel('Time [$s$]', 'interpreter','latex', 'fontsize',12);
+ylabel(['Eclipse'], 'interpreter','latex', 'fontsize',14);
+if (i==1), title('Umbral, Penumbral or no Eclipse', 'interpreter','latex', 'fontsize',17);end
+
 % x_err_data(1:4,:) = x_real(1:4,1:length(x_hat_data))-x_hat_data(1:4,:);
 % x_err_data(5:7,:) = bias_data - x_hat_data(5:7,:);
 % 
