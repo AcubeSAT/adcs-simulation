@@ -26,6 +26,7 @@ Param = setParamsFinal_Nominal(Const.I);
     %n_dim = Param.n_dim;
     kd = Param.kd;
     albedo = Param.albedo;
+    albedo_inaccurate = Param.albedo_inaccurate;
 
     disturbancesEnabled = Param.disturbancesEnabled;
     %setDisturbances = Param.setDisturbances;
@@ -249,11 +250,11 @@ for l=1:n_steps
         
         if (eclipse((k-1)/dt+c))
             % Variances
-            Q = 0.5e-08*eye(n_dim_error,n_dim_error); % Variance of the process noise w[k]
+            Q = 0.5e-10*eye(n_dim_error,n_dim_error); % Variance of the process noise w[k]
 
             % R Variances used in EKF
             % R_hat_coeff=[1e-3;1e-3;1e-3;8e-3;8e-3;8e-3;5e-3;5e-3;5e-3];
-            R_hat_coeff=1000*[.5e-3;.5e-3;.5e-3;4e-3;4e-3;4e-3;1e-3;1e-3;1e-3];
+            R_hat_coeff=100000*[.5e-3;.5e-3;.5e-3;4e-3;4e-3;4e-3;1e-3;1e-3;1e-3];
             R_hat = R_hat_coeff.*eye(n_msr,n_msr);
             ekf.setProcessNoiseCov(Q); %Q variance matrix
              ekf.setMeasureNoiseCov(R_hat); %R variance matrix
@@ -319,11 +320,11 @@ for l=1:n_steps
         
         if (eclipse((k-1)/dt+c))
             % Variances
-            Q = 0.5e-08*eye(n_dim_error,n_dim_error); % Variance of the process noise w[k]
+            Q = 0.5e-10*eye(n_dim_error,n_dim_error); % Variance of the process noise w[k]
 
             % R Variances used in EKF
             % R_hat_coeff=[1e-3;1e-3;1e-3;8e-3;8e-3;8e-3;5e-3;5e-3;5e-3];
-            R_hat_coeff=1000*[.5e-3;.5e-3;.5e-3;4e-3;4e-3;4e-3;1e-3;1e-3;1e-3];
+            R_hat_coeff=100000*[.5e-3;.5e-3;.5e-3;4e-3;4e-3;4e-3;1e-3;1e-3;1e-3];
             R_hat = R_hat_coeff.*eye(n_msr,n_msr);
             ekf.setProcessNoiseCov(Q); %Q variance matrix
             ekf.setMeasureNoiseCov(R_hat); %R variance matrix

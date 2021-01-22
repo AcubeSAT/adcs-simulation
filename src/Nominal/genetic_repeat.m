@@ -1,11 +1,11 @@
 fit = @fitness_function_Nominal;
 
-lb = [0 0 0 0 0 0];
-ub = [100 100 100 100 100 100];
+lb = [45 55 15 0 0 35];
+ub = [85 100 50 25 30 90];
 
 opts = optimoptions(@ga, ...
                     'PopulationSize', 20, ...
-                    'MaxGenerations', 4, ...
+                    'MaxGenerations', 5, ...
                     'UseParallel', true);
 
 [x, f] = ga(fit, 6, [], [], [], [], lb, ub, [], opts);                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      

@@ -1,4 +1,4 @@
-error_struct = load('instant_error_perf.mat');
+error_struct = load('instant_error_perf1.mat');
 error = error_struct.instant_error_perform';
 final_error = abs(error(:,:));
 

@@ -66,6 +66,7 @@ albedo = load("SSO_500_6PM_1_Orbit_051231.mat");
 albedo = albedo.new;
 albedo = [albedo albedo];
 albedo_inaccurate = load("SSO_500_6PM_1_Orbit_050101");
+%albedo_inaccurate = load("sso_albedo.mat"); 
 
 albedo_inaccurate = albedo_inaccurate.new;
 
