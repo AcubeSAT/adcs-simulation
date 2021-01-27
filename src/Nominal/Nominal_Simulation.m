@@ -114,10 +114,11 @@ timeflag_dz = 0;
 init_AngVel_dz = 0;
 init_accel_dz = 0;
 rw_ang_momentum=0;
-%rw_ang_vel_rpm = zeros(1, length(Time));    % RW angular velocity in rpm
-%rw_accel = zeros(1, length(Time));          % RW acceleration
-%tau_mtq = zeros(3, length(Time));           % Torques produced by MTQs
-%tau_rw = zeros(1, length(Time));            % Torques produced by the RW
+rw_ang_vel_rpm = zeros(1, length(Time));    % RW angular velocity in rpm
+rw_accel = zeros(1, length(Time));          % RW acceleration
+tau_mtq = zeros(3, length(Time));           % Torques produced by MTQs
+tau_rw = zeros(1, length(Time));            % Torques produced by the RW
+tau_dist = zeros(3, length(Time));
 lambda=1;
 
 %% Initialize matrices
@@ -132,6 +133,7 @@ bias_wahba_loops = 2;   % Total times to be solved
 quat_pos = zeros(4,bias_wahba_loops); % Wahba results are stored here
 real_bias=init_bias;
 % offset = 2000;
+
 
 for l=1:n_steps
     
@@ -280,6 +282,7 @@ for l=1:n_steps
         torq(3,1) = T_rw_total;
         
         [T_dist,~] = disturbances_pd(q_ob_data(:,(k-1)/dt+c), sun_pos_orbit(:,(k-1)/dt+c), mag_field_orbit(:,(k-1)/dt+c)*10^(-9), disturbancesEnabled);
+        tau_dist(:,(k-1)/dt+c+1) = T_dist;
         torq = torq + T_dist;
         x = real_model.stateTransFun(x, stateTransCookieFinalNominal(torq,rw_ang_momentum,[0;0;0])); 
         x_real(:,(k-1)/dt+c+1)=x;
@@ -362,15 +365,16 @@ for l=1:n_steps
                         PD(Kp_gain, Kd_gain, q_desired ,q_ob_hat, y_noise(4:6)-ekf.theta(5:7) , y_noise(1:3)*norm(mag_field_orbit(:,(k-1)/dt+c)*10^(-9)) , eclipse((k-1)/dt+c), ...
                             Const.mtq_max, Const.lim_dz, AngVel_rw_radps(2,1), AngVel_rw_rpm(2,1), ...
                                 acceleration_rw(1,1), init_AngVel_dz, init_accel_dz, timeflag_dz,Const.rw_max_torque,y_real(1:3)*norm(mag_field_orbit(:,(k-1)/dt+c)*10^(-9)), l);
-        %tau_rw(1, (k-1)/dt+c+1) = T_rw(3);
-        %tau_mtq(:, (k-1)/dt+c+1) = T_magnetic_effective;
-        %rw_ang_vel_rpm(1,(k-1)/dt+c+1) = AngVel_rw_rpm(3,1); 
+        tau_rw(1, (k-1)/dt+c+1) = T_rw(3);
+        tau_mtq(:, (k-1)/dt+c+1) = T_magnetic_effective;
+        rw_ang_vel_rpm(1,(k-1)/dt+c+1) = AngVel_rw_rpm(3,1); 
         acceleration_rw(2,1) = acceleration_rw_cur;
         AngVel_rw_rpm(3,1) = AngVel_rw_rpm_next;
         AngVel_rw_radps(3,1) = AngVel_rw_radps_next;
         
         %%                    
         [T_dist,~] = disturbances_pd(q_ob_data(:,(k-1)/dt+c), sun_pos_orbit(:,(k-1)/dt+c), mag_field_orbit(:,(k-1)/dt+c)*10^(-9), disturbancesEnabled);
+        tau_dist(:,(k-1)/dt+c+1) = T_dist;
         torq = torq + T_dist;
         x = real_model.stateTransFun(x, stateTransCookieFinalNominal(torq,rw_ang_momentum,[0;0;0])); 
         x_real(:,(k-1)/dt+c+1)=x;
@@ -464,41 +468,42 @@ for i=1:6
     grid on;
 end
 % 
-% n_dim = size(x_real,1);
-% % figure('Position',[500 0 1420 1080]);
-% figure();
-% for i=1:n_dim
-%     subplot(n_dim,1,i);
-%     hold on;
-%     if i<5
-%         plot(Time,x_real(i,1:length(Time)), 'LineWidth',2.0, 'Color','blue');       
-%     else
-%         plot(Time(1:length(bias_data(1,:))),bias_data(i-4,1:length(bias_data(1,:))))
-%     end
-%     
-%     plot(Time(1:length(x_hat_data(i,:))),x_hat_data(i,:), 'LineWidth',2.0, 'Color','magenta');               
-%     if (i==1),legend({['$x_' num2str(i) '$'],['$\hat{x}_' num2str(i) '$']}, 'interpreter','latex', 'fontsize',15);end
-%     ylabel(['$x_' num2str(i) '$'], 'interpreter','latex', 'fontsize',17);
-%     if (i==1), title('EKF estimation results', 'interpreter','latex', 'fontsize',17);end
-%     xlim([3 n_steps]);
-%     hold off;
-% end
-% 
-% % % figure('Position',[1000 0 1420 1080]);
-% for i=1:length(Time)
-%     if(q_ob_data(1,i)<0)
-%     q_ob_data(:,i) = -q_ob_data(:,i);
-%     end
-% end
-% figure();
-% for i=1:4
-%     subplot(4,1,i);
-%     hold on;
-%     plot(Time,q_ob_data(i,1:length(Time)), 'LineWidth',2.0, 'Color','blue');
-%     ylabel(['$q_{ob' num2str(i) '}$'], 'interpreter','latex', 'fontsize',17);
-%     xlim([3 n_steps]);
-%     hold off;
-% end
+n_dim = size(x_real,1);
+ %figure('Position',[500 0 1420 1080]);
+figure();
+for i=1:n_dim
+    subplot(n_dim,1,i);
+    hold on;
+    if i<5
+        plot(Time,x_real(i,1:length(Time)), 'LineWidth',2.0, 'Color','blue');       
+    else
+        plot(Time(1:length(bias_data(1,:))),bias_data(i-4,1:length(bias_data(1,:))))
+    end
+    
+    plot(Time(1:length(x_hat_data(i,:))),x_hat_data(i,:), 'LineWidth',2.0, 'Color','magenta');               
+    if (i==1),legend({['$x_' num2str(i) '$'],['$\hat{x}_' num2str(i) '$']}, 'interpreter','latex', 'fontsize',15);end
+    ylabel(['$x_' num2str(i) '$'], 'interpreter','latex', 'fontsize',17);
+    if (i==1), title('EKF estimation results', 'interpreter','latex', 'fontsize',17);end
+    xlim([3 n_steps]);
+    hold off;
+end
+
+% % figure('Position',[1000 0 1420 1080]);
+for i=1:length(Time)
+    if(q_ob_data(1,i)<0)
+    q_ob_data(:,i) = -q_ob_data(:,i);
+    end
+end
+figure();
+for i=1:4
+    title('Quaternion')
+    subplot(4,1,i);
+    hold on;
+    plot(Time,q_ob_data(i,1:length(Time)), 'LineWidth',2.0, 'Color','blue');
+    ylabel(['$q_{ob' num2str(i) '}$'], 'interpreter','latex', 'fontsize',17);
+    xlim([3 n_steps]);
+    hold off;
+end
 % 
 figure()
 plot(1:length(eclipse),eclipse, 'LineWidth',2.0, 'Color','blue');
@@ -506,86 +511,168 @@ xlabel('Time [$s$]', 'interpreter','latex', 'fontsize',12);
 ylabel(['Eclipse'], 'interpreter','latex', 'fontsize',14);
 if (i==1), title('Umbral, Penumbral or no Eclipse', 'interpreter','latex', 'fontsize',17);end
 
-% x_err_data(1:4,:) = x_real(1:4,1:length(x_hat_data))-x_hat_data(1:4,:);
-% x_err_data(5:7,:) = bias_data - x_hat_data(5:7,:);
-% 
-% figure();
-% for i=1:n_dim
-%     subplot(n_dim,1,i);
-%     plot(Time(1:length(x_err_data(i,:))),x_err_data(i,:), 'LineWidth',2.0, 'Color','blue');  % Error for the first state
-%     xlabel('Time [$s$]', 'interpreter','latex', 'fontsize',12);
-%     ylabel(['$\tilde{x}_' num2str(i) '$'], 'interpreter','latex', 'fontsize',14);
-%     if (i==1), legend({'State estimate','$\pm \sigma$'}, 'interpreter','latex', 'fontsize',11);end
-%     if (i==1), title('State estimation errors', 'interpreter','latex', 'fontsize',11); end
-%     xlim([3 n_steps]);
-%     hold off;
-% end
-% 
-% figure();
-% for i=1:3
-%     subplot(3,1,i);
-%     plot(Time,x_real(4+i,1:length(Time)),'LineWidth',2.0, 'Color','blue');
-%     xlabel('Time [$s$]', 'interpreter','latex', 'fontsize',12);
-%     ylabel(['$\omega_' num2str(i) '$'], 'interpreter','latex', 'fontsize',14);
-%     if (i==1), legend('Angular Velocity');end
-%     if (i==1), title('Angular Velocities'); end
-% end
-% 
-% figure();
-% for i=1:3
-%     subplot(3,1,i);
-%     plot(Time(1:length(x_hat_data(1,:))), x_hat_data(4+i,:) - gyro_noise_data(i,:),'LineWidth',2.0, 'Color','blue');
-%     xlabel('Time [$s$]', 'interpreter','latex', 'fontsize',12);
-%     ylabel(['$\omega_' num2str(i) '$'], 'interpreter','latex', 'fontsize',14);
-%     if (i==1), legend('Angular Velocity estimation error');end
-%     if (i==1), title('Angular Velocity estimation error'); end
-% end
-% 
-% eul_diff =zeros(length(Time),3);
-% euler_hat=quat2eul(q_ob_data(1:4,:)')';
-% eul_diff=(euler_hat)*180/pi;
-% figure();
-% for i=1:3
-%     subplot(3,1,i);
-%     hold on;
-%     plot(Time,eul_diff(i,1:length(Time)), 'LineWidth',2.0, 'Color','blue');
-%     ylabel(['$euler_{' num2str(i) '}$'], 'interpreter','latex', 'fontsize',17);
-%     xlim([3 n_steps]);
-%     hold off;
-% end
-% %%  Plotting the produced Torques
-%  
-%       figure()
-%       subplot(3,1,1)
-%       plot(1:length(Time),tau_mtq(1,1:length(Time)))
-%       title('Magnetic Torques-x')
-%       ylabel('Torque [Nm]')
-%       xlabel('Time [s]')
-%       grid on;
-%       subplot(3,1,2)
-%       plot(1:length(Time),tau_mtq(2,1:length(Time)))
-%       title('Magnetic Torques-y')
-%       ylabel('Torque [Nm]')
-%       xlabel('Time [s]')
-%       grid on;
-%       subplot(3,1,3)
-%       plot(1:length(Time),tau_mtq(3,1:length(Time)))
-%       title('Magnetic Torques-z')
-%       ylabel('Torque [Nm]')
-%       xlabel('Time [s]')
-%       grid on;
-%     
-%       figure()
-%       plot(1:length(Time),tau_rw(1, 1:length(Time)))
-%       title('Reaction Wheel Torque-z')
-%       ylabel('Torque [Nm]')
-%       xlabel('Time [s]')
-%       grid on;
-% 
-%  figure() 
-%  plot(Time, rw_ang_vel_rpm(1,1:length(Time)),'LineWidth',1.5, 'Color','blue'); 
-%  title('Angular velocity of RW'); 
-%  ylabel('Angular Velocity [rpm]'); 
-%  xlabel('Time [s]'); 
-%  grid on;
+x_err_data(1:4,:) = x_real(1:4,1:length(x_hat_data))-x_hat_data(1:4,:);
+x_err_data(5:7,:) = bias_data - x_hat_data(5:7,:);
+
+figure();
+for i=1:n_dim
+    subplot(n_dim,1,i);
+    plot(Time(1:length(x_err_data(i,:))),x_err_data(i,:), 'LineWidth',2.0, 'Color','blue');  % Error for the first state
+    xlabel('Time [$s$]', 'interpreter','latex', 'fontsize',12);
+    ylabel(['$\tilde{x}_' num2str(i) '$'], 'interpreter','latex', 'fontsize',14);
+    if (i==1), legend({'State estimate','$\pm \sigma$'}, 'interpreter','latex', 'fontsize',11);end
+    if (i==1), title('State estimation errors', 'interpreter','latex', 'fontsize',11); end
+    xlim([3 n_steps]);
+    hold off;
+end
+
+figure();
+for i=1:3
+    subplot(3,1,i);
+    plot(Time,x_real(4+i,1:length(Time)),'LineWidth',2.0, 'Color','blue');
+    xlabel('Time [$s$]', 'interpreter','latex', 'fontsize',12);
+    ylabel(['$\omega_' num2str(i) '$'], 'interpreter','latex', 'fontsize',14);
+    if (i==1), legend('Angular Velocity');end
+    if (i==1), title('Angular Velocities'); end
+end
+
+figure();
+for i=1:3
+    subplot(3,1,i);
+    plot(Time(1:length(x_hat_data(1,:))), x_hat_data(4+i,:) - gyro_noise_data(i,:),'LineWidth',2.0, 'Color','blue');
+    xlabel('Time [$s$]', 'interpreter','latex', 'fontsize',12);
+    ylabel(['$\omega_' num2str(i) '$'], 'interpreter','latex', 'fontsize',14);
+    if (i==1), legend('Angular Velocity estimation error');end
+    if (i==1), title('Angular Velocity estimation error'); end
+end
+
+eul_diff =zeros(length(Time),3);
+euler_hat=quat2eul(q_ob_data(1:4,:)')';
+eul_diff=(euler_hat)*180/pi;
+figure();
+for i=1:3
+    subplot(3,1,i);
+    hold on;
+    plot(Time,eul_diff(i,1:length(Time)), 'LineWidth',2.0, 'Color','blue');
+    ylabel(['$euler_{' num2str(i) '}$'], 'interpreter','latex', 'fontsize',17);
+    xlim([3 n_steps]);
+    hold off;
+end
+%%  Plotting the produced Torques
+ 
+      figure()
+      subplot(3,1,1)
+      plot(1:length(Time),tau_mtq(1,1:length(Time)))
+      title('Magnetic Torques-x')
+      ylabel('Torque [Nm]')
+      xlabel('Time [s]')
+      grid on;
+      subplot(3,1,2)
+      plot(1:length(Time),tau_mtq(2,1:length(Time)))
+      title('Magnetic Torques-y')
+      ylabel('Torque [Nm]')
+      xlabel('Time [s]')
+      grid on;
+      subplot(3,1,3)
+      plot(1:length(Time),tau_mtq(3,1:length(Time)))
+      title('Magnetic Torques-z')
+      ylabel('Torque [Nm]')
+      xlabel('Time [s]')
+      grid on;
+    
+      figure()
+      plot(1:length(Time),tau_rw(1, 1:length(Time)))
+      title('Reaction Wheel Torque-z')
+      ylabel('Torque [Nm]')
+      xlabel('Time [s]')
+      grid on;
+
+ figure() 
+ plot(Time, rw_ang_vel_rpm(1,1:length(Time)),'LineWidth',1.5, 'Color','blue'); 
+ title('Angular velocity of RW'); 
+ ylabel('Angular Velocity [rpm]'); 
+ xlabel('Time [s]'); 
+ grid on;
+ 
+ %%  Plotting the Disturbances
+ 
+      figure()
+      subplot(3,1,1)
+      plot(1:length(Time),tau_dist(1,1:length(Time)))
+      title('Disturbances-x')
+      ylabel('Disturbances-x [Nm]')
+      xlabel('Time [s]')
+      grid on;
+      subplot(3,1,2)
+      plot(1:length(Time),tau_dist(2,1:length(Time)))
+      title('Disturbances-y')
+      ylabel('Disturbances-y [Nm]')
+      xlabel('Time [s]')
+      grid on;
+      subplot(3,1,3)
+      plot(1:length(Time),tau_dist(3,1:length(Time)))
+      title('Disturbances-z')
+      ylabel('Disturbances-z [Nm]')
+      xlabel('Time [s]')
+      grid on;
+      
+      %% Calculation and plotting of Mean Performance Error
+
+mean_error_perf = zeros(3, 11);
+for i = 1:3
+    for j = 1:11
+    mean_error_perf(i, j) = mean(instant_error_perform(21+(5000*(j-1)):21+(5000*j), i));
+    end
+end
+
+mean_error_perf_matrix = zeros(length(x_hat_data),3);
+for j = 1:11
+    for i = 21+(5000*(j-1)):21+(5000*j)
+        mean_error_perf_matrix(i, :) = mean_error_perf(:,j);
+    end
+end
+
+figure();
+for i=1:3
+    subplot(3,1,i);
+    hold on;
+    plot(Time(1:length(mean_error_perf_matrix)), mean_error_perf_matrix(1:length(mean_error_perf_matrix), i), 'LineWidth',1.5, 'Color','blue');
+    if (i==1), title('Mean Performance Errors', 'interpreter','latex', 'fontsize',17);end
+    if (i==1), ylabel('X-axis'); end
+    if (i==2), ylabel('Y-axis'); end
+    if (i==3), ylabel('Z-axis'); end
+    xlabel('Time [$s$]', 'interpreter','latex', 'fontsize',12);
+    hold off;
+    grid on;
+end
+
+ %% Calculation and plotting of Mean Knowledge Error
+
+mean_error_know = zeros(6, 11);
+for i = 1:6
+    for j = 1:11
+    mean_error_know(i, j) = mean(instant_error_know(21+(5000*(j-1)):21+(5000*j), i));
+    end
+end
+
+mean_error_know_matrix = zeros(length(x_hat_data),6);
+for j = 1:11
+    for i = 21+(5000*(j-1)):21+(5000*j)
+        mean_error_know_matrix(i, :) = mean_error_know(:,j);
+    end
+end
+
+figure();
+for i=1:3
+    subplot(3,1,i);
+    hold on;
+    plot(Time(1:length(mean_error_know_matrix)), mean_error_know_matrix(1:length(mean_error_know_matrix), i), 'LineWidth',1.5, 'Color','blue');
+    if (i==1), title('Mean Knowledge Errors', 'interpreter','latex', 'fontsize',17);end
+    if (i==1), ylabel('X-axis'); end
+    if (i==2), ylabel('Y-axis'); end
+    if (i==3), ylabel('Z-axis'); end
+    xlabel('Time [$s$]', 'interpreter','latex', 'fontsize',12);
+    hold off;
+    grid on;
+end
 end
