@@ -11,6 +11,8 @@ classdef EKF < handle
     properties
         F_k % state transition function Jacobian
         H_k % measurement function Jacobian
+        
+        innov_history % Innovation history
         K % Kalman gain
         Q % process noise covariance
         R % measurement noise covariance
@@ -67,7 +69,8 @@ classdef EKF < handle
             
             this.msrFunJacob_ptr = @this.calcMsrFunJacob;
             this.stateTransFunJacob_ptr = @this.calcStateTransFunJacob;
-
+            
+            this.innov_history = zeros(9,1);
         end
         
         %% Sets the fading memory coefficient. 
@@ -190,7 +193,12 @@ classdef EKF < handle
             % =====  Correction estimates ===== 
             
             this.H_k;
-            Kg = this.P*this.H_k'/(this.H_k*this.P*this.H_k' + this.R);
+            S_k = (this.H_k*this.P*this.H_k' + this.R); % Innovation covariance
+            Kg = this.P*this.H_k'/S_k;
+            
+            if cookie.eclipse ~= 0              
+                this.innov_history = [this.innov_history (z - z_hat)];
+            end
                                            
             error_state =  Kg * (z - z_hat);
             
@@ -236,8 +244,20 @@ classdef EKF < handle
 %                 end
 %             end
 
-            % =====  Calculate new covariance  =====
+%       =====  Calculate new covariance  =====
 %             this.P = (I - Kg*this.H_k) * this.P;
+        if cookie.eclipse
+            S_hat = zeros(9,9);
+            window = 70;
+            if length(this.innov_history(1,:))>=window + 1
+                for j=0:window-1
+                    S_hat = S_hat + this.innov_history(:,end-j)*this.innov_history(:,end-j)';
+                end
+                S_hat = S_hat/window;                
+                this.Q = Kg * S_hat * Kg';
+            end
+         end
+           % end
             this.P = (I - Kg*this.H_k) * this.P;
             this.K = Kg;
 

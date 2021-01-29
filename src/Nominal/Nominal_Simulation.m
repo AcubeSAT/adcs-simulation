@@ -97,6 +97,9 @@ if (use_analytic_jacob) %if analytical jacobian is used, define the functions
     ekf.setMsrFunJacob(@model.msrFunJacob);
 end
 
+Q_struct = load('idealQ.mat', 'IDEALQ');
+Q_eclipse = Q_struct.IDEALQ;
+
 %% Initialize simulation parameters
 
 Time = 0:dt:tf;
@@ -131,7 +134,9 @@ bias_init_counter = 0;  % how many Wahba's have we solved for bias init
 bias_wahba_loops = 2;   % Total times to be solved
 quat_pos = zeros(4,bias_wahba_loops); % Wahba results are stored here
 real_bias=init_bias;
-% offset = 2000;
+
+entered_eclipse = false;
+exited_eclipse = false;
 
 for l=1:n_steps
     
@@ -229,6 +234,21 @@ for l=1:n_steps
 
      q_ob_data(:,(k-1)/dt+1) = quat_EB2OB(x(1:4), nodem(1,(k-1)/dt+1),inclm(1,(k-1)/dt+1),argpm(1,(k-1)/dt+1),mm(1,(k-1)/dt+1) );   
      for c=1:3
+        
+%         if(entered_eclipse == false) && (eclipse((k-1)/dt+c) ~= 0)
+%             Q_eclipse =  eye(n_dim_error,n_dim_error);
+%             Q_eclipse(4:6,4:6) = 1e-06*eye(3,3);
+%             ekf.setProcessNoiseCov(Q_eclipse); %Q variance matrix
+%             entered_eclipse = true;
+%         end
+%         
+%         if(exited_eclipse == false) && (entered_eclipse == true) && (eclipse((k-1)/dt+c) == 0)
+%             Q_outside =  0.5e-05*eye(n_dim_error,n_dim_error);
+%             Q_outside(4:6,4:6) = 1e-07*eye(3,3);
+%             ekf.setProcessNoiseCov(Q_outside);
+%             exited_eclipse = true;
+%             entered_eclipse = false;
+%         end 
          
         y_real = real_model.msrFun(x_real(:,(k-1)/dt+c),msrCookieFinal(mag_field_eci(:,(k-1)/dt+c),...
             sun_pos_eci(:,(k-1)/dt+c),eclipse((k-1)/dt+c),[0;0;0]));
@@ -250,11 +270,11 @@ for l=1:n_steps
         
         if (eclipse((k-1)/dt+c))
             % Variances
-            Q = 0.5e-10*eye(n_dim_error,n_dim_error); % Variance of the process noise w[k]
+            Q = Q_eclipse; % Variance of the process noise w[k]
 
             % R Variances used in EKF
             % R_hat_coeff=[1e-3;1e-3;1e-3;8e-3;8e-3;8e-3;5e-3;5e-3;5e-3];
-            R_hat_coeff=100000*[.5e-3;.5e-3;.5e-3;4e-3;4e-3;4e-3;1e-3;1e-3;1e-3];
+            R_hat_coeff=10000*[.5e-3;.5e-3;.5e-3;4e-3;4e-3;4e-3;1e-3;1e-3;1e-3];
             R_hat = R_hat_coeff.*eye(n_msr,n_msr);
             ekf.setProcessNoiseCov(Q); %Q variance matrix
              ekf.setMeasureNoiseCov(R_hat); %R variance matrix
@@ -320,11 +340,11 @@ for l=1:n_steps
         
         if (eclipse((k-1)/dt+c))
             % Variances
-            Q = 0.5e-10*eye(n_dim_error,n_dim_error); % Variance of the process noise w[k]
+            Q = Q_eclipse; % Variance of the process noise w[k]
 
             % R Variances used in EKF
             % R_hat_coeff=[1e-3;1e-3;1e-3;8e-3;8e-3;8e-3;5e-3;5e-3;5e-3];
-            R_hat_coeff=100000*[.5e-3;.5e-3;.5e-3;4e-3;4e-3;4e-3;1e-3;1e-3;1e-3];
+            R_hat_coeff=10000*[.5e-3;.5e-3;.5e-3;4e-3;4e-3;4e-3;1e-3;1e-3;1e-3];
             R_hat = R_hat_coeff.*eye(n_msr,n_msr);
             ekf.setProcessNoiseCov(Q); %Q variance matrix
             ekf.setMeasureNoiseCov(R_hat); %R variance matrix
@@ -428,41 +448,41 @@ for i=1:3
 end
 
 % %% Calulation and plotting of knowledge error
-x_hat_euler_know = zeros(length(x_hat_data), 6);
-instant_error_know = zeros(length(x_hat_data), 6);
+% x_hat_euler_know = zeros(length(x_hat_data), 6);
+% instant_error_know = zeros(length(x_hat_data), 6);
+% 
+% x_real_euler_know = quat2eul(x_real(1:4,1:length(x_hat_data))');
+% x_real_euler_know = rad2deg(x_real_euler_know');
+% x_hat_euler_know(:, 1:3) = quat2eul(x_hat_data(1:4,:)');
+% x_hat_euler_know(:, 1:3) = (rad2deg(x_hat_euler_know(:, 1:3)'))';
+% 
+% instant_error_know(:, 1:3) = x_hat_euler_know(:, 1:3) - x_real_euler_know';
+% instant_error_know(:, 4:6) = x_hat_data(5:7, 1:length(x_hat_data))' - bias_data';
+% 
+% for i=1:3
+%     for k=1:length(instant_error_know)
+%         if instant_error_know(k, i) > 180
+%             instant_error_know(k, i) = instant_error_know(k, i) - 360;
+%         elseif instant_error_know(k, i) < -180
+%             instant_error_know(k, i) = instant_error_know(k, i) + 360;
+%         end
+%     end
+% end
 
-x_real_euler_know = quat2eul(x_real(1:4,1:length(x_hat_data))');
-x_real_euler_know = rad2deg(x_real_euler_know');
-x_hat_euler_know(:, 1:3) = quat2eul(x_hat_data(1:4,:)');
-x_hat_euler_know(:, 1:3) = (rad2deg(x_hat_euler_know(:, 1:3)'))';
-
-instant_error_know(:, 1:3) = x_hat_euler_know(:, 1:3) - x_real_euler_know';
-instant_error_know(:, 4:6) = x_hat_data(5:7, 1:length(x_hat_data))' - bias_data';
-
-for i=1:3
-    for k=1:length(instant_error_know)
-        if instant_error_know(k, i) > 180
-            instant_error_know(k, i) = instant_error_know(k, i) - 360;
-        elseif instant_error_know(k, i) < -180
-            instant_error_know(k, i) = instant_error_know(k, i) + 360;
-        end
-    end
-end
-
-figure();
-for i=1:6
-    subplot(6,1,i);
-    hold on;
-    plot(Time(21:length(instant_error_know)), instant_error_know(21:length(instant_error_know), i), 'LineWidth',1.5, 'Color','blue');
-    ylabel(['$\tilde{x}_' num2str(i) '$'], 'interpreter','latex', 'fontsize',14);
-    if (i==1), title('Absolute Knowledge Errors', 'interpreter','latex', 'fontsize',17);end
-    if (i==1), ylabel('X-axis'); end
-    if (i==2), ylabel('Y-axis'); end
-    if (i==3), ylabel('Z-axis'); end
-    xlabel('Time [$s$]', 'interpreter','latex', 'fontsize',12);
-    hold off;
-    grid on;
-end
+% figure();
+% for i=1:6
+%     subplot(6,1,i);
+%     hold on;
+%     plot(Time(21:length(instant_error_know)), instant_error_know(21:length(instant_error_know), i), 'LineWidth',1.5, 'Color','blue');
+%     ylabel(['$\tilde{x}_' num2str(i) '$'], 'interpreter','latex', 'fontsize',14);
+%     if (i==1), title('Absolute Knowledge Errors', 'interpreter','latex', 'fontsize',17);end
+%     if (i==1), ylabel('X-axis'); end
+%     if (i==2), ylabel('Y-axis'); end
+%     if (i==3), ylabel('Z-axis'); end
+%     xlabel('Time [$s$]', 'interpreter','latex', 'fontsize',12);
+%     hold off;
+%     grid on;
+% end
 % 
 % n_dim = size(x_real,1);
 % % figure('Position',[500 0 1420 1080]);

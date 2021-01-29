@@ -9,10 +9,38 @@ tf = orbits*orbitPeriod+0.9; %Total Simulation Seconds
 %tf =(5545+0.9); %Total Simulation Seconds
 np = uint32((tf+dt)/dt); %Number of timesteps
 q_desired = [ 1 0 0 0 ] ; %Desired quaternion
+
+%% ======= Orbit Propagation ========
+[satrec, x] = orbit_init();
+[xsat_ecf, vsat_ecf,xsat_eci,vsat_eci, sat_llh,eclipse, mag_field_ned,mag_field_eci,mag_field_ecef,mag_field_orbit, sun_pos_ned,sun_pos_eci,sun_pos_ecef,sun_pos_orbit,satrec,argpm,nodem,inclm,mm,xnode,xinc] = orbit_sgp4(satrec,dt,tf+dt);
+
+for(i=1:length(xsat_eci))
+    xsat_eci_normalized(:,i) = xsat_eci(:,i)/norm(xsat_eci(:,i));
+end
+
+%eclipse = zeros(1,55460);
+% save('mag_orbit_10.mat','mag_field_orbit');
+
+%% 
+% if x >= 0 && x <= 0.25
+%     Q0 = [-0.4493; 0.1189; -0.8854; 0.0122];% [1, 0, 0, 0] TLE -> 6PM 2-offset
+% elseif x > 0.25 && x <= 0.5
+%     Q0 = [-0.4371; 0.3440; -0.8244; -0.1045];% [1, 0, 0, 0] TLE -> 8PM 2-offset
+% elseif x > 0.5 && x <= 0.75
+%     Q0 = [-0.4197; 0.4487; -0.7725; -0.1607];% [1, 0, 0, 0] TLE -> 9PM 2-offset  
+% else
+%     Q0 = [0.3638; -0.6333; 0.6300; 0.2639];% [1, 0, 0, 0] TLE -> 11PM 2-offset
+% end
 %Q0 = [0.5; 0.5; 0.5; 0.5]; %Initial Quaternion in ECI frame
 %Q0 = [0.0894; -0.0058; 0.0641; -0.9939];% [1, 0, 0, 0] TLE -> 29_08
 %Q0 = [0.9928; -0.0641; -0.0054; 0.1007];% [1, 0, 0, 0] TLE -> 6PM 0-offset
 Q0 = [-0.4493; 0.1189; -0.8854; 0.0122];% [1, 0, 0, 0] TLE -> 6PM 2-offset
+%Q0 = [0.0619; 0.3476; -0.9310; 0.0920];% [1, 0, 0, 0] TLE -> 8PM 3-offset
+%Q0 = [-0.4371; 0.3440; -0.8244; -0.1045];% [1, 0, 0, 0] TLE -> 8PM 2-offset
+%Q0 = [0.0493; 0.4662; -0.8777; 0.0993];% [1, 0, 0, 0] TLE -> 9PM 3-offset
+%Q0 = [-0.4197; 0.4487; -0.7725; -0.1607];% [1, 0, 0, 0] TLE -> 9PM 2-offset
+%Q0 = [0.0219; 0.6775; -0.7271; 0.1087];% [1, 0, 0, 0] TLE -> 11PM 3-offset
+%Q0 = [0.3638; -0.6333; 0.6300; 0.2639];% [1, 0, 0, 0] TLE -> 11PM 2-offset
 Q0 = Q0/norm(Q0); %Normalised Quaternion
 init_bias = [.01;0.15;-.08]; % bias initialization
 vRot0 = [0; 0; 0];
@@ -46,16 +74,7 @@ setDisturbances = "total";   % Set which disturbances you want to activate: tau_
 rng(1); % Fix the random number generator for reproducible results
 plotter_step=10;
 
-%% ======= Orbit Propagation ========
-satrec = orbit_init();
-[xsat_ecf, vsat_ecf,xsat_eci,vsat_eci, sat_llh,eclipse, mag_field_ned,mag_field_eci,mag_field_ecef,mag_field_orbit, sun_pos_ned,sun_pos_eci,sun_pos_ecef,sun_pos_orbit,satrec,argpm,nodem,inclm,mm,xnode,xinc] = orbit_sgp4(satrec,dt,tf+dt);
 
-for(i=1:length(xsat_eci))
-    xsat_eci_normalized(:,i) = xsat_eci(:,i)/norm(xsat_eci(:,i));
-end
-
-%eclipse = zeros(1,55460);
-% save('mag_orbit_10.mat','mag_field_orbit');
 
 %% ======= Albedo ========
 %albedo = load("sso_albedo.mat");  % Choose albedo depending on orbit

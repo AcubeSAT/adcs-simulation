@@ -1,7 +1,17 @@
-function [satrec]=orbit_init()
+function [satrec, x]=orbit_init()
 %% Get tle
+x = rand;
+% if x >= 0 && x <= 0.25
+%     infilename = "SSO-500-6PM.TLE";
+% elseif x > 0.25 && x <= 0.5
+%     infilename = "SSO-500-8PM.TLE";
+% elseif x > 0.5 && x <= 0.75
+%     infilename = "SSO-500-9PM.TLE";    
+% else
+%     infilename = "SSO-500-11PM.TLE"; 
+% end
 infilename = "SSO-500-6PM.TLE";
-%infilename = "SSO500_29_08.TLE";
+%infilename = "SSO550_2.TLE";
 %infilename = input('input elset filename: ','s');
 infile = fopen(infilename, 'r');
 if (infile == -1)
