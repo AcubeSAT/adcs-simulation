@@ -308,7 +308,7 @@ for l=1:n_steps
         q_ob_data(:,(k-1)/dt+c+1) = quat_EB2OB(x(1:4), nodem(1,(k-1)/dt+c),inclm(1,(k-1)/dt+c),argpm(1,(k-1)/dt+c),mm(1,(k-1)/dt+c) );
         
         AngVel_rw_rpm(3,1) = AngVel_rw_radps(3,1)*30/pi; 
-        %rw_ang_vel_rpm(1,(k-1)/dt+c+1) = AngVel_rw_rpm(3,1);  
+        rw_ang_vel_rpm(1,(k-1)/dt+c+1) = AngVel_rw_rpm(3,1);  
         %rw_accel(1,(k-1)/dt+c+1) = acceleration_rw(2,1);
         
     %     if norm(q_prev - q_ob_data(:,(k-1)/dt+c+1))^2 > norm(q_prev + q_ob_data(:,(k-1)/dt+c+1))^2

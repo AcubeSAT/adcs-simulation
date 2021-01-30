@@ -23,7 +23,7 @@ end
 
 %% 
 % if x >= 0 && x <= 0.25
-%     Q0 = [-0.4493; 0.1189; -0.8854; 0.0122];% [1, 0, 0, 0] TLE -> 6PM 2-offset
+    Q0 = [-0.4493; 0.1189; -0.8854; 0.0122];% [1, 0, 0, 0] TLE -> 6PM 2-offset
 % elseif x > 0.25 && x <= 0.5
 %     Q0 = [-0.4371; 0.3440; -0.8244; -0.1045];% [1, 0, 0, 0] TLE -> 8PM 2-offset
 % elseif x > 0.5 && x <= 0.75
@@ -31,11 +31,11 @@ end
 % else
 %     Q0 = [0.3638; -0.6333; 0.6300; 0.2639];% [1, 0, 0, 0] TLE -> 11PM 2-offset
 % end
-%Q0 = [0.5; 0.5; 0.5; 0.5]; %Initial Quaternion in ECI frame
-%Q0 = [0.0894; -0.0058; 0.0641; -0.9939];% [1, 0, 0, 0] TLE -> 29_08
+% Q0 = [0.5; 0.5; 0.5; 0.5]; %Initial Quaternion in ECI frame
+% Q0 = [0.0894; -0.0058; 0.0641; -0.9939];% [1, 0, 0, 0] TLE -> 29_08
 %Q0 = [0.9928; -0.0641; -0.0054; 0.1007];% [1, 0, 0, 0] TLE -> 6PM 0-offset
-Q0 = [-0.4493; 0.1189; -0.8854; 0.0122];% [1, 0, 0, 0] TLE -> 6PM 2-offset
-%Q0 = [0.0619; 0.3476; -0.9310; 0.0920];% [1, 0, 0, 0] TLE -> 8PM 3-offset
+% Q0 = [-0.4493; 0.1189; -0.8854; 0.0122];% [1, 0, 0, 0] TLE -> 6PM 2-offset
+% Q0 = [0.0619; 0.3476; -0.9310; 0.0920];% [1, 0, 0, 0] TLE -> 8PM 3-offset
 %Q0 = [-0.4371; 0.3440; -0.8244; -0.1045];% [1, 0, 0, 0] TLE -> 8PM 2-offset
 %Q0 = [0.0493; 0.4662; -0.8777; 0.0993];% [1, 0, 0, 0] TLE -> 9PM 3-offset
 %Q0 = [-0.4197; 0.4487; -0.7725; -0.1607];% [1, 0, 0, 0] TLE -> 9PM 2-offset
@@ -83,12 +83,12 @@ albedo = load("SSO_500_6PM_1_Orbit_051231.mat");
 
 
 albedo = albedo.new;
-albedo = [albedo albedo];
+albedo = [albedo albedo albedo];
 albedo_inaccurate = load("SSO_500_6PM_1_Orbit_050101");
 %albedo_inaccurate = load("sso_albedo.mat"); 
 
 albedo_inaccurate = albedo_inaccurate.new;
-
+albedo_inaccurate = [albedo_inaccurate albedo_inaccurate albedo_inaccurate];
 %% ======= Kalman filter params ========
 % Variances
 Q = 0.5e-05*eye(n_dim_error,n_dim_error); % Variance of the process noise w[k]
