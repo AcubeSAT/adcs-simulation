@@ -173,6 +173,7 @@ use_analytic_jacob = true;
     Param.sigma_v = sigma_v;
     Param.P0 = P0;
     Param.use_analytic_jacob = use_analytic_jacob;
+    Param.sat_llh=sat_llh;
 
 
 end

@@ -54,6 +54,7 @@ Param = setParamsFinal_Nominal(Const.I);
     %xnode = Param.xnode;
     %xinc = Param.xinc;
     n_dim_error = Param.n_dim_error;
+    sat_llh=Param.sat_llh;
 
     init_bias = Param.init_bias;
     Q = Param.Q;
@@ -383,7 +384,7 @@ for l=1:n_steps
                     timeflag_dz] = ...
                         PD(Kp_gain, Kd_gain, q_desired ,q_ob_hat, y_noise(4:6)-ekf.theta(5:7) , y_noise(1:3)*norm(mag_field_orbit(:,(k-1)/dt+c)*10^(-9)) , eclipse((k-1)/dt+c), ...
                             Const.mtq_max, Const.lim_dz, AngVel_rw_radps(2,1), AngVel_rw_rpm(2,1), ...
-                                acceleration_rw(1,1), init_AngVel_dz, init_accel_dz, timeflag_dz,Const.rw_max_torque,y_real(1:3)*norm(mag_field_orbit(:,(k-1)/dt+c)*10^(-9)), l);
+                                acceleration_rw(1,1), init_AngVel_dz, init_accel_dz, timeflag_dz,Const.rw_max_torque,y_real(1:3)*norm(mag_field_orbit(:,(k-1)/dt+c)*10^(-9)), l, sat_llh(3,(k-1)/dt+c));
         tau_rw(1, (k-1)/dt+c+1) = T_rw(3);
         tau_mtq(:, (k-1)/dt+c+1) = T_magnetic_effective;
         rw_ang_vel_rpm(1,(k-1)/dt+c+1) = AngVel_rw_rpm(3,1); 
