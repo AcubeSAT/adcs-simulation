@@ -85,6 +85,9 @@ global flag; flag = 0;
 global Max_RW_torq; Max_RW_torq=Const.rw_max_torque;
 
 %% Construct the EKF
+
+Q_struct = load('idealQ.mat', 'IDEALQ');
+Q_eclipse_load = Q_struct.IDEALQ;
 n_params = length(x0_hat); %Init number of parameters
 ekf = EKF(n_params, n_msr, @model.stateTransFun, @model.msrFun); %Init EKF
 ekf.theta = x0_hat; %Init state estimation
@@ -98,8 +101,7 @@ if (use_analytic_jacob) %if analytical jacobian is used, define the functions
     ekf.setMsrFunJacob(@model.msrFunJacob);
 end
 
-Q_struct = load('idealQ.mat', 'IDEALQ');
-Q_eclipse = Q_struct.IDEALQ;
+
 
 %% Initialize simulation parameters
 
@@ -236,22 +238,47 @@ for l=1:n_steps
 
      q_ob_data(:,(k-1)/dt+1) = quat_EB2OB(x(1:4), nodem(1,(k-1)/dt+1),inclm(1,(k-1)/dt+1),argpm(1,(k-1)/dt+1),mm(1,(k-1)/dt+1) );   
      for c=1:3
-        
-%         if(entered_eclipse == false) && (eclipse((k-1)/dt+c) ~= 0)
-%             Q_eclipse =  eye(n_dim_error,n_dim_error);
-%             Q_eclipse(4:6,4:6) = 1e-06*eye(3,3);
-%             ekf.setProcessNoiseCov(Q_eclipse); %Q variance matrix
-%             entered_eclipse = true;
-%         end
-%         
-%         if(exited_eclipse == false) && (entered_eclipse == true) && (eclipse((k-1)/dt+c) == 0)
-%             Q_outside =  0.5e-05*eye(n_dim_error,n_dim_error);
-%             Q_outside(4:6,4:6) = 1e-07*eye(3,3);
-%             ekf.setProcessNoiseCov(Q_outside);
-%             exited_eclipse = true;
-%             entered_eclipse = false;
-%         end 
          
+%% ================ Adaptive ======================================
+%
+%           if(entered_eclipse == false) && (eclipse((k-1)/dt+c) ~= 0)
+%               Q_eclipse =  eye(n_dim_error,n_dim_error);
+%               Q_eclipse(4:6,4:6) = 0.5e-06*eye(3,3);
+%               %Q_eclipse = Q_eclipse_load;
+%               R_hat_coeff=10000*[.5e-3;.5e-3;.5e-3;4e-3;4e-3;4e-3;1e-3;1e-3;1e-3];
+%               R_hat = R_hat_coeff.*eye(n_msr,n_msr);
+%               ekf.setProcessNoiseCov(Q_eclipse); %Q variance matrix
+%               ekf.setMeasureNoiseCov(R_hat); %R variance matrix
+%               entered_eclipse = true;
+%           end
+%           
+%           if(exited_eclipse == false) && (entered_eclipse == true) && (eclipse((k-1)/dt+c) == 0)
+%               Q_outside =  0.5e-05*eye(n_dim_error,n_dim_error);
+%               Q_outside(4:6,4:6) = 0.5e-07*eye(3,3);
+%               %Q_outside = Q_eclipse_load;
+%               %Q_outside = Q;
+%               ekf.setProcessNoiseCov(Q_outside);
+%               ekf.setMeasureNoiseCov(Param.R_hat); %R variance matrix
+%               exited_eclipse = true;
+%               entered_eclipse = false;
+%           end
+%% ============ IdealQ ============================================        
+        if (eclipse((k-1)/dt+c))
+            % Variances
+            Q = Q_eclipse_load; % Variance of the process noise w[k]
+
+            % R Variances used in EKF
+            % R_hat_coeff=[1e-3;1e-3;1e-3;8e-3;8e-3;8e-3;5e-3;5e-3;5e-3];
+            R_hat_coeff=10000*[.5e-3;.5e-3;.5e-3;4e-3;4e-3;4e-3;1e-3;1e-3;1e-3];
+            R_hat = R_hat_coeff.*eye(n_msr,n_msr);
+            ekf.setProcessNoiseCov(Q); %Q variance matrix
+             ekf.setMeasureNoiseCov(R_hat); %R variance matrix
+        else
+            ekf.setProcessNoiseCov(Param.Q); %Q variance matrix
+            ekf.setMeasureNoiseCov(Param.R_hat); %R variance matrix
+        end
+       
+        
         y_real = real_model.msrFun(x_real(:,(k-1)/dt+c),msrCookieFinal(mag_field_eci(:,(k-1)/dt+c),...
             sun_pos_eci(:,(k-1)/dt+c),eclipse((k-1)/dt+c),[0;0;0]));
         y_noise = y_real + sqrt(R)*randn(size(y_real));
@@ -269,22 +296,6 @@ for l=1:n_steps
             y_noise(7:9)=y_noise(7:9)/norm(y_noise(7:9)); 
         end
         y_noise(1:3)=y_noise(1:3)/norm(y_noise(1:3)); 
-        
-        if (eclipse((k-1)/dt+c))
-            % Variances
-            Q = Q_eclipse; % Variance of the process noise w[k]
-
-            % R Variances used in EKF
-            % R_hat_coeff=[1e-3;1e-3;1e-3;8e-3;8e-3;8e-3;5e-3;5e-3;5e-3];
-            R_hat_coeff=10000*[.5e-3;.5e-3;.5e-3;4e-3;4e-3;4e-3;1e-3;1e-3;1e-3];
-            R_hat = R_hat_coeff.*eye(n_msr,n_msr);
-            ekf.setProcessNoiseCov(Q); %Q variance matrix
-             ekf.setMeasureNoiseCov(R_hat); %R variance matrix
-        else
-            ekf.setProcessNoiseCov(Param.Q); %Q variance matrix
-             ekf.setMeasureNoiseCov(Param.R_hat); %R variance matrix
-        end
-        
         
         gyro = y_noise(4:6);
         ekf.correct(y_noise, msrCookieFinalExtended(mag_field_eci(:,(k-1)/dt+c),...
@@ -333,28 +344,52 @@ for l=1:n_steps
     %    q_ob_hat_prev = -q_ob_hat_prev;
     % end
      for c=4:10   
-         
-        y_real = real_model.msrFun(x_real(:,(k-1)/dt+c),msrCookieFinal(mag_field_eci(:,(k-1)/dt+c),...
-            sun_pos_eci(:,(k-1)/dt+c),eclipse((k-1)/dt+c),[0;0;0]));
-        [gyro_noise,real_bias] = gyro_noise_func(real_bias,dt,sigma_u,sigma_v);
-        bias_data = [bias_data real_bias];
-        gyro_noise_data = [gyro_noise_data gyro_noise];
-        y_noise(4:6) = y_real(4:6) + gyro_noise; 
         
+%% ================ Adaptive ======================================
+%
+%           if(entered_eclipse == false) && (eclipse((k-1)/dt+c) ~= 0)
+%               Q_eclipse =  eye(n_dim_error,n_dim_error);
+%               Q_eclipse(4:6,4:6) = 0.5e-06*eye(3,3);
+%               %Q_eclipse = Q_eclipse_load;
+%               R_hat_coeff=10000*[.5e-3;.5e-3;.5e-3;4e-3;4e-3;4e-3;1e-3;1e-3;1e-3];
+%               R_hat = R_hat_coeff.*eye(n_msr,n_msr);
+%               ekf.setProcessNoiseCov(Q_eclipse); %Q variance matrix
+%               ekf.setMeasureNoiseCov(R_hat); %R variance matrix
+%               entered_eclipse = true;
+%           end
+%           
+%           if(exited_eclipse == false) && (entered_eclipse == true) && (eclipse((k-1)/dt+c) == 0)
+%               Q_outside =  0.5e-05*eye(n_dim_error,n_dim_error);
+%               Q_outside(4:6,4:6) = 0.5e-07*eye(3,3);
+%               %Q_outside = Q_eclipse_load;
+%               %Q_outside = Q;
+%               ekf.setProcessNoiseCov(Q_outside);
+%               ekf.setMeasureNoiseCov(Param.R_hat); %R variance matrix
+%               exited_eclipse = true;
+%               entered_eclipse = false;
+%           end
+%% ============ IdealQ ============================================        
         if (eclipse((k-1)/dt+c))
             % Variances
-            Q = Q_eclipse; % Variance of the process noise w[k]
+            Q = Q_eclipse_load; % Variance of the process noise w[k]
 
             % R Variances used in EKF
             % R_hat_coeff=[1e-3;1e-3;1e-3;8e-3;8e-3;8e-3;5e-3;5e-3;5e-3];
             R_hat_coeff=10000*[.5e-3;.5e-3;.5e-3;4e-3;4e-3;4e-3;1e-3;1e-3;1e-3];
             R_hat = R_hat_coeff.*eye(n_msr,n_msr);
             ekf.setProcessNoiseCov(Q); %Q variance matrix
-            ekf.setMeasureNoiseCov(R_hat); %R variance matrix
+             ekf.setMeasureNoiseCov(R_hat); %R variance matrix
         else
             ekf.setProcessNoiseCov(Param.Q); %Q variance matrix
-             ekf.setMeasureNoiseCov(Param.R_hat); %R variance matrix
+            ekf.setMeasureNoiseCov(Param.R_hat); %R variance matrix
         end
+
+        y_real = real_model.msrFun(x_real(:,(k-1)/dt+c),msrCookieFinal(mag_field_eci(:,(k-1)/dt+c),...
+            sun_pos_eci(:,(k-1)/dt+c),eclipse((k-1)/dt+c),[0;0;0]));
+        [gyro_noise,real_bias] = gyro_noise_func(real_bias,dt,sigma_u,sigma_v);
+        bias_data = [bias_data real_bias];
+        gyro_noise_data = [gyro_noise_data gyro_noise];
+        y_noise(4:6) = y_real(4:6) + gyro_noise; 
         
         x_hat = ekf.theta;
         x_hat(1:4) = x_hat(1:4) / norm(x_hat(1:4));
@@ -472,7 +507,7 @@ end
 %         end
 %     end
 % end
-
+% 
 % figure();
 % for i=1:6
 %     subplot(6,1,i);
@@ -488,32 +523,32 @@ end
 %     grid on;
 % end
 % 
-n_dim = size(x_real,1);
- %figure('Position',[500 0 1420 1080]);
-figure();
-for i=1:n_dim
-    subplot(n_dim,1,i);
-    hold on;
-    if i<5
-        plot(Time,x_real(i,1:length(Time)), 'LineWidth',2.0, 'Color','blue');       
-    else
-        plot(Time(1:length(bias_data(1,:))),bias_data(i-4,1:length(bias_data(1,:))))
-    end
-    
-    plot(Time(1:length(x_hat_data(i,:))),x_hat_data(i,:), 'LineWidth',2.0, 'Color','magenta');               
-    if (i==1),legend({['$x_' num2str(i) '$'],['$\hat{x}_' num2str(i) '$']}, 'interpreter','latex', 'fontsize',15);end
-    ylabel(['$x_' num2str(i) '$'], 'interpreter','latex', 'fontsize',17);
-    if (i==1), title('EKF estimation results', 'interpreter','latex', 'fontsize',17);end
-    xlim([3 n_steps]);
-    hold off;
-end
-
-% % figure('Position',[1000 0 1420 1080]);
-for i=1:length(Time)
-    if(q_ob_data(1,i)<0)
-    q_ob_data(:,i) = -q_ob_data(:,i);
-    end
-end
+% n_dim = size(x_real,1);
+%  %figure('Position',[500 0 1420 1080]);
+% figure();
+% for i=1:n_dim
+%     subplot(n_dim,1,i);
+%     hold on;
+%     if i<5
+%         plot(Time,x_real(i,1:length(Time)), 'LineWidth',2.0, 'Color','blue');       
+%     else
+%         plot(Time(1:length(bias_data(1,:))),bias_data(i-4,1:length(bias_data(1,:))))
+%     end
+%     
+%     plot(Time(1:length(x_hat_data(i,:))),x_hat_data(i,:), 'LineWidth',2.0, 'Color','magenta');               
+%     if (i==1),legend({['$x_' num2str(i) '$'],['$\hat{x}_' num2str(i) '$']}, 'interpreter','latex', 'fontsize',15);end
+%     ylabel(['$x_' num2str(i) '$'], 'interpreter','latex', 'fontsize',17);
+%     if (i==1), title('EKF estimation results', 'interpreter','latex', 'fontsize',17);end
+%     xlim([3 n_steps]);
+%     hold off;
+% end
+% 
+% % % figure('Position',[1000 0 1420 1080]);
+% for i=1:length(Time)
+%     if(q_ob_data(1,i)<0)
+%     q_ob_data(:,i) = -q_ob_data(:,i);
+%     end
+% end
 figure();
 for i=1:4
     title('Quaternion')
@@ -523,176 +558,178 @@ for i=1:4
     ylabel(['$q_{ob' num2str(i) '}$'], 'interpreter','latex', 'fontsize',17);
     xlim([3 n_steps]);
     hold off;
+    grid on;
 end
 % 
 figure()
 plot(1:length(eclipse),eclipse, 'LineWidth',2.0, 'Color','blue');
 xlabel('Time [$s$]', 'interpreter','latex', 'fontsize',12);
 ylabel(['Eclipse'], 'interpreter','latex', 'fontsize',14);
+grid on;
 if (i==1), title('Umbral, Penumbral or no Eclipse', 'interpreter','latex', 'fontsize',17);end
 
-x_err_data(1:4,:) = x_real(1:4,1:length(x_hat_data))-x_hat_data(1:4,:);
-x_err_data(5:7,:) = bias_data - x_hat_data(5:7,:);
-
-figure();
-for i=1:n_dim
-    subplot(n_dim,1,i);
-    plot(Time(1:length(x_err_data(i,:))),x_err_data(i,:), 'LineWidth',2.0, 'Color','blue');  % Error for the first state
-    xlabel('Time [$s$]', 'interpreter','latex', 'fontsize',12);
-    ylabel(['$\tilde{x}_' num2str(i) '$'], 'interpreter','latex', 'fontsize',14);
-    if (i==1), legend({'State estimate','$\pm \sigma$'}, 'interpreter','latex', 'fontsize',11);end
-    if (i==1), title('State estimation errors', 'interpreter','latex', 'fontsize',11); end
-    xlim([3 n_steps]);
-    hold off;
-end
-
-figure();
-for i=1:3
-    subplot(3,1,i);
-    plot(Time,x_real(4+i,1:length(Time)),'LineWidth',2.0, 'Color','blue');
-    xlabel('Time [$s$]', 'interpreter','latex', 'fontsize',12);
-    ylabel(['$\omega_' num2str(i) '$'], 'interpreter','latex', 'fontsize',14);
-    if (i==1), legend('Angular Velocity');end
-    if (i==1), title('Angular Velocities'); end
-end
-
-figure();
-for i=1:3
-    subplot(3,1,i);
-    plot(Time(1:length(x_hat_data(1,:))), x_hat_data(4+i,:) - gyro_noise_data(i,:),'LineWidth',2.0, 'Color','blue');
-    xlabel('Time [$s$]', 'interpreter','latex', 'fontsize',12);
-    ylabel(['$\omega_' num2str(i) '$'], 'interpreter','latex', 'fontsize',14);
-    if (i==1), legend('Angular Velocity estimation error');end
-    if (i==1), title('Angular Velocity estimation error'); end
-end
-
-eul_diff =zeros(length(Time),3);
-euler_hat=quat2eul(q_ob_data(1:4,:)')';
-eul_diff=(euler_hat)*180/pi;
-figure();
-for i=1:3
-    subplot(3,1,i);
-    hold on;
-    plot(Time,eul_diff(i,1:length(Time)), 'LineWidth',2.0, 'Color','blue');
-    ylabel(['$euler_{' num2str(i) '}$'], 'interpreter','latex', 'fontsize',17);
-    xlim([3 n_steps]);
-    hold off;
-end
-%%  Plotting the produced Torques
- 
-      figure()
-      subplot(3,1,1)
-      plot(1:length(Time),tau_mtq(1,1:length(Time)))
-      title('Magnetic Torques-x')
-      ylabel('Torque [Nm]')
-      xlabel('Time [s]')
-      grid on;
-      subplot(3,1,2)
-      plot(1:length(Time),tau_mtq(2,1:length(Time)))
-      title('Magnetic Torques-y')
-      ylabel('Torque [Nm]')
-      xlabel('Time [s]')
-      grid on;
-      subplot(3,1,3)
-      plot(1:length(Time),tau_mtq(3,1:length(Time)))
-      title('Magnetic Torques-z')
-      ylabel('Torque [Nm]')
-      xlabel('Time [s]')
-      grid on;
-    
-      figure()
-      plot(1:length(Time),tau_rw(1, 1:length(Time)))
-      title('Reaction Wheel Torque-z')
-      ylabel('Torque [Nm]')
-      xlabel('Time [s]')
-      grid on;
-
- figure() 
- plot(Time, rw_ang_vel_rpm(1,1:length(Time)),'LineWidth',1.5, 'Color','blue'); 
- title('Angular velocity of RW'); 
- ylabel('Angular Velocity [rpm]'); 
- xlabel('Time [s]'); 
- grid on;
- 
- %%  Plotting the Disturbances
- 
-      figure()
-      subplot(3,1,1)
-      plot(1:length(Time),tau_dist(1,1:length(Time)))
-      title('Disturbances-x')
-      ylabel('Disturbances-x [Nm]')
-      xlabel('Time [s]')
-      grid on;
-      subplot(3,1,2)
-      plot(1:length(Time),tau_dist(2,1:length(Time)))
-      title('Disturbances-y')
-      ylabel('Disturbances-y [Nm]')
-      xlabel('Time [s]')
-      grid on;
-      subplot(3,1,3)
-      plot(1:length(Time),tau_dist(3,1:length(Time)))
-      title('Disturbances-z')
-      ylabel('Disturbances-z [Nm]')
-      xlabel('Time [s]')
-      grid on;
-      
-      %% Calculation and plotting of Mean Performance Error
-
-mean_error_perf = zeros(3, 11);
-for i = 1:3
-    for j = 1:11
-    mean_error_perf(i, j) = mean(instant_error_perform(21+(5000*(j-1)):21+(5000*j), i));
-    end
-end
-
-mean_error_perf_matrix = zeros(length(x_hat_data),3);
-for j = 1:11
-    for i = 21+(5000*(j-1)):21+(5000*j)
-        mean_error_perf_matrix(i, :) = mean_error_perf(:,j);
-    end
-end
-
-figure();
-for i=1:3
-    subplot(3,1,i);
-    hold on;
-    plot(Time(1:length(mean_error_perf_matrix)), mean_error_perf_matrix(1:length(mean_error_perf_matrix), i), 'LineWidth',1.5, 'Color','blue');
-    if (i==1), title('Mean Performance Errors', 'interpreter','latex', 'fontsize',17);end
-    if (i==1), ylabel('X-axis'); end
-    if (i==2), ylabel('Y-axis'); end
-    if (i==3), ylabel('Z-axis'); end
-    xlabel('Time [$s$]', 'interpreter','latex', 'fontsize',12);
-    hold off;
-    grid on;
-end
-
- %% Calculation and plotting of Mean Knowledge Error
-
-mean_error_know = zeros(6, 11);
-for i = 1:6
-    for j = 1:11
-    mean_error_know(i, j) = mean(instant_error_know(21+(5000*(j-1)):21+(5000*j), i));
-    end
-end
-
-mean_error_know_matrix = zeros(length(x_hat_data),6);
-for j = 1:11
-    for i = 21+(5000*(j-1)):21+(5000*j)
-        mean_error_know_matrix(i, :) = mean_error_know(:,j);
-    end
-end
-
-figure();
-for i=1:3
-    subplot(3,1,i);
-    hold on;
-    plot(Time(1:length(mean_error_know_matrix)), mean_error_know_matrix(1:length(mean_error_know_matrix), i), 'LineWidth',1.5, 'Color','blue');
-    if (i==1), title('Mean Knowledge Errors', 'interpreter','latex', 'fontsize',17);end
-    if (i==1), ylabel('X-axis'); end
-    if (i==2), ylabel('Y-axis'); end
-    if (i==3), ylabel('Z-axis'); end
-    xlabel('Time [$s$]', 'interpreter','latex', 'fontsize',12);
-    hold off;
-    grid on;
-end
+% x_err_data(1:4,:) = x_real(1:4,1:length(x_hat_data))-x_hat_data(1:4,:);
+% x_err_data(5:7,:) = bias_data - x_hat_data(5:7,:);
+% 
+% figure();
+% for i=1:n_dim
+%     subplot(n_dim,1,i);
+%     plot(Time(1:length(x_err_data(i,:))),x_err_data(i,:), 'LineWidth',2.0, 'Color','blue');  % Error for the first state
+%     xlabel('Time [$s$]', 'interpreter','latex', 'fontsize',12);
+%     ylabel(['$\tilde{x}_' num2str(i) '$'], 'interpreter','latex', 'fontsize',14);
+%     if (i==1), legend({'State estimate','$\pm \sigma$'}, 'interpreter','latex', 'fontsize',11);end
+%     if (i==1), title('State estimation errors', 'interpreter','latex', 'fontsize',11); end
+%     xlim([3 n_steps]);
+%     hold off;
+% end
+% 
+% figure();
+% for i=1:3
+%     subplot(3,1,i);
+%     plot(Time,x_real(4+i,1:length(Time)),'LineWidth',2.0, 'Color','blue');
+%     xlabel('Time [$s$]', 'interpreter','latex', 'fontsize',12);
+%     ylabel(['$\omega_' num2str(i) '$'], 'interpreter','latex', 'fontsize',14);
+%     if (i==1), legend('Angular Velocity');end
+%     if (i==1), title('Angular Velocities'); end
+% end
+% 
+% figure();
+% for i=1:3
+%     subplot(3,1,i);
+%     plot(Time(1:length(x_hat_data(1,:))), x_hat_data(4+i,:) - gyro_noise_data(i,:),'LineWidth',2.0, 'Color','blue');
+%     xlabel('Time [$s$]', 'interpreter','latex', 'fontsize',12);
+%     ylabel(['$\omega_' num2str(i) '$'], 'interpreter','latex', 'fontsize',14);
+%     if (i==1), legend('Angular Velocity estimation error');end
+%     if (i==1), title('Angular Velocity estimation error'); end
+% end
+% 
+% eul_diff =zeros(length(Time),3);
+% euler_hat=quat2eul(q_ob_data(1:4,:)')';
+% eul_diff=(euler_hat)*180/pi;
+% figure();
+% for i=1:3
+%     subplot(3,1,i);
+%     hold on;
+%     plot(Time,eul_diff(i,1:length(Time)), 'LineWidth',2.0, 'Color','blue');
+%     ylabel(['$euler_{' num2str(i) '}$'], 'interpreter','latex', 'fontsize',17);
+%     xlim([3 n_steps]);
+%     hold off;
+% end
+% %%  Plotting the produced Torques
+%  
+%       figure()
+%       subplot(3,1,1)
+%       plot(1:length(Time),tau_mtq(1,1:length(Time)))
+%       title('Magnetic Torques-x')
+%       ylabel('Torque [Nm]')
+%       xlabel('Time [s]')
+%       grid on;
+%       subplot(3,1,2)
+%       plot(1:length(Time),tau_mtq(2,1:length(Time)))
+%       title('Magnetic Torques-y')
+%       ylabel('Torque [Nm]')
+%       xlabel('Time [s]')
+%       grid on;
+%       subplot(3,1,3)
+%       plot(1:length(Time),tau_mtq(3,1:length(Time)))
+%       title('Magnetic Torques-z')
+%       ylabel('Torque [Nm]')
+%       xlabel('Time [s]')
+%       grid on;
+%     
+%       figure()
+%       plot(1:length(Time),tau_rw(1, 1:length(Time)))
+%       title('Reaction Wheel Torque-z')
+%       ylabel('Torque [Nm]')
+%       xlabel('Time [s]')
+%       grid on;
+% 
+%  figure() 
+%  plot(Time, rw_ang_vel_rpm(1,1:length(Time)),'LineWidth',1.5, 'Color','blue'); 
+%  title('Angular velocity of RW'); 
+%  ylabel('Angular Velocity [rpm]'); 
+%  xlabel('Time [s]'); 
+%  grid on;
+%  
+%  %%  Plotting the Disturbances
+%  
+%       figure()
+%       subplot(3,1,1)
+%       plot(1:length(Time),tau_dist(1,1:length(Time)))
+%       title('Disturbances-x')
+%       ylabel('Disturbances-x [Nm]')
+%       xlabel('Time [s]')
+%       grid on;
+%       subplot(3,1,2)
+%       plot(1:length(Time),tau_dist(2,1:length(Time)))
+%       title('Disturbances-y')
+%       ylabel('Disturbances-y [Nm]')
+%       xlabel('Time [s]')
+%       grid on;
+%       subplot(3,1,3)
+%       plot(1:length(Time),tau_dist(3,1:length(Time)))
+%       title('Disturbances-z')
+%       ylabel('Disturbances-z [Nm]')
+%       xlabel('Time [s]')
+%       grid on;
+%       
+%       %% Calculation and plotting of Mean Performance Error
+% 
+% mean_error_perf = zeros(3, 11);
+% for i = 1:3
+%     for j = 1:11
+%     mean_error_perf(i, j) = mean(instant_error_perform(21+(5000*(j-1)):21+(5000*j), i));
+%     end
+% end
+% 
+% mean_error_perf_matrix = zeros(length(x_hat_data),3);
+% for j = 1:11
+%     for i = 21+(5000*(j-1)):21+(5000*j)
+%         mean_error_perf_matrix(i, :) = mean_error_perf(:,j);
+%     end
+% end
+% 
+% figure();
+% for i=1:3
+%     subplot(3,1,i);
+%     hold on;
+%     plot(Time(1:length(mean_error_perf_matrix)), mean_error_perf_matrix(1:length(mean_error_perf_matrix), i), 'LineWidth',1.5, 'Color','blue');
+%     if (i==1), title('Mean Performance Errors', 'interpreter','latex', 'fontsize',17);end
+%     if (i==1), ylabel('X-axis'); end
+%     if (i==2), ylabel('Y-axis'); end
+%     if (i==3), ylabel('Z-axis'); end
+%     xlabel('Time [$s$]', 'interpreter','latex', 'fontsize',12);
+%     hold off;
+%     grid on;
+% end
+% 
+%  %% Calculation and plotting of Mean Knowledge Error
+% 
+% mean_error_know = zeros(6, 11);
+% for i = 1:6
+%     for j = 1:11
+%     mean_error_know(i, j) = mean(instant_error_know(21+(5000*(j-1)):21+(5000*j), i));
+%     end
+% end
+% 
+% mean_error_know_matrix = zeros(length(x_hat_data),6);
+% for j = 1:11
+%     for i = 21+(5000*(j-1)):21+(5000*j)
+%         mean_error_know_matrix(i, :) = mean_error_know(:,j);
+%     end
+% end
+% 
+% figure();
+% for i=1:3
+%     subplot(3,1,i);
+%     hold on;
+%     plot(Time(1:length(mean_error_know_matrix)), mean_error_know_matrix(1:length(mean_error_know_matrix), i), 'LineWidth',1.5, 'Color','blue');
+%     if (i==1), title('Mean Knowledge Errors', 'interpreter','latex', 'fontsize',17);end
+%     if (i==1), ylabel('X-axis'); end
+%     if (i==2), ylabel('Y-axis'); end
+%     if (i==3), ylabel('Z-axis'); end
+%     xlabel('Time [$s$]', 'interpreter','latex', 'fontsize',12);
+%     hold off;
+%     grid on;
+% end 
 end

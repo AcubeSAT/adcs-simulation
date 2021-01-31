@@ -21,9 +21,9 @@ end
 %eclipse = zeros(1,55460);
 % save('mag_orbit_10.mat','mag_field_orbit');
 
-%% 
+%% ======================= Testing Initial Quaternions =============================
 % if x >= 0 && x <= 0.25
-    Q0 = [-0.4493; 0.1189; -0.8854; 0.0122];% [1, 0, 0, 0] TLE -> 6PM 2-offset
+%Q0 = [-0.4493; 0.1189; -0.8854; 0.0122];% [1, 0, 0, 0] TLE -> 6PM 2-offset
 % elseif x > 0.25 && x <= 0.5
 %     Q0 = [-0.4371; 0.3440; -0.8244; -0.1045];% [1, 0, 0, 0] TLE -> 8PM 2-offset
 % elseif x > 0.5 && x <= 0.75
@@ -31,21 +31,32 @@ end
 % else
 %     Q0 = [0.3638; -0.6333; 0.6300; 0.2639];% [1, 0, 0, 0] TLE -> 11PM 2-offset
 % end
-% Q0 = [0.5; 0.5; 0.5; 0.5]; %Initial Quaternion in ECI frame
-% Q0 = [0.0894; -0.0058; 0.0641; -0.9939];% [1, 0, 0, 0] TLE -> 29_08
+%Q0 = [0.5; -0.5; 0.5; 0.5]; %Initial Quaternion in ECI frame
+%Q0 = [0.0894; -0.0058; 0.0641; -0.9939];% [1, 0, 0, 0] TLE -> 29_08
 %Q0 = [0.9928; -0.0641; -0.0054; 0.1007];% [1, 0, 0, 0] TLE -> 6PM 0-offset
-% Q0 = [-0.4493; 0.1189; -0.8854; 0.0122];% [1, 0, 0, 0] TLE -> 6PM 2-offset
-% Q0 = [0.0619; 0.3476; -0.9310; 0.0920];% [1, 0, 0, 0] TLE -> 8PM 3-offset
+%Q0 = [-0.4493; 0.1189; -0.8854; 0.0122];% [1, 0, 0, 0] TLE -> 6PM 2-offset
+%Q0 = [0.0619; 0.3476; -0.9310; 0.0920];% [1, 0, 0, 0] TLE -> 8PM 3-offset
 %Q0 = [-0.4371; 0.3440; -0.8244; -0.1045];% [1, 0, 0, 0] TLE -> 8PM 2-offset
 %Q0 = [0.0493; 0.4662; -0.8777; 0.0993];% [1, 0, 0, 0] TLE -> 9PM 3-offset
 %Q0 = [-0.4197; 0.4487; -0.7725; -0.1607];% [1, 0, 0, 0] TLE -> 9PM 2-offset
 %Q0 = [0.0219; 0.6775; -0.7271; 0.1087];% [1, 0, 0, 0] TLE -> 11PM 3-offset
 %Q0 = [0.3638; -0.6333; 0.6300; 0.2639];% [1, 0, 0, 0] TLE -> 11PM 2-offset
+%Q0 = [0.8315; -0.6103; -0.0033; 0.8585];
+
+%% =============== Random Initial Quaternion ==================================
+%Q0 = [0.05; 0.45; -0.88; 0.1]; %-> Adaptive good
+%Q0 = [0.4; 0.3; -0.7; 0.5]; %-> Non-adaptive good
+
+%% =============== Desired Quaternion =================================
+Q0 = [-0.4493; 0.1189; -0.8854; 0.0122];% [1, 0, 0, 0] TLE -> 6PM 2-offset
+
+%% ============== Calculations ====================================
+
 Q0 = Q0/norm(Q0); %Normalised Quaternion
 init_bias = [.01;0.15;-.08]; % bias initialization
-vRot0 = [0; 0; 0];
+%vRot0 = [0; 0; 0];
 %vRot0 = [pi/4; pi/2; pi/8];
-%vRot0 = [0.035; 0.035; 0.035]; %Initial Angular Velocities from Body to ECI frame expressed in Body.
+vRot0 = [0.035; 0.035; 0.035]; %Initial Angular Velocities from Body to ECI frame expressed in Body.
 x0 = [Q0;vRot0]; %Initial state consists of [Quaternion;Angular Velocity]
 % Random Initial State Estimation
 Q0_hat = [.6;.1;-.7;.01];
@@ -83,16 +94,15 @@ albedo = load("SSO_500_6PM_1_Orbit_051231.mat");
 
 
 albedo = albedo.new;
-albedo = [albedo albedo albedo];
+albedo = [albedo albedo];
 albedo_inaccurate = load("SSO_500_6PM_1_Orbit_050101");
 %albedo_inaccurate = load("sso_albedo.mat"); 
 
 albedo_inaccurate = albedo_inaccurate.new;
-albedo_inaccurate = [albedo_inaccurate albedo_inaccurate albedo_inaccurate];
+albedo_inaccurate = [albedo_inaccurate albedo_inaccurate];
 %% ======= Kalman filter params ========
 % Variances
 Q = 0.5e-05*eye(n_dim_error,n_dim_error); % Variance of the process noise w[k]
-
 %MGN noise 1e-3 (norm) | GYRO noise 1.57e-2| SUN noise 8.7e-3(norm)
 % R_coeff=[1e-6;1e-6;1e-6;5e-5;5e-5;5e-5;1.2e-5;1.2e-5;1.2e-5];   
 R_coeff=[1.83e-6;1.83e-6;1.83e-6;0;0;0;0;0;0];   
