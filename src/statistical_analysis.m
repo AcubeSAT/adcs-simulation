@@ -1,19 +1,14 @@
-error_struct = load('instant_error_perf4.mat');
+error_struct = load('performance_error1.mat');
 error = error_struct.instant_error_perform';
 final_error = abs(error(:,:));
+final_error = final_error(:,all(~isnan(final_error)));
+error_estimation = zeros(3,2);
+alpha = 0.05;
 
-median_error(1) = median(final_error(1,:),'omitnan');
-median_error(2) = median(final_error(2,:),'omitnan');
-median_error(3) = median(final_error(3,:),'omitnan');
-
-error_cov(1) = std(final_error(1,:),'omitnan');
-error_cov(2) = std(final_error(2,:),'omitnan');
-error_cov(3) = std(final_error(3,:),'omitnan');
-
-error_estimation(1) = median_error(1)+error_cov(1);
-error_estimation(2) = median_error(2)+error_cov(2);
-error_estimation(3) = median_error(3)+error_cov(3);
-
+error_estimation(1,:) = bootci(100,{@median,final_error(1,:)},'alpha',alpha,'type','percentile')';
+error_estimation(2,:) = bootci(100,{@median,final_error(2,:)},'alpha',alpha,'type','percentile')';
+error_estimation(3,:) = bootci(100,{@median,final_error(3,:)},'alpha',alpha,'type','percentile')';
+error_estimation
 figure
 subplot(3,1,1)
 plot(final_error(1,:))

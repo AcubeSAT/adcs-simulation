@@ -1,9 +1,9 @@
 function  [torque, T_rw, T_magnetic_effective, V_rw, I_rw, P_thermal_rw, AngVel_rw_rpm_new, AngVel_rw_radps_new,...
             acceleration_rw_cur, rw_ang_momentum, init_AngVel_dz, init_accel_dz, V_mtq, I_mtq, P_thermal_mtq, ...
-                timeflag_dz,q_desired] = ...
-                    PD(q_desired , q_orbit_body , w_b_ib , B_body , eclipse, mtq_max, ...
+                timeflag_dz,q_sun_body] = ...
+                    PD(q_desired , q_eci_body, q_orbit_body , w_b_ib , B_body , eclipse, mtq_max, ...
                         lim_dz, AngVel_rw_radps_cur, AngVel_rw_rpm_cur, acceleration_rw_old, init_AngVel_dz, ...
-                            init_accel_dz,timeflag_dz,rw_max_torque,B_body_real,time,sun_vector)
+                            init_accel_dz,timeflag_dz,rw_max_torque,B_body_real,time,sun_vector_eci)
     
     global T_rw_data;
     global T_magnetic_data;
@@ -11,8 +11,8 @@ function  [torque, T_rw, T_magnetic_effective, V_rw, I_rw, P_thermal_rw, AngVel_
     global Jw;
     global Max_RW_torq;
     
-    Kp_gain= 5e-04*diag([5 5 5]);                                                  % Calculate gain (wrt Markley-Crassidis)
-    Kd_gain= 5e-02*diag([1 1 1]);
+    Kp_gain= 8e-03*diag([1 1 1]);                                                  % Calculate gain (wrt Markley-Crassidis)
+    Kd_gain= 2e-01*diag([1 1 1]);
     w_o_io = [0;-0.00110808802079241;0];
     %w_o = 0.00113308802079241;
     
@@ -21,15 +21,18 @@ function  [torque, T_rw, T_magnetic_effective, V_rw, I_rw, P_thermal_rw, AngVel_
 %     end
     
   %  R_OB = quat2dcm(q_orbit_body'); % Calculating the transformation matrix from orbit to body frame
-
+    
+  
+    q_sun_body = q_sun_body_Voulgarakis(sun_vector_eci,q_eci_body);
+  
     q_w_b_io = quatProd(quatconj(q_orbit_body') ,quatProd([0;w_o_io],q_orbit_body));
     w_b_io = q_w_b_io(2:4);
 
     w_b_ob = w_b_ib - w_b_io; % Calculating angular rate of satellite relative to ECI frame
-    q_desired = [0 sun_vector'];
-    q_desired = q_desired/norm(q_desired);
-    q_error=quatProd(conj(q_desired),q_orbit_body);
-    T_commanded = -sign(q_error(1))*Kp_gain*q_error(2:4) - Kd_gain*w_b_ob;
+
+
+    q_error=quatProd(conj(q_desired),q_sun_body);
+    T_commanded = -sign(q_error(1))*Kp_gain*q_error(2:4) - Kd_gain*w_b_ib;
 
     b_hat=B_body/norm(B_body); 
     T_rw =[0;0;1]*(B_body'*T_commanded)/B_body(3);
