@@ -543,7 +543,7 @@ for i=1:n_dim
     plot(Time(1:length(x_hat_data(i,:))),x_hat_data(i,:), 'LineWidth',2.0, 'Color','magenta');               
     if (i==1),legend({['$x_' num2str(i) '$'],['$\hat{x}_' num2str(i) '$']}, 'interpreter','latex', 'fontsize',15);end
     ylabel(['$x_' num2str(i) '$'], 'interpreter','latex', 'fontsize',14);
-    if (i==1), title('EKF estimation results', 'interpreter','latex', 'fontsize',17);end
+    if (i==1), title('MEKF estimation results', 'interpreter','latex', 'fontsize',17);end
     xlim([3 n_steps]);
     xlabel('Time [$s$]', 'interpreter','latex', 'fontsize',12);
     hold off;
@@ -595,7 +595,8 @@ end
 %     xlim([3 n_steps]);
 %     hold off;
 % end
-% 
+%
+
 %%
     figure();
     for i=1:3
