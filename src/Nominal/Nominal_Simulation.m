@@ -466,6 +466,9 @@ for l=1:n_steps
 
 end
 
+%% =============================== Errors and plots =============================================== %%
+
+
 %% Calculation and plotting of performance error
 x_real_euler_perf = quat2eul(q_ob_data(1:4,1:length(q_ob_data)-1)'); 
 x_real_euler_perf = rad2deg(x_real_euler_perf');
@@ -478,96 +481,106 @@ for i=1:3
     hold on;
     plot(Time(21:length(instant_error_perform)), instant_error_perform(21:length(instant_error_perform), i), 'LineWidth',1.5, 'Color','blue');
     if (i==1), title('Absolute Performance Errors', 'interpreter','latex', 'fontsize',17);end
-    if (i==1), ylabel('X-axis'); end
-    if (i==2), ylabel('Y-axis'); end
-    if (i==3), ylabel('Z-axis'); end
+    if (i==1), ylabel('X-axis [deg]', 'interpreter','latex', 'fontsize',14); end
+    if (i==2), ylabel('Y-axis [deg]', 'interpreter','latex', 'fontsize',14); end
+    if (i==3), ylabel('Z-axis [deg]', 'interpreter','latex', 'fontsize',14); end
     xlabel('Time [$s$]', 'interpreter','latex', 'fontsize',12);
     hold off;
     grid on;
 end
 
-% %% Calulation and plotting of knowledge error
-% x_hat_euler_know = zeros(length(x_hat_data), 6);
-% instant_error_know = zeros(length(x_hat_data), 6);
-% 
-% x_real_euler_know = quat2eul(x_real(1:4,1:length(x_hat_data))');
-% x_real_euler_know = rad2deg(x_real_euler_know');
-% x_hat_euler_know(:, 1:3) = quat2eul(x_hat_data(1:4,:)');
-% x_hat_euler_know(:, 1:3) = (rad2deg(x_hat_euler_know(:, 1:3)'))';
-% 
-% instant_error_know(:, 1:3) = x_hat_euler_know(:, 1:3) - x_real_euler_know';
-% instant_error_know(:, 4:6) = x_hat_data(5:7, 1:length(x_hat_data))' - bias_data';
-% 
-% for i=1:3
-%     for k=1:length(instant_error_know)
-%         if instant_error_know(k, i) > 180
-%             instant_error_know(k, i) = instant_error_know(k, i) - 360;
-%         elseif instant_error_know(k, i) < -180
-%             instant_error_know(k, i) = instant_error_know(k, i) + 360;
-%         end
-%     end
-% end
-% 
-% figure();
-% for i=1:6
-%     subplot(6,1,i);
-%     hold on;
-%     plot(Time(21:length(instant_error_know)), instant_error_know(21:length(instant_error_know), i), 'LineWidth',1.5, 'Color','blue');
-%     ylabel(['$\tilde{x}_' num2str(i) '$'], 'interpreter','latex', 'fontsize',14);
-%     if (i==1), title('Absolute Knowledge Errors', 'interpreter','latex', 'fontsize',17);end
-%     if (i==1), ylabel('X-axis'); end
-%     if (i==2), ylabel('Y-axis'); end
-%     if (i==3), ylabel('Z-axis'); end
-%     xlabel('Time [$s$]', 'interpreter','latex', 'fontsize',12);
-%     hold off;
-%     grid on;
-% end
-% 
-% n_dim = size(x_real,1);
-%  %figure('Position',[500 0 1420 1080]);
-% figure();
-% for i=1:n_dim
-%     subplot(n_dim,1,i);
-%     hold on;
-%     if i<5
-%         plot(Time,x_real(i,1:length(Time)), 'LineWidth',2.0, 'Color','blue');       
-%     else
-%         plot(Time(1:length(bias_data(1,:))),bias_data(i-4,1:length(bias_data(1,:))))
-%     end
-%     
-%     plot(Time(1:length(x_hat_data(i,:))),x_hat_data(i,:), 'LineWidth',2.0, 'Color','magenta');               
-%     if (i==1),legend({['$x_' num2str(i) '$'],['$\hat{x}_' num2str(i) '$']}, 'interpreter','latex', 'fontsize',15);end
-%     ylabel(['$x_' num2str(i) '$'], 'interpreter','latex', 'fontsize',17);
-%     if (i==1), title('EKF estimation results', 'interpreter','latex', 'fontsize',17);end
-%     xlim([3 n_steps]);
-%     hold off;
-% end
-% 
-% % % figure('Position',[1000 0 1420 1080]);
-% for i=1:length(Time)
-%     if(q_ob_data(1,i)<0)
-%     q_ob_data(:,i) = -q_ob_data(:,i);
-%     end
-% end
+%% Calulation and plotting of knowledge error
+x_hat_euler_know = zeros(length(x_hat_data), 6);
+instant_error_know = zeros(length(x_hat_data), 6);
+
+x_real_euler_know = quat2eul(x_real(1:4,1:length(x_hat_data))');
+x_real_euler_know = rad2deg(x_real_euler_know');
+x_hat_euler_know(:, 1:3) = quat2eul(x_hat_data(1:4,:)');
+x_hat_euler_know(:, 1:3) = (rad2deg(x_hat_euler_know(:, 1:3)'))';
+
+instant_error_know(:, 1:3) = x_hat_euler_know(:, 1:3) - x_real_euler_know';
+instant_error_know(:, 4:6) = x_hat_data(5:7, 1:length(x_hat_data))' - bias_data';
+
+for i=1:3
+    for k=1:length(instant_error_know)
+        if instant_error_know(k, i) > 180
+            instant_error_know(k, i) = instant_error_know(k, i) - 360;
+        elseif instant_error_know(k, i) < -180
+            instant_error_know(k, i) = instant_error_know(k, i) + 360;
+        end
+    end
+end
+
+figure();
+for i=1:6
+    subplot(6,1,i);
+    hold on;
+    plot(Time(21:length(instant_error_know)), instant_error_know(21:length(instant_error_know), i), 'LineWidth',1.5, 'Color','blue');
+    if (i==1), title('Absolute Knowledge Errors', 'interpreter','latex', 'fontsize',17);end
+    if (i==1), ylabel('X-axis [deg]', 'interpreter','latex', 'fontsize',14); end
+    if (i==2), ylabel('Y-axis [deg]', 'interpreter','latex', 'fontsize',14); end
+    if (i==3), ylabel('Z-axis [deg]', 'interpreter','latex', 'fontsize',14); end
+    if (i==4) ylabel(['$\omega_1 [rad/sec]$'], 'interpreter','latex', 'fontsize',14); end
+    if (i==5) ylabel(['$\omega_2 [rad/sec]$'], 'interpreter','latex', 'fontsize',14); end
+    if (i==6) ylabel(['$\omega_3 [rad/sec]$'], 'interpreter','latex', 'fontsize',14); end
+    xlabel('Time [$s$]', 'interpreter','latex', 'fontsize',12);
+    hold off;
+    grid on;
+end
+
+n_dim = size(x_real,1);
+ %figure('Position',[500 0 1420 1080]);
+figure();
+for i=1:n_dim
+    subplot(n_dim,1,i);
+    hold on;
+    if i<5
+        plot(Time,x_real(i,1:length(Time)), 'LineWidth',2.0, 'Color','blue');       
+    else
+        plot(Time(1:length(bias_data(1,:))),bias_data(i-4,1:length(bias_data(1,:))))
+    end
+    
+    plot(Time(1:length(x_hat_data(i,:))),x_hat_data(i,:), 'LineWidth',2.0, 'Color','magenta');               
+    if (i==1),legend({['$x_' num2str(i) '$'],['$\hat{x}_' num2str(i) '$']}, 'interpreter','latex', 'fontsize',15);end
+    ylabel(['$x_' num2str(i) '$'], 'interpreter','latex', 'fontsize',14);
+    if (i==1), title('EKF estimation results', 'interpreter','latex', 'fontsize',17);end
+    xlim([3 n_steps]);
+    xlabel('Time [$s$]', 'interpreter','latex', 'fontsize',12);
+    hold off;
+    grid on;
+end
+
+% % figure('Position',[1000 0 1420 1080]);
+for i=1:length(Time)
+    if(q_ob_data(1,i)<0)
+    q_ob_data(:,i) = -q_ob_data(:,i);
+    end
+end
+
 figure();
 for i=1:4
-    title('Quaternion')
     subplot(4,1,i);
+    if (i==1), title('Quaternion', 'interpreter','latex', 'fontsize',17); end
     hold on;
     plot(Time,q_ob_data(i,1:length(Time)), 'LineWidth',2.0, 'Color','blue');
-    ylabel(['$q_{ob' num2str(i) '}$'], 'interpreter','latex', 'fontsize',17);
+    ylabel(['$q_{ob' num2str(i) '}$'], 'interpreter','latex', 'fontsize',14);
+    xlabel('Time [s]', 'interpreter','latex', 'fontsize',12)
     xlim([3 n_steps]);
     hold off;
     grid on;
 end
-% 
-figure()
-plot(1:length(eclipse),eclipse, 'LineWidth',2.0, 'Color','blue');
-xlabel('Time [$s$]', 'interpreter','latex', 'fontsize',12);
-ylabel(['Eclipse'], 'interpreter','latex', 'fontsize',14);
-grid on;
-if (i==1), title('Umbral, Penumbral or no Eclipse', 'interpreter','latex', 'fontsize',17);end
 
+%% Eclipse plot
+
+    figure()
+    plot(1:length(eclipse),eclipse, 'LineWidth',2.0, 'Color','blue');
+    title('Eclipse', 'interpreter','latex', 'fontsize',17)
+    xlabel('Time [$s$]', 'interpreter','latex', 'fontsize',12);
+    ylabel(['Eclipse'], 'interpreter','latex', 'fontsize',14);
+    grid on;
+    if (i==1), title('Umbral, Penumbral or no Eclipse', 'interpreter','latex', 'fontsize',17);end
+
+%%
 % x_err_data(1:4,:) = x_real(1:4,1:length(x_hat_data))-x_hat_data(1:4,:);
 % x_err_data(5:7,:) = bias_data - x_hat_data(5:7,:);
 % 
@@ -583,15 +596,21 @@ if (i==1), title('Umbral, Penumbral or no Eclipse', 'interpreter','latex', 'font
 %     hold off;
 % end
 % 
-% figure();
-% for i=1:3
-%     subplot(3,1,i);
-%     plot(Time,x_real(4+i,1:length(Time)),'LineWidth',2.0, 'Color','blue');
-%     xlabel('Time [$s$]', 'interpreter','latex', 'fontsize',12);
-%     ylabel(['$\omega_' num2str(i) '$'], 'interpreter','latex', 'fontsize',14);
-%     if (i==1), legend('Angular Velocity');end
-%     if (i==1), title('Angular Velocities'); end
-% end
+%%
+    figure();
+    for i=1:3
+        subplot(3,1,i);
+        plot(Time,x_real(4+i,1:length(Time)),'LineWidth',2.0, 'Color','blue');
+        xlabel('Time [s]', 'interpreter','latex', 'fontsize',12);
+        if (i==1) ylabel(['\omega1 [rad/sec]'], 'interpreter','latex', 'fontsize',14); end
+        if (i==2) ylabel(['\omega2 [rad/sec]'], 'interpreter','latex', 'fontsize',14); end
+        if (i==3) ylabel(['\omega3 [rad/sec]'], 'interpreter','latex', 'fontsize',14); end
+        ylabel(['$\omega_' num2str(i) '$' '[rad/sec]'], 'interpreter','latex', 'fontsize',14);
+        if (i==1), legend('Angular Velocity');end
+        if (i==1), title('Angular Velocities', 'interpreter','latex', 'fontsize',17); end
+        grid on;
+    end
+%%
 % 
 % figure();
 % for i=1:3
@@ -615,121 +634,118 @@ if (i==1), title('Umbral, Penumbral or no Eclipse', 'interpreter','latex', 'font
 %     xlim([3 n_steps]);
 %     hold off;
 % end
-% %%  Plotting the produced Torques
-%  
-%       figure()
-%       subplot(3,1,1)
-%       plot(1:length(Time),tau_mtq(1,1:length(Time)))
-%       title('Magnetic Torques-x')
-%       ylabel('Torque [Nm]')
-%       xlabel('Time [s]')
-%       grid on;
-%       subplot(3,1,2)
-%       plot(1:length(Time),tau_mtq(2,1:length(Time)))
-%       title('Magnetic Torques-y')
-%       ylabel('Torque [Nm]')
-%       xlabel('Time [s]')
-%       grid on;
-%       subplot(3,1,3)
-%       plot(1:length(Time),tau_mtq(3,1:length(Time)))
-%       title('Magnetic Torques-z')
-%       ylabel('Torque [Nm]')
-%       xlabel('Time [s]')
-%       grid on;
-%     
-%       figure()
-%       plot(1:length(Time),tau_rw(1, 1:length(Time)))
-%       title('Reaction Wheel Torque-z')
-%       ylabel('Torque [Nm]')
-%       xlabel('Time [s]')
-%       grid on;
-% 
-%  figure() 
-%  plot(Time, rw_ang_vel_rpm(1,1:length(Time)),'LineWidth',1.5, 'Color','blue'); 
-%  title('Angular velocity of RW'); 
-%  ylabel('Angular Velocity [rpm]'); 
-%  xlabel('Time [s]'); 
-%  grid on;
-%  
-%  %%  Plotting the Disturbances
-%  
-%       figure()
-%       subplot(3,1,1)
-%       plot(1:length(Time),tau_dist(1,1:length(Time)))
-%       title('Disturbances-x')
-%       ylabel('Disturbances-x [Nm]')
-%       xlabel('Time [s]')
-%       grid on;
-%       subplot(3,1,2)
-%       plot(1:length(Time),tau_dist(2,1:length(Time)))
-%       title('Disturbances-y')
-%       ylabel('Disturbances-y [Nm]')
-%       xlabel('Time [s]')
-%       grid on;
-%       subplot(3,1,3)
-%       plot(1:length(Time),tau_dist(3,1:length(Time)))
-%       title('Disturbances-z')
-%       ylabel('Disturbances-z [Nm]')
-%       xlabel('Time [s]')
-%       grid on;
-%       
-%       %% Calculation and plotting of Mean Performance Error
-% 
-% mean_error_perf = zeros(3, 11);
-% for i = 1:3
-%     for j = 1:11
-%     mean_error_perf(i, j) = mean(instant_error_perform(21+(5000*(j-1)):21+(5000*j), i));
-%     end
-% end
-% 
-% mean_error_perf_matrix = zeros(length(x_hat_data),3);
-% for j = 1:11
-%     for i = 21+(5000*(j-1)):21+(5000*j)
-%         mean_error_perf_matrix(i, :) = mean_error_perf(:,j);
-%     end
-% end
-% 
-% figure();
-% for i=1:3
-%     subplot(3,1,i);
-%     hold on;
-%     plot(Time(1:length(mean_error_perf_matrix)), mean_error_perf_matrix(1:length(mean_error_perf_matrix), i), 'LineWidth',1.5, 'Color','blue');
-%     if (i==1), title('Mean Performance Errors', 'interpreter','latex', 'fontsize',17);end
-%     if (i==1), ylabel('X-axis'); end
-%     if (i==2), ylabel('Y-axis'); end
-%     if (i==3), ylabel('Z-axis'); end
-%     xlabel('Time [$s$]', 'interpreter','latex', 'fontsize',12);
-%     hold off;
-%     grid on;
-% end
-% 
-%  %% Calculation and plotting of Mean Knowledge Error
-% 
-% mean_error_know = zeros(6, 11);
-% for i = 1:6
-%     for j = 1:11
-%     mean_error_know(i, j) = mean(instant_error_know(21+(5000*(j-1)):21+(5000*j), i));
-%     end
-% end
-% 
-% mean_error_know_matrix = zeros(length(x_hat_data),6);
-% for j = 1:11
-%     for i = 21+(5000*(j-1)):21+(5000*j)
-%         mean_error_know_matrix(i, :) = mean_error_know(:,j);
-%     end
-% end
-% 
-% figure();
-% for i=1:3
-%     subplot(3,1,i);
-%     hold on;
-%     plot(Time(1:length(mean_error_know_matrix)), mean_error_know_matrix(1:length(mean_error_know_matrix), i), 'LineWidth',1.5, 'Color','blue');
-%     if (i==1), title('Mean Knowledge Errors', 'interpreter','latex', 'fontsize',17);end
-%     if (i==1), ylabel('X-axis'); end
-%     if (i==2), ylabel('Y-axis'); end
-%     if (i==3), ylabel('Z-axis'); end
-%     xlabel('Time [$s$]', 'interpreter','latex', 'fontsize',12);
-%     hold off;
-%     grid on;
-% end 
+%%  Plotting the produced Torques
+ 
+      figure()
+      subplot(3,1,1)
+      plot(1:length(Time),tau_mtq(1,1:length(Time)))
+      title('Magnetic Torques', 'interpreter','latex', 'fontsize',17)
+      ylabel('Torque-x [Nm]', 'interpreter','latex', 'fontsize',14)
+      xlabel('Time [s]', 'interpreter','latex', 'fontsize',12)
+      grid on;
+      subplot(3,1,2)
+      plot(1:length(Time),tau_mtq(2,1:length(Time)))
+      ylabel('Torque-y [Nm]', 'interpreter','latex', 'fontsize',14)
+      xlabel('Time [s]', 'interpreter','latex', 'fontsize',12)
+      grid on;
+      subplot(3,1,3)
+      plot(1:length(Time),tau_mtq(3,1:length(Time)))
+      ylabel('Torque-z [Nm]', 'interpreter','latex', 'fontsize',14)
+      xlabel('Time [s]', 'interpreter','latex', 'fontsize',12)
+      grid on;
+    
+      figure()
+      plot(1:length(Time),tau_rw(1, 1:length(Time)))
+      title('Reaction Wheel Torque-z', 'interpreter','latex', 'fontsize',17)
+      ylabel('Torque [Nm]', 'interpreter','latex', 'fontsize',14)
+      xlabel('Time [s]', 'interpreter','latex', 'fontsize',12)
+      grid on;
+
+%% 
+     figure() 
+     plot(Time, rw_ang_vel_rpm(1,1:length(Time)),'LineWidth',1.5, 'Color','blue'); 
+     title('Angular velocity of RW', 'interpreter','latex', 'fontsize',17); 
+     ylabel('Angular Velocity [rpm]', 'interpreter','latex', 'fontsize',14); 
+     xlabel('Time [s]', 'interpreter','latex', 'fontsize',12); 
+     grid on;
+ 
+ %%  Plotting the Disturbances
+ 
+      figure()
+      subplot(3,1,1)
+      plot(1:length(Time),tau_dist(1,1:length(Time)), 'LineWidth',1.5, 'Color','blue')
+      title('Disturbances', 'interpreter','latex', 'fontsize',17)
+      ylabel('Disturbances-x [Nm]', 'interpreter','latex', 'fontsize',14)
+      xlabel('Time [s]', 'interpreter','latex', 'fontsize',12)
+      grid on;
+      subplot(3,1,2)
+      plot(1:length(Time),tau_dist(2,1:length(Time)), 'LineWidth',1.5, 'Color','blue')
+      ylabel('Disturbances-y [Nm]', 'interpreter','latex', 'fontsize',14)
+      xlabel('Time [s]', 'interpreter','latex', 'fontsize',12)
+      grid on;
+      subplot(3,1,3)
+      plot(1:length(Time),tau_dist(3,1:length(Time)), 'LineWidth',1.5, 'Color','blue')
+      ylabel('Disturbances-z [Nm]', 'interpreter','latex', 'fontsize',14)
+      xlabel('Time [s]', 'interpreter','latex', 'fontsize',12)
+      grid on;
+      
+      %% Calculation and plotting of Mean Performance Error
+
+mean_error_perf = zeros(3, 11);
+for i = 1:3
+    for j = 1:11
+    mean_error_perf(i, j) = mean(instant_error_perform(21+(5000*(j-1)):21+(5000*j), i));
+    end
+end
+
+mean_error_perf_matrix = zeros(length(x_hat_data),3);
+for j = 1:11
+    for i = 21+(5000*(j-1)):21+(5000*j)
+        mean_error_perf_matrix(i, :) = mean_error_perf(:,j);
+    end
+end
+
+figure();
+for i=1:3
+    subplot(3,1,i);
+    hold on;
+    plot(Time(1:length(mean_error_perf_matrix)), mean_error_perf_matrix(1:length(mean_error_perf_matrix), i), 'LineWidth',1.5, 'Color','blue');
+    if (i==1), title('Mean Performance Errors', 'interpreter','latex', 'fontsize',17);end
+    if (i==1), ylabel('X-axis [deg]', 'interpreter','latex', 'fontsize',14); end
+    if (i==2), ylabel('Y-axis [deg]', 'interpreter','latex', 'fontsize',14); end
+    if (i==3), ylabel('Z-axis [deg]', 'interpreter','latex', 'fontsize',14); end
+    xlabel('Time [s]', 'interpreter','latex', 'fontsize',12);
+    hold off;
+    grid on;
+end
+
+ %% Calculation and plotting of Mean Knowledge Error
+
+mean_error_know = zeros(6, 11);
+for i = 1:6
+    for j = 1:11
+    mean_error_know(i, j) = mean(instant_error_know(21+(5000*(j-1)):21+(5000*j), i));
+    end
+end
+
+mean_error_know_matrix = zeros(length(x_hat_data),6);
+for j = 1:11
+    for i = 21+(5000*(j-1)):21+(5000*j)
+        mean_error_know_matrix(i, :) = mean_error_know(:,j);
+    end
+end
+
+figure();
+for i=1:3
+    subplot(3,1,i);
+    hold on;
+    plot(Time(1:length(mean_error_know_matrix)), mean_error_know_matrix(1:length(mean_error_know_matrix), i), 'LineWidth',1.5, 'Color','blue');
+    if (i==1), title('Mean Knowledge Errors', 'interpreter','latex', 'fontsize',17);end
+    if (i==1), ylabel('X-axis [deg]', 'interpreter','latex', 'fontsize',14); end
+    if (i==2), ylabel('Y-axis [deg]', 'interpreter','latex', 'fontsize',14); end
+    if (i==3), ylabel('Z-axis [deg]', 'interpreter','latex', 'fontsize',14); end
+    xlabel('Time [s]', 'interpreter','latex', 'fontsize',12);
+    hold off;
+    grid on;
+end 
 end
