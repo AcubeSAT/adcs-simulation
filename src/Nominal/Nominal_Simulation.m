@@ -10,7 +10,7 @@ Const=constants();
 Param = setParamsFinal_Nominal(Const.I);
 %setParamsFinal_Nominal();
     dt = Param.dt;
-    %orbits = Param.orbits;
+    orbits = Param.orbits;
     %orbitPeriod = Param.orbitPeriod;
     tf = Param.tf;
     %np = Param.np;
@@ -470,7 +470,7 @@ end
 
 
 %% Calculation and plotting of performance error
-x_real_euler_perf = quat2eul(q_ob_data(1:4,1:length(q_ob_data)-1)','XYZ'); 
+x_real_euler_perf = quat2eul(q_ob_data(1:4,1:length(q_ob_data)-1)'); 
 x_real_euler_perf = rad2deg(x_real_euler_perf');
 
 instant_error_perform = x_real_euler_perf';
@@ -690,17 +690,17 @@ end
       xlabel('Time [s]', 'interpreter','latex', 'fontsize',12)
       grid on;
       
-      %% Calculation and plotting of Mean Performance Error
+%% Calculation and plotting of Mean Performance Error
 
 mean_error_perf = zeros(3, 11);
 for i = 1:3
-    for j = 1:11
+    for j = 1:11*orbits
     mean_error_perf(i, j) = mean(instant_error_perform(21+(5000*(j-1)):21+(5000*j), i));
     end
 end
 
 mean_error_perf_matrix = zeros(length(x_hat_data),3);
-for j = 1:11
+for j = 1:11*orbits
     for i = 21+(5000*(j-1)):21+(5000*j)
         mean_error_perf_matrix(i, :) = mean_error_perf(:,j);
     end
@@ -724,13 +724,13 @@ end
 
 mean_error_know = zeros(6, 11);
 for i = 1:6
-    for j = 1:11
+    for j = 1:11*orbits
     mean_error_know(i, j) = mean(instant_error_know(21+(5000*(j-1)):21+(5000*j), i));
     end
 end
 
 mean_error_know_matrix = zeros(length(x_hat_data),6);
-for j = 1:11
+for j = 1:11*orbits
     for i = 21+(5000*(j-1)):21+(5000*j)
         mean_error_know_matrix(i, :) = mean_error_know(:,j);
     end
@@ -749,4 +749,47 @@ for i=1:3
     hold off;
     grid on;
 end 
+
+
+%% Calculation and plotting of Relative Performance Error
+relative_error_perf = zeros(length(mean_error_perf_matrix(:,i)),3);
+for i=1:3
+relative_error_perf(:,i) = instant_error_perform(1:length(mean_error_perf_matrix(:,i)),i) - mean_error_perf_matrix(:,i);
+end
+
+figure();
+for i=1:3
+    subplot(3,1,i);
+    hold on;
+    plot(Time(21:length(relative_error_perf)), relative_error_perf(21:length(relative_error_perf), i), 'LineWidth',1.5, 'Color','blue');
+    if (i==1), title('Relative Performance Errors', 'interpreter','latex', 'fontsize',17);end
+    if (i==1), ylabel('X-axis [deg]'); end
+    if (i==2), ylabel('Y-axis [deg]'); end
+    if (i==3), ylabel('Z-axis [deg]'); end
+    xlabel('Time [$s$]', 'interpreter','latex', 'fontsize',12);
+    hold off;
+    grid on;
+end
+
+%% Calculation and plotting of Relative Knowledge Error
+relative_error_know = zeros(length(instant_error_know),6);
+for i=1:6
+relative_error_know(:,i) = instant_error_know(:,i) - mean_error_know_matrix(1:length(instant_error_know(:,i)),i);
+end
+
+figure();
+for i=1:6
+    subplot(6,1,i);
+    hold on;
+    plot(Time(21:length(instant_error_know)), relative_error_know(21:length(relative_error_know), i), 'LineWidth',1.5, 'Color','blue');
+    ylabel(['$\tilde{x}_' num2str(i) ' [rad/sec]$'], 'interpreter','latex', 'fontsize',14);
+    if (i==1), title('Relative Knowledge Errors', 'interpreter','latex', 'fontsize',17);end
+    if (i==1), ylabel('X-axis [deg]', 'interpreter','latex', 'fontsize',14); end
+    if (i==2), ylabel('Y-axis [deg]', 'interpreter','latex', 'fontsize',14); end
+    if (i==3), ylabel('Z-axis [deg]', 'interpreter','latex', 'fontsize',14); end
+    xlabel('Time [$s$]', 'interpreter','latex', 'fontsize',12);
+    hold off;
+    grid on;
+end
+
 end
