@@ -470,7 +470,7 @@ end
 
 
 %% Calculation and plotting of performance error
-x_real_euler_perf = quat2eul(q_ob_data(1:4,1:length(q_ob_data)-1)'); 
+x_real_euler_perf = quat2eul(q_ob_data(1:4,1:length(q_ob_data)-1)','XYZ'); 
 x_real_euler_perf = rad2deg(x_real_euler_perf');
 
 instant_error_perform = x_real_euler_perf';
