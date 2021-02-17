@@ -38,9 +38,9 @@ function Const = constants()
     Iz = (m / 12) * (lx^2 + ly^2); % Zaxis inertia
 
 %% Current Inertia
-    PMI = diag([0.03868845951 0.03899129965 0.00696263029]); %Principal Moments of Inertia
-    PAI = [-0.89 0.46 0; 0.46 0.89 -0.01; 0 0.01 1]; %Principal Axes of Inertia
-    Cm =  [0.03228 -0.02314 0.08244]'; % Center of mass
+%     PMI = diag([0.03868845951 0.03899129965 0.00696263029]); %Principal Moments of Inertia
+%     PAI = [-0.89 0.46 0; 0.46 0.89 -0.01; 0 0.01 1]; %Principal Axes of Inertia
+%     Cm =  [0.03228 -0.02314 0.08244]'; % Center of mass
 %% Modified Inertia
 %     PMI = diag([0.03928052501	0.03948290041	0.00720041142]); %Principal Moments of Inertia
 %     PAI = [-1 0.07 -0.01; 0.07 1 -0.02; -0.01 0.02 1]; %Principal Axes of Inertia
@@ -49,7 +49,7 @@ function Const = constants()
 %% THIS INERTIA MAKES ME HAPPY
     PMI = diag([0.03552528444 0.03572444349 0.00626757327]); %Principal Moments of Inertia
     PAI = [0.98, 0.2, -0.02; -0.20, 0.98, 0.00 ; 0.02, 0.01, 1.00]; %Principal Axes of Inertia
-    Cm =  [0.00121 0.00057 -0.00188]'; % Center of mass
+    Cm =  [0.00121 0.00057 0.00188]'; % Center of mass
 
 
 
