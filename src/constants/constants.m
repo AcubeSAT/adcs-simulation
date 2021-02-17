@@ -46,6 +46,13 @@ function Const = constants()
 %     PAI = [-1 0.07 -0.01; 0.07 1 -0.02; -0.01 0.02 1]; %Principal Axes of Inertia
 %     Cm = [0.03111 -0.02099 0.08135]';  % Center of mass
 
+%% THIS INERTIA MAKES ME HAPPY
+    PMI = diag([0.03552528444 0.03572444349 0.00626757327]); %Principal Moments of Inertia
+    PAI = [0.98, 0.2, -0.02; -0.20, 0.98, 0.00 ; 0.02, 0.01, 1.00]; %Principal Axes of Inertia
+    Cm =  [0.00121 0.00057 -0.00188]'; % Center of mass
+
+
+
     for j=1:3
         PAI(:,j) = PAI(:,j)/norm(PAI(:,j));
     end
