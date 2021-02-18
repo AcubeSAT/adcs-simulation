@@ -320,19 +320,31 @@ fprintf("\n\n\n");
     figure()
     subplot(3,1,1)
     plot(1:plotter_step:length(Time),w_b_ob(1,1:plotter_step:end))
-    title('Velocities-x');
-    xlabel('Time [s]');
-    ylabel('Velocity [rad/sec]');
+    title('Angular Velocities','interpreter','latex', 'fontsize',17);
+    %xlabel('Time [s]');
+    xlabel('Time [$s$]', 'interpreter','latex', 'fontsize',12);
+    %ylabel('Velocity [rad/sec]');
+    %ylabel(['\omega1 [rad/sec]'], 'interpreter','latex', 'fontsize',14);
+    ylabel(['$\omega_' num2str(1) '$' '[rad/sec]'], 'interpreter','latex', 'fontsize',14);
+    grid on
     subplot(3,1,2)
     plot(1:plotter_step:length(Time),w_b_ob(2,1:plotter_step:end))
-    title('Velocities-y');
-    xlabel('Time [s]');
-    ylabel('Velocity [rad/sec]');
+    %title('Angular Velocities-y','interpreter','latex', 'fontsize',17);
+    %xlabel('Time [s]');
+    xlabel('Time [$s$]', 'interpreter','latex', 'fontsize',12);
+    %ylabel('Velocity [rad/sec]');
+    %ylabel(['\omega2 [rad/sec]'], 'interpreter','latex', 'fontsize',14);
+    ylabel(['$\omega_' num2str(2) '$' '[rad/sec]'], 'interpreter','latex', 'fontsize',14);
+    grid on
     subplot(3,1,3)
     plot(1:plotter_step:length(Time),w_b_ob(3,1:plotter_step:end))
-    title('Velocities-z');
-    xlabel('Time [s]');
-    ylabel('Velocity [rad/sec]');
+    %title('Angular Velocities-z','interpreter','latex', 'fontsize',17);
+    %xlabel('Time [s]');
+    xlabel('Time [$s$]', 'interpreter','latex', 'fontsize',12);
+    %ylabel(['\omega3 [rad/sec]'], 'interpreter','latex', 'fontsize',14);
+    ylabel(['$\omega_' num2str(3) '$' '[rad/sec]'], 'interpreter','latex', 'fontsize',14);
+    %ylabel('Velocity [rad/sec]');
+    grid on
 
 %% Plotting the angular velocity using Bdot 
     figure() 
