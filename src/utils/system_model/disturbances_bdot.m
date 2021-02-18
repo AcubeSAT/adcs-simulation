@@ -15,7 +15,7 @@
 function [T_dist, returnMessage] = disturbances_bdot(R_BO, angles, sun_vector, B, selector)
 
 Const = constants(); % Loading some constant parameters.
-
+R_OB=R_BO';
 %% Gravitational Torque
 
 z_0 = R_BO(1,:)'; % Unit vector towards nadir
