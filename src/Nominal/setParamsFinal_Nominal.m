@@ -5,14 +5,14 @@ function Param = setParamsFinal_Nominal(I)
 dt = .1; %Timestep for Orbit Propagator
 orbits=1;
 orbitPeriod=5545;
-tf = orbits*orbitPeriod+0.9; %Total Simulation Seconds
+tf = orbits*orbitPeriod; %Total Simulation Seconds
 %tf =(5545+0.9); %Total Simulation Seconds
 np = uint32((tf+dt)/dt); %Number of timesteps
 q_desired = [ 1 0 0 0 ] ; %Desired quaternion
 
 %% ======= Orbit Propagation ========
 [satrec, x] = orbit_init();
-[xsat_ecf, vsat_ecf,xsat_eci,vsat_eci, sat_llh,eclipse, mag_field_ned,mag_field_eci,mag_field_ecef,mag_field_orbit, sun_pos_ned,sun_pos_eci,sun_pos_ecef,sun_pos_orbit,satrec,argpm,nodem,inclm,mm,xnode,xinc] = orbit_sgp4(satrec,dt,tf+dt);
+[xsat_ecf, vsat_ecf,xsat_eci,vsat_eci, sat_llh,eclipse, mag_field_ned,mag_field_eci,mag_field_ecef,mag_field_orbit, sun_pos_ned,sun_pos_eci,sun_pos_ecef,sun_pos_orbit,satrec,argpm,nodem,inclm,mm,xnode,xinc] = orbit_sgp4(satrec,0.1,tf+dt);
 
 for(i=1:length(xsat_eci))
     xsat_eci_normalized(:,i) = xsat_eci(:,i)/norm(xsat_eci(:,i));

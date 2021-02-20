@@ -114,7 +114,7 @@ x_real(:,1) = x0(1:7);
 bias_data = init_bias;
 gyro_noise_data = zeros(3,1);
 t = 0;
-n_steps = floor(length(Time)*dt); % Number of time steps
+n_steps = floor(length(Time)/10); % Number of time steps
 timeflag_dz = 0;
 init_AngVel_dz = 0;
 init_accel_dz = 0;
@@ -145,11 +145,11 @@ exited_eclipse = false;
 for l=1:n_steps
     
     % Initial state when we get sun sensor measurement
-    if eclipse((l-1)/dt+1)==0
+    if eclipse((l-1)*10+1)==0
         
         %% Measurements
-        y_real = real_model.msrFun(x_real(:,(l-1)/dt+1),msrCookieFinal(mag_field_eci(:,(l-1)/dt+1),...
-            sun_pos_eci(:,(l-1)/dt+1),eclipse((l-1)/dt+1),[0;0;0]));
+        y_real = real_model.msrFun(x_real(:,(l-1)*10+1),msrCookieFinal(mag_field_eci(:,(l-1)*10+1),...
+            sun_pos_eci(:,(l-1)*10+1),eclipse((l-1)*10+1),[0;0;0]));
         y_noise = y_real + sqrt(R)*randn(size(y_real));
         [gyro_noise,real_bias] = gyro_noise_func(real_bias,dt,sigma_u,sigma_v);
         bias_data = [bias_data real_bias];
@@ -161,9 +161,9 @@ for l=1:n_steps
         if sign==0 
             sign=-1; 
         end 
-        y_noise(7:9) = css_noise(sun_pos_eci(:,(l-1)/dt+1),x_real(1:4,(l-1)/dt+1),xsat_eci(:,(l-1)/dt+1),albedo(:,(l-1)/dt+1),lambda);
-        %y_noise(7:9) = css_noise(sun_pos_eci(:,(l-1)/dt+1),x_real(1:4,(l-1)/dt+1),xsat_eci(:,(l-1)/dt+1),0,lambda);
-        if eclipse((l-1)/dt+1)~=0
+        y_noise(7:9) = css_noise(sun_pos_eci(:,(l-1)*10+1),x_real(1:4,(l-1)*10+1),xsat_eci(:,(l-1)*10+1),albedo(:,(l-1)*10+1),lambda);
+        %y_noise(7:9) = css_noise(sun_pos_eci(:,(l-1)*10+1),x_real(1:4,(l-1)*10+1),xsat_eci(:,(l-1)*10+1),0,lambda);
+        if eclipse((l-1)*10+1)~=0
             y_noise(7:9)=zeros(3,1);
         else
             y_noise(7:9)=y_noise(7:9)/norm(y_noise(7:9)); 
@@ -173,7 +173,7 @@ for l=1:n_steps
         % y_noise=y_real;
 
         %% Wahba
-        [q_wahba,~]=wahba(y_noise(7:9),y_noise(1:3),sun_pos_eci(:,(l-1)/dt+1),mag_field_eci(:,(l-1)/dt+1));
+        [q_wahba,~]=wahba(y_noise(7:9),y_noise(1:3),sun_pos_eci(:,(l-1)*10+1),mag_field_eci(:,(l-1)*10+1));
         ekf.theta(1:4) = q_wahba';
 
 
@@ -187,14 +187,14 @@ for l=1:n_steps
             % y_hat_data = [y_hat_data zeros(n_msr,10)]; 
             % P_data = [P_data zeros(10*10,10)];
 
-            for i=1:1/dt
+            for i=1:10
                 %% Propagate the system
                 torq(1,1) = -(-(Const.I(3, 3) - Const.I(2, 2)) * x(6) * x(7))*(1 + 1e-2*randn())-kd*x(5);
                 torq(2,1) = -(-(Const.I(1, 1) - Const.I(3, 3)) * x(5) * x(7))*(1 + 1e-2*randn())-kd*x(6);
                 torq(3,1) = -(-(Const.I(2, 2) - Const.I(1, 1)) * x(5) * x(6))*(1 + 1e-2*randn())-kd*x(7);
 
                 x = real_model.stateTransFun(x, stateTransCookieFinalNominal(torq,rw_ang_momentum,[0;0;0])); 
-                x_real(:,(l-1)/dt+i+1)=x;
+                x_real(:,(l-1)*10+i+1)=x;
                 t = t + dt;
 
             end
@@ -236,12 +236,12 @@ for l=1:n_steps
     %         end
     %     end
 
-     q_ob_data(:,(k-1)/dt+1) = quat_EB2OB(x(1:4), nodem(1,(k-1)/dt+1),inclm(1,(k-1)/dt+1),argpm(1,(k-1)/dt+1),mm(1,(k-1)/dt+1) );   
+     q_ob_data(:,(k-1)*10+1) = quat_EB2OB(x(1:4), nodem(1,(k-1)*10+1),inclm(1,(k-1)*10+1),argpm(1,(k-1)*10+1),mm(1,(k-1)*10+1) );   
      for c=1:3
          
 %% ================ Adaptive ======================================
 %
-%           if(entered_eclipse == false) && (eclipse((k-1)/dt+c) ~= 0)
+%           if(entered_eclipse == false) && (eclipse((k-1)*10+c) ~= 0)
 %               Q_eclipse =  eye(n_dim_error,n_dim_error);
 %               Q_eclipse(4:6,4:6) = 0.5e-06*eye(3,3);
 %               %Q_eclipse = Q_eclipse_load;
@@ -252,7 +252,7 @@ for l=1:n_steps
 %               entered_eclipse = true;
 %           end
 %           
-%           if(exited_eclipse == false) && (entered_eclipse == true) && (eclipse((k-1)/dt+c) == 0)
+%           if(exited_eclipse == false) && (entered_eclipse == true) && (eclipse((k-1)*10+c) == 0)
 %               Q_outside =  0.5e-05*eye(n_dim_error,n_dim_error);
 %               Q_outside(4:6,4:6) = 0.5e-07*eye(3,3);
 %               %Q_outside = Q_eclipse_load;
@@ -263,7 +263,7 @@ for l=1:n_steps
 %               entered_eclipse = false;
 %           end
 %% ============ IdealQ ============================================        
-        if (eclipse((k-1)/dt+c))
+        if (eclipse((k-1)*10+c))
             % Variances
             Q = Q_eclipse_load; % Variance of the process noise w[k]
 
@@ -279,18 +279,18 @@ for l=1:n_steps
         end
        
         
-        y_real = real_model.msrFun(x_real(:,(k-1)/dt+c),msrCookieFinal(mag_field_eci(:,(k-1)/dt+c),...
-            sun_pos_eci(:,(k-1)/dt+c),eclipse((k-1)/dt+c),[0;0;0]));
+        y_real = real_model.msrFun(x_real(:,(k-1)*10+c),msrCookieFinal(mag_field_eci(:,(k-1)*10+c),...
+            sun_pos_eci(:,(k-1)*10+c),eclipse((k-1)*10+c),[0;0;0]));
         y_noise = y_real + sqrt(R)*randn(size(y_real));
         [gyro_noise,real_bias] = gyro_noise_func(real_bias,dt,sigma_u,sigma_v);
         bias_data = [bias_data real_bias];
         gyro_noise_data = [gyro_noise_data gyro_noise];
         y_noise(4:6) = y_real(4:6) + gyro_noise;
              
-        y_noise(7:9) = css_noise(sun_pos_eci(:,(k-1)/dt+c),x_real(1:4,(k-1)/dt+c),xsat_eci(:,(k-1)/dt+c),albedo(:,(k-1)/dt+c),lambda);
-        %y_noise(7:9) = css_noise(sun_pos_eci(:,(k-1)/dt+c),x_real(1:4,(k-1)/dt+c),xsat_eci(:,(k-1)/dt+c),0,lambda);      
+        y_noise(7:9) = css_noise(sun_pos_eci(:,(k-1)*10+c),x_real(1:4,(k-1)*10+c),xsat_eci(:,(k-1)*10+c),albedo(:,(k-1)*10+c),lambda);
+        %y_noise(7:9) = css_noise(sun_pos_eci(:,(k-1)*10+c),x_real(1:4,(k-1)*10+c),xsat_eci(:,(k-1)*10+c),0,lambda);      
         
-        if eclipse((k-1)/dt+c)~=0
+        if eclipse((k-1)*10+c)~=0
             y_noise(7:9)=zeros(3,1);
         else
             y_noise(7:9)=y_noise(7:9)/norm(y_noise(7:9)); 
@@ -298,9 +298,9 @@ for l=1:n_steps
         y_noise(1:3)=y_noise(1:3)/norm(y_noise(1:3)); 
         
         gyro = y_noise(4:6);
-        ekf.correct(y_noise, msrCookieFinalExtended(mag_field_eci(:,(k-1)/dt+c),...
-            sun_pos_eci(:,(k-1)/dt+c),eclipse((k-1)/dt+c),gyro,xsat_eci(:,(k-1)/dt+c),albedo_inaccurate(:,(k-1)/dt+c),lambda));
-            %sun_pos_eci(:,(k-1)/dt+c),eclipse((k-1)/dt+c),gyro,xsat_eci(:,(k-1)/dt+c),0,lambda));
+        ekf.correct(y_noise, msrCookieFinalExtended(mag_field_eci(:,(k-1)*10+c),...
+            sun_pos_eci(:,(k-1)*10+c),eclipse((k-1)*10+c),gyro,xsat_eci(:,(k-1)*10+c),albedo_inaccurate(:,(k-1)*10+c),lambda));
+            %sun_pos_eci(:,(k-1)*10+c),eclipse((k-1)*10+c),gyro,xsat_eci(:,(k-1)*10+c),0,lambda));
         
         x_hat = ekf.theta;
         x_hat(1:4) = x_hat(1:4) / norm(x_hat(1:4));
@@ -312,24 +312,24 @@ for l=1:n_steps
         [~, ~, ~, AngVel_rw_radps(3,1), acceleration_rw(2,1), T_rw_total] = rw_model(0, AngVel_rw_radps(3,1)); 
         torq(3,1) = T_rw_total;
         
-        [T_dist,~] = disturbances_pd(q_ob_data(:,(k-1)/dt+c), sun_pos_orbit(:,(k-1)/dt+c), mag_field_orbit(:,(k-1)/dt+c)*10^(-9), disturbancesEnabled);
-        tau_dist(:,(k-1)/dt+c+1) = T_dist;
+        [T_dist,~] = disturbances_pd(q_ob_data(:,(k-1)*10+c), sun_pos_orbit(:,(k-1)*10+c), mag_field_orbit(:,(k-1)*10+c)*10^(-9), disturbancesEnabled);
+        tau_dist(:,(k-1)*10+c+1) = T_dist;
         torq = torq + T_dist;
         x = real_model.stateTransFun(x, stateTransCookieFinalNominal(torq,rw_ang_momentum,[0;0;0])); 
-        x_real(:,(k-1)/dt+c+1)=x;
-        q_ob_data(:,(k-1)/dt+c+1) = quat_EB2OB(x(1:4), nodem(1,(k-1)/dt+c),inclm(1,(k-1)/dt+c),argpm(1,(k-1)/dt+c),mm(1,(k-1)/dt+c) );
+        x_real(:,(k-1)*10+c+1)=x;
+        q_ob_data(:,(k-1)*10+c+1) = quat_EB2OB(x(1:4), nodem(1,(k-1)*10+c),inclm(1,(k-1)*10+c),argpm(1,(k-1)*10+c),mm(1,(k-1)*10+c) );
         
         AngVel_rw_rpm(3,1) = AngVel_rw_radps(3,1)*30/pi; 
-        rw_ang_vel_rpm(1,(k-1)/dt+c+1) = AngVel_rw_rpm(3,1);  
-        %rw_accel(1,(k-1)/dt+c+1) = acceleration_rw(2,1);
+        rw_ang_vel_rpm(1,(k-1)*10+c+1) = AngVel_rw_rpm(3,1);  
+        %rw_accel(1,(k-1)*10+c+1) = acceleration_rw(2,1);
         
-    %     if norm(q_prev - q_ob_data(:,(k-1)/dt+c+1))^2 > norm(q_prev + q_ob_data(:,(k-1)/dt+c+1))^2
-    %         q_ob_data(:,(k-1)/dt+c+1) = -q_ob_data(:,(k-1)/dt+c+1);
+    %     if norm(q_prev - q_ob_data(:,(k-1)*10+c+1))^2 > norm(q_prev + q_ob_data(:,(k-1)*10+c+1))^2
+    %         q_ob_data(:,(k-1)*10+c+1) = -q_ob_data(:,(k-1)*10+c+1);
     %     end
-%          if q_ob_data(1,(k-1)/dt+c+1)<0
-%             q_ob_data(:,(k-1)/dt+c+1) = -q_ob_data(:,(k-1)/dt+c+1);
+%          if q_ob_data(1,(k-1)*10+c+1)<0
+%             q_ob_data(:,(k-1)*10+c+1) = -q_ob_data(:,(k-1)*10+c+1);
 %          end  
-    %    q_prev = q_ob_data(:,(k-1)/dt+c+1);
+    %    q_prev = q_ob_data(:,(k-1)*10+c+1);
         % Predict the states at next time step, k+1. This updates the State and
         % StateCovariance properties of the filter to contain x[k+1|k] and
         % P[k+1|k]. These will be utilized by the filter at the next time step.
@@ -338,7 +338,7 @@ for l=1:n_steps
         ekf.predict(stateTransCookieFinalNominal(torq,rw_ang_momentum,gyro),dt);
      end 
     %  
-    %  q_ob_hat_prev =quat_EB2OB(x_hat(1:4), nodem(1,(k-1)/dt+c),inclm(1,(k-1)/dt+c),argpm(1,(k-1)/dt+c),mm(1,(k-1)/dt+c) );
+    %  q_ob_hat_prev =quat_EB2OB(x_hat(1:4), nodem(1,(k-1)*10+c),inclm(1,(k-1)*10+c),argpm(1,(k-1)*10+c),mm(1,(k-1)*10+c) );
     % 
     % if q_ob_hat_prev(1) < 0
     %    q_ob_hat_prev = -q_ob_hat_prev;
@@ -347,7 +347,7 @@ for l=1:n_steps
         
 %% ================ Adaptive ======================================
 %
-%           if(entered_eclipse == false) && (eclipse((k-1)/dt+c) ~= 0)
+%           if(entered_eclipse == false) && (eclipse((k-1)*10+c) ~= 0)
 %               Q_eclipse =  eye(n_dim_error,n_dim_error);
 %               Q_eclipse(4:6,4:6) = 0.5e-06*eye(3,3);
 %               %Q_eclipse = Q_eclipse_load;
@@ -358,7 +358,7 @@ for l=1:n_steps
 %               entered_eclipse = true;
 %           end
 %           
-%           if(exited_eclipse == false) && (entered_eclipse == true) && (eclipse((k-1)/dt+c) == 0)
+%           if(exited_eclipse == false) && (entered_eclipse == true) && (eclipse((k-1)*10+c) == 0)
 %               Q_outside =  0.5e-05*eye(n_dim_error,n_dim_error);
 %               Q_outside(4:6,4:6) = 0.5e-07*eye(3,3);
 %               %Q_outside = Q_eclipse_load;
@@ -369,7 +369,7 @@ for l=1:n_steps
 %               entered_eclipse = false;
 %           end
 %% ============ IdealQ ============================================        
-        if (eclipse((k-1)/dt+c))
+        if (eclipse((k-1)*10+c))
             % Variances
             Q = Q_eclipse_load; % Variance of the process noise w[k]
 
@@ -384,8 +384,8 @@ for l=1:n_steps
             ekf.setMeasureNoiseCov(Param.R_hat); %R variance matrix
         end
 
-        y_real = real_model.msrFun(x_real(:,(k-1)/dt+c),msrCookieFinal(mag_field_eci(:,(k-1)/dt+c),...
-            sun_pos_eci(:,(k-1)/dt+c),eclipse((k-1)/dt+c),[0;0;0]));
+        y_real = real_model.msrFun(x_real(:,(k-1)*10+c),msrCookieFinal(mag_field_eci(:,(k-1)*10+c),...
+            sun_pos_eci(:,(k-1)*10+c),eclipse((k-1)*10+c),[0;0;0]));
         [gyro_noise,real_bias] = gyro_noise_func(real_bias,dt,sigma_u,sigma_v);
         bias_data = [bias_data real_bias];
         gyro_noise_data = [gyro_noise_data gyro_noise];
@@ -394,7 +394,7 @@ for l=1:n_steps
         x_hat = ekf.theta;
         x_hat(1:4) = x_hat(1:4) / norm(x_hat(1:4));
         x_hat_data = [x_hat_data x_hat];
-        q_ob_hat = quat_EB2OB(x_hat(1:4), nodem(1,(k-1)/dt+c-1),inclm(1,(k-1)/dt+c-1),argpm(1,(k-1)/dt+c-1),mm(1,(k-1)/dt+c-1) );
+        q_ob_hat = quat_EB2OB(x_hat(1:4), nodem(1,(k-1)*10+c-1),inclm(1,(k-1)*10+c-1),argpm(1,(k-1)*10+c-1),mm(1,(k-1)*10+c-1) );
 
     %     if norm(q_ob_hat_prev - q_ob_hat)^2 > norm(q_ob_hat_prev + q_ob_hat)^2
     %        q_ob_hat = -q_ob_hat;
@@ -417,45 +417,45 @@ for l=1:n_steps
         [torq, T_rw, T_magnetic_effective, V_rw, I_rw, P_thermal_rw, AngVel_rw_rpm_next, AngVel_rw_radps_next,...
                 acceleration_rw_cur, rw_ang_momentum, init_AngVel_dz, init_accel_dz, V_mtq, I_mtq, P_thermal_mtq, ...
                     timeflag_dz] = ...
-                        PD(Kp_gain, Kd_gain, q_desired ,q_ob_hat, y_noise(4:6)-ekf.theta(5:7) , y_noise(1:3)*norm(mag_field_orbit(:,(k-1)/dt+c)*10^(-9)) , eclipse((k-1)/dt+c), ...
+                        PD(Kp_gain, Kd_gain, q_desired ,q_ob_hat, y_noise(4:6)-ekf.theta(5:7) , y_noise(1:3)*norm(mag_field_orbit(:,(k-1)*10+c)*10^(-9)) , eclipse((k-1)*10+c), ...
                             Const.mtq_max, Const.lim_dz, AngVel_rw_radps(2,1), AngVel_rw_rpm(2,1), ...
-                                acceleration_rw(1,1), init_AngVel_dz, init_accel_dz, timeflag_dz,Const.rw_max_torque,y_real(1:3)*norm(mag_field_orbit(:,(k-1)/dt+c)*10^(-9)), l, sat_llh(3,(k-1)/dt+c));
-        tau_rw(1, (k-1)/dt+c+1) = T_rw(3);
-        tau_mtq(:, (k-1)/dt+c+1) = T_magnetic_effective;
-        rw_ang_vel_rpm(1,(k-1)/dt+c+1) = AngVel_rw_rpm(3,1); 
+                                acceleration_rw(1,1), init_AngVel_dz, init_accel_dz, timeflag_dz,Const.rw_max_torque,y_real(1:3)*norm(mag_field_orbit(:,(k-1)*10+c)*10^(-9)), l, sat_llh(3,(k-1)*10+c));
+        tau_rw(1, (k-1)*10+c+1) = T_rw(3);
+        tau_mtq(:, (k-1)*10+c+1) = T_magnetic_effective;
+        rw_ang_vel_rpm(1,(k-1)*10+c+1) = AngVel_rw_rpm(3,1); 
         acceleration_rw(2,1) = acceleration_rw_cur;
         AngVel_rw_rpm(3,1) = AngVel_rw_rpm_next;
         AngVel_rw_radps(3,1) = AngVel_rw_radps_next;
         
         %%                    
-        [T_dist,~] = disturbances_pd(q_ob_data(:,(k-1)/dt+c), sun_pos_orbit(:,(k-1)/dt+c), mag_field_orbit(:,(k-1)/dt+c)*10^(-9), disturbancesEnabled);
-        tau_dist(:,(k-1)/dt+c+1) = T_dist;
+        [T_dist,~] = disturbances_pd(q_ob_data(:,(k-1)*10+c), sun_pos_orbit(:,(k-1)*10+c), mag_field_orbit(:,(k-1)*10+c)*10^(-9), disturbancesEnabled);
+        tau_dist(:,(k-1)*10+c+1) = T_dist;
         torq = torq + T_dist;
         x = real_model.stateTransFun(x, stateTransCookieFinalNominal(torq,rw_ang_momentum,[0;0;0])); 
-        x_real(:,(k-1)/dt+c+1)=x;
-        q_ob_data(:,(k-1)/dt+c+1) = quat_EB2OB(x(1:4), nodem(1,(k-1)/dt+c),inclm(1,(k-1)/dt+c),argpm(1,(k-1)/dt+c),mm(1,(k-1)/dt+c) );
+        x_real(:,(k-1)*10+c+1)=x;
+        q_ob_data(:,(k-1)*10+c+1) = quat_EB2OB(x(1:4), nodem(1,(k-1)*10+c),inclm(1,(k-1)*10+c),argpm(1,(k-1)*10+c),mm(1,(k-1)*10+c) );
 
 
 
-    %     if norm(q_prev - q_ob_data(:,(k-1)/dt+c+1))^2 > norm(q_prev + q_ob_data(:,(k-1)/dt+c+1))^2
-    %         q_ob_data(:,(k-1)/dt+c+1) = -q_ob_data(:,(k-1)/dt+c+1);
+    %     if norm(q_prev - q_ob_data(:,(k-1)*10+c+1))^2 > norm(q_prev + q_ob_data(:,(k-1)*10+c+1))^2
+    %         q_ob_data(:,(k-1)*10+c+1) = -q_ob_data(:,(k-1)*10+c+1);
     %     end
-%         if q_ob_data(1,(k-1)/dt+c+1)<0
-%             q_ob_data(:,(k-1)/dt+c+1) = -q_ob_data(:,(k-1)/dt+c+1);
+%         if q_ob_data(1,(k-1)*10+c+1)<0
+%             q_ob_data(:,(k-1)*10+c+1) = -q_ob_data(:,(k-1)*10+c+1);
 %         end  
-    %     q_prev = q_ob_data(:,(k-1)/dt+c+1);
+    %     q_prev = q_ob_data(:,(k-1)*10+c+1);
         gyro = y_noise(4:6);
         ekf.predict(stateTransCookieFinalNominal(torq,rw_ang_momentum,gyro),dt);
      end
         end
         break;
     else
-        for i=1:1/dt
+        for i=1:10
             %% Propagate the system
             torq=zeros(3,1);
 
             x = real_model.stateTransFun(x, stateTransCookieFinal(torq)); 
-            x_real(:,(l-1)/dt+i+1)=x;
+            x_real(:,(l-1)*10+i+1)=x;
             t = t + dt;
 
         end
@@ -470,7 +470,7 @@ end
 
 
 %% Calculation and plotting of performance error
-x_real_euler_perf = quat2eul(q_ob_data(1:4,1:length(q_ob_data)-1)'); 
+x_real_euler_perf = quat2eul(q_ob_data(1:4,1:length(q_ob_data))'); 
 x_real_euler_perf = rad2deg(x_real_euler_perf');
 
 instant_error_perform = x_real_euler_perf';
@@ -544,7 +544,7 @@ for i=1:n_dim
     if (i==1),legend({['$x_' num2str(i) '$'],['$\hat{x}_' num2str(i) '$']}, 'interpreter','latex', 'fontsize',15);end
     ylabel(['$x_' num2str(i) '$'], 'interpreter','latex', 'fontsize',14);
     if (i==1), title('MEKF estimation results', 'interpreter','latex', 'fontsize',17);end
-    xlim([3 n_steps]);
+%     xlim([3 n_steps]);
     xlabel('Time [$s$]', 'interpreter','latex', 'fontsize',12);
     hold off;
     grid on;
@@ -565,7 +565,7 @@ for i=1:4
     plot(Time,q_ob_data(i,1:length(Time)), 'LineWidth',2.0, 'Color','blue');
     ylabel(['$q_{ob' num2str(i) '}$'], 'interpreter','latex', 'fontsize',14);
     xlabel('Time [s]', 'interpreter','latex', 'fontsize',12)
-    xlim([3 n_steps]);
+%     xlim([3 n_steps]);
     hold off;
     grid on;
 end
@@ -695,13 +695,13 @@ end
 mean_error_perf = zeros(3, 11);
 for i = 1:3
     for j = 1:11*orbits
-    mean_error_perf(i, j) = mean(instant_error_perform(21+(5000*(j-1)):21+(5000*j), i));
+    mean_error_perf(i, j) = mean(instant_error_perform(21+((500/dt)*(j-1)):21+((500/dt)*j), i));
     end
 end
 
 mean_error_perf_matrix = zeros(length(x_hat_data),3);
 for j = 1:11*orbits
-    for i = 21+(5000*(j-1)):21+(5000*j)
+    for i = 21+((500/dt)*(j-1)):21+((500/dt)*j)
         mean_error_perf_matrix(i, :) = mean_error_perf(:,j);
     end
 end
@@ -725,13 +725,13 @@ end
 mean_error_know = zeros(6, 11);
 for i = 1:6
     for j = 1:11*orbits
-    mean_error_know(i, j) = mean(instant_error_know(21+(5000*(j-1)):21+(5000*j), i));
+    mean_error_know(i, j) = mean(instant_error_know(21+((500/dt)*(j-1)):21+((500/dt)*j), i));
     end
 end
 
 mean_error_know_matrix = zeros(length(x_hat_data),6);
 for j = 1:11*orbits
-    for i = 21+(5000*(j-1)):21+(5000*j)
+    for i = 21+((500/dt)*(j-1)):21+((500/dt)*j)
         mean_error_know_matrix(i, :) = mean_error_know(:,j);
     end
 end
