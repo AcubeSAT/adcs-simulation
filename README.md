@@ -1,5 +1,7 @@
 This repository is the Attitude, Orbit Determination and Control Subsystem (ADCS/AOCS) simulation analysis of the AcubeSAT project, part of the SpaceDot team. The general design approach, theoretical implementation and simulation analyses conducted by the subsystem can be found in the Critical Document Review (CDR) of AcubeSAT, in the Design Definition & Justification File of AOCS (DDJF_AOCS). Further documents composed by the AOCS members to describe and analyse certain design and theoretical aspects can be found in our documentation platform.
 
+Every in-house repository folder includes a README.md file to detail and thoroughly explain the ADCS logic and implementation.
+
 #### Useful links
 + [SpaceDot Website](https://spacedot.gr/)
 + [AcubeSAT Website](https://acubesat.spacedot.gr/)
