@@ -1,6 +1,6 @@
 function  [torque, T_rw, T_magnetic_effective, V_rw, I_rw, P_thermal_rw, AngVel_rw_rpm_new, AngVel_rw_radps_new,...
             acceleration_rw_cur, rw_ang_momentum, init_AngVel_dz, init_accel_dz, V_mtq, I_mtq, P_thermal_mtq, ...
-                timeflag_dz] = ...
+                timeflag_dz,M] = ...
                     PD(Kp_gain, Kd_gain, q_desired , q_orbit_body , w_b_ib , B_body , eclipse, mtq_max, ...
                         lim_dz, AngVel_rw_radps_cur, AngVel_rw_rpm_cur, acceleration_rw_old, init_AngVel_dz, ...
                             init_accel_dz,timeflag_dz,rw_max_torque,B_body_real,time,altitude)
@@ -29,10 +29,12 @@ function  [torque, T_rw, T_magnetic_effective, V_rw, I_rw, P_thermal_rw, AngVel_
 
     q_error=quatProd(conj(q_desired),q_orbit_body);
     T_commanded = -sign(q_error(1))*Kp_gain*q_error(2:4) - Kd_gain*w_b_ob;
-
+    known_rm = [0.048 0.051 0.047];
+    estimated_rm_dist =  cross(known_rm, B_body);
+    
     b_hat=B_body/norm(B_body); 
     T_rw =[0;0;1]*(B_body'*T_commanded)/B_body(3);
-    T_magnetic = skew(b_hat)'*skew(b_hat) * (T_commanded-T_rw);   
+    T_magnetic = skew(b_hat)'*skew(b_hat) * (T_commanded-T_rw) -estimated_rm_dist';   
     M=skew(B_body)*T_magnetic/(B_body'*B_body);
 
     % Calculating gains in case of saturation

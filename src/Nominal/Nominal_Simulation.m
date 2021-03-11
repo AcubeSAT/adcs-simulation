@@ -123,6 +123,7 @@ rw_ang_vel_rpm = zeros(1, length(Time));    % RW angular velocity in rpm
 rw_accel = zeros(1, length(Time));          % RW acceleration
 tau_mtq = zeros(3, length(Time));           % Torques produced by MTQs
 tau_rw = zeros(1, length(Time));            % Torques produced by the RW
+M_data = zeros(3, length(Time));
 tau_dist = zeros(3, length(Time));
 lambda=1;
 
@@ -418,7 +419,7 @@ for l=1:n_steps
         
         [torq, T_rw, T_magnetic_effective, V_rw, I_rw, P_thermal_rw, AngVel_rw_rpm_next, AngVel_rw_radps_next,...
                 acceleration_rw_cur, rw_ang_momentum, init_AngVel_dz, init_accel_dz, V_mtq, I_mtq, P_thermal_mtq, ...
-                    timeflag_dz] = ...
+                    timeflag_dz,M] = ...
                         PD(Kp_gain, Kd_gain, q_desired ,q_ob_hat, y_noise(4:6)-ekf.theta(5:7) , y_noise(1:3)*norm(mag_field_orbit(:,(k-1)*10+c)*10^(-9)) , eclipse((k-1)*10+c), ...
                             Const.mtq_max, Const.lim_dz, AngVel_rw_radps(2,1), AngVel_rw_rpm(2,1), ...
                                 acceleration_rw(1,1), init_AngVel_dz, init_accel_dz, timeflag_dz,Const.rw_max_torque,y_real(1:3)*norm(mag_field_orbit(:,(k-1)*10+c)*10^(-9)), l, sat_llh(3,(k-1)*10+c));
@@ -428,7 +429,7 @@ for l=1:n_steps
         acceleration_rw(2,1) = acceleration_rw_cur;
         AngVel_rw_rpm(3,1) = AngVel_rw_rpm_next;
         AngVel_rw_radps(3,1) = AngVel_rw_radps_next;
-        
+        M_data(:,(k-1)*10+c+1) = M;
         %%                    
         [T_dist, residual,~] = disturbances_pd(q_ob_data(:,(k-1)*10+c), sun_pos_orbit(:,(k-1)*10+c), mag_field_orbit(:,(k-1)*10+c)*10^(-9), disturbancesEnabled);
         rm = [rm residual];
@@ -665,6 +666,26 @@ end
       xlabel('Time [s]', 'interpreter','latex', 'fontsize',12)
       grid on;
 
+      
+      figure()
+      subplot(3,1,1)
+      plot(1:length(Time),M_data(1, 1:length(Time)))
+      title('Induced dipole - x', 'interpreter','latex', 'fontsize',17)
+      ylabel('Torque [Nm]', 'interpreter','latex', 'fontsize',14)
+      xlabel('Time [s]', 'interpreter','latex', 'fontsize',12)
+      grid on;
+      subplot(3,1,2)
+      plot(1:length(Time),M_data(2, 1:length(Time)))
+      title('Induced dipole - y', 'interpreter','latex', 'fontsize',17)
+      ylabel('Torque [Nm]', 'interpreter','latex', 'fontsize',14)
+      xlabel('Time [s]', 'interpreter','latex', 'fontsize',12)
+      grid on;
+      subplot(3,1,3)
+      plot(1:length(Time),M_data(3, 1:length(Time)))
+      title('Induced dipole - z', 'interpreter','latex', 'fontsize',17)
+      ylabel('Torque [Nm]', 'interpreter','latex', 'fontsize',14)
+      xlabel('Time [s]', 'interpreter','latex', 'fontsize',12)
+      grid on;
 %% 
      figure() 
      plot(Time, rw_ang_vel_rpm(1,1:length(Time)),'LineWidth',1.5, 'Color','blue'); 
@@ -800,7 +821,7 @@ for i=1:3
     subplot(3,1,i);
     hold on;
     plot(Time(21:length(rm)), rm(i, 21:length(rm)), 'LineWidth',1.5, 'Color','blue');
-    if (i==1), title('Relative Magnetic Dipole', 'interpreter','latex', 'fontsize',17);end
+    if (i==1), title('Residual Magnetic Dipole', 'interpreter','latex', 'fontsize',17);end
     if (i==1), ylabel('X-axis [deg]'); end
     if (i==2), ylabel('Y-axis [deg]'); end
     if (i==3), ylabel('Z-axis [deg]'); end
