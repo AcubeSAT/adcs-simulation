@@ -66,11 +66,7 @@ T3 = 0.5 * p * Cd * Az * Const.v_satellite^2 * cross(x_0', Cpa(3,:)'-Cm);
 
 tau_ad = T1+T2+T3;
 
-%% Residual Magnetic Moment
 
-rm = [0.05 0.05 0.05]'; % An estimation of the residual moment of the satellite
-
-tau_rm = cross(rm, B);
 
 %% Solar Pressure
 
@@ -109,6 +105,16 @@ T2 = (Fs/c)*Ay*(1+q)*cross(y_0,Csp(2,:)'-Cm);
 T3 = (Fs/c)*Az*(1+q)*cross(y_0,Csp(3,:)'-Cm);
 
 tau_sp = (T1+T2+T3);
+
+
+%% Residual Magnetic Moment
+
+rm_base = [0.05 0.05 0.05]'; % Mean value
+A = [Ax Ay Az];
+sign_vector = [sign(-cos_Xb_Xo) sign(-cos_Yb_Yo) sign(-cos_Zb_Zo)]; 
+maximum_area = [0.034 0.034 0.01];
+rm = rm_base + (0.005*(A./maximum_area).*sign_vector)' + 0.0005*rand(3,1);
+tau_rm = cross(rm, B);
 
 %% Total Torques
 
