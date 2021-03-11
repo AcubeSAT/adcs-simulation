@@ -3,7 +3,7 @@ function Param = setParamsFinal_Nominal(I)
 
 %% ======= Satellite ========
 dt = .1; %Timestep for Orbit Propagator
-orbits=5;
+orbits=1;
 orbitPeriod=5545;
 tf = orbits*orbitPeriod; %Total Simulation Seconds
 %tf =(5545+0.9); %Total Simulation Seconds
