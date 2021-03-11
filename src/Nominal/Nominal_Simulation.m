@@ -123,7 +123,6 @@ rw_ang_vel_rpm = zeros(1, length(Time));    % RW angular velocity in rpm
 rw_accel = zeros(1, length(Time));          % RW acceleration
 tau_mtq = zeros(3, length(Time));           % Torques produced by MTQs
 tau_rw = zeros(1, length(Time));            % Torques produced by the RW
-total_torques = zeros(3, length(Time));
 M_data = zeros(3, length(Time));
 tau_dist = zeros(3, length(Time));
 lambda=1;
@@ -131,6 +130,8 @@ tau_ad = zeros(3, length(Time));
 tau_rm = zeros(3, length(Time));
 tau_g = zeros(3, length(Time));
 tau_sp = zeros(3, length(Time));
+plotter_step = 1;
+reps = length(Time);
 
 %% Initialize matrices
 AngVel_rw_radps = zeros(3, 1); %1 = old, 2 = cur, 3 = next
@@ -512,6 +513,9 @@ for i=1:3
 end
 
 %% Calulation and plotting of knowledge error
+
+
+     
 x_hat_euler_know = zeros(length(x_hat_data), 6);
 instant_error_know = zeros(length(x_hat_data), 6);
 
@@ -1033,8 +1037,6 @@ end
      ylabel('Torque [Nm]')
      xlabel('Time [s]');
      grid on;
-     
-
 
 
 
