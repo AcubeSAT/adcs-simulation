@@ -12,7 +12,7 @@
 %  
 % *************************************************************************
 
-function [T_dist, returnMessage] = disturbances_pd(q_orbit_body, sun_vector, B, selector)
+function [T_dist, rm, returnMessage] = disturbances_pd(q_orbit_body, sun_vector, B, selector)
 
 Const = constants(); % Loading some constant parameters.
 

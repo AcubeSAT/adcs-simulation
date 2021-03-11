@@ -130,6 +130,7 @@ lambda=1;
 AngVel_rw_radps = zeros(3, 1); %1 = old, 2 = cur, 3 = next
 AngVel_rw_rpm = zeros(3, 1);
 acceleration_rw = zeros(3, 1);
+rm = [];
 
 %% Next we initialize the bias estimation by solving Wahba's problem n times. 
 
@@ -312,7 +313,8 @@ for l=1:n_steps
         [~, ~, ~, AngVel_rw_radps(3,1), acceleration_rw(2,1), T_rw_total] = rw_model(0, AngVel_rw_radps(3,1)); 
         torq(3,1) = T_rw_total;
         
-        [T_dist,~] = disturbances_pd(q_ob_data(:,(k-1)*10+c), sun_pos_orbit(:,(k-1)*10+c), mag_field_orbit(:,(k-1)*10+c)*10^(-9), disturbancesEnabled);
+        [T_dist, residual,~] = disturbances_pd(q_ob_data(:,(k-1)*10+c), sun_pos_orbit(:,(k-1)*10+c), mag_field_orbit(:,(k-1)*10+c)*10^(-9), disturbancesEnabled);
+        rm = [rm residual];
         tau_dist(:,(k-1)*10+c+1) = T_dist;
         torq = torq + T_dist;
         x = real_model.stateTransFun(x, stateTransCookieFinalNominal(torq,rw_ang_momentum,[0;0;0])); 
@@ -428,7 +430,8 @@ for l=1:n_steps
         AngVel_rw_radps(3,1) = AngVel_rw_radps_next;
         
         %%                    
-        [T_dist,~] = disturbances_pd(q_ob_data(:,(k-1)*10+c), sun_pos_orbit(:,(k-1)*10+c), mag_field_orbit(:,(k-1)*10+c)*10^(-9), disturbancesEnabled);
+        [T_dist, residual,~] = disturbances_pd(q_ob_data(:,(k-1)*10+c), sun_pos_orbit(:,(k-1)*10+c), mag_field_orbit(:,(k-1)*10+c)*10^(-9), disturbancesEnabled);
+        rm = [rm residual];
         tau_dist(:,(k-1)*10+c+1) = T_dist;
         torq = torq + T_dist;
         x = real_model.stateTransFun(x, stateTransCookieFinalNominal(torq,rw_ang_momentum,[0;0;0])); 
@@ -791,5 +794,27 @@ for i=1:6
     hold off;
     grid on;
 end
+
+figure();
+for i=1:3
+    subplot(3,1,i);
+    hold on;
+    plot(Time(21:length(rm)), rm(i, 21:length(rm)), 'LineWidth',1.5, 'Color','blue');
+    if (i==1), title('Relative Magnetic Dipole', 'interpreter','latex', 'fontsize',17);end
+    if (i==1), ylabel('X-axis [deg]'); end
+    if (i==2), ylabel('Y-axis [deg]'); end
+    if (i==3), ylabel('Z-axis [deg]'); end
+    xlabel('Time [$s$]', 'interpreter','latex', 'fontsize',12);
+    hold off;
+    grid on;
+end
+
+
+
+
+
+
+
+
 
 end
