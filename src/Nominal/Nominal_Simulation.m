@@ -284,6 +284,7 @@ for l=1:n_steps
         
         y_real = real_model.msrFun(x_real(:,(k-1)*10+c),msrCookieFinal(mag_field_eci(:,(k-1)*10+c),...
             sun_pos_eci(:,(k-1)*10+c),eclipse((k-1)*10+c),[0;0;0]));
+        Bbody_data(:,(k-1)*10+c) = y_real(1:3)*norm(mag_field_orbit(:,(k-1)*10+c)*10^(-9));
         y_noise = y_real + sqrt(R)*randn(size(y_real));
         [gyro_noise,real_bias] = gyro_noise_func(real_bias,dt,sigma_u,sigma_v);
         bias_data = [bias_data real_bias];
@@ -390,6 +391,7 @@ for l=1:n_steps
 
         y_real = real_model.msrFun(x_real(:,(k-1)*10+c),msrCookieFinal(mag_field_eci(:,(k-1)*10+c),...
             sun_pos_eci(:,(k-1)*10+c),eclipse((k-1)*10+c),[0;0;0]));
+        Bbody_data(:,(k-1)*10+c) = y_real(1:3)*norm(mag_field_orbit(:,(k-1)*10+c)*10^(-9));
         [gyro_noise,real_bias] = gyro_noise_func(real_bias,dt,sigma_u,sigma_v);
         bias_data = [bias_data real_bias];
         gyro_noise_data = [gyro_noise_data gyro_noise];
@@ -472,7 +474,6 @@ for l=1:n_steps
 end
 
 %% =============================== Errors and plots =============================================== %%
-
 
 %% Calculation and plotting of performance error
 x_real_euler_perf = quat2eul(q_ob_data(1:4,1:length(q_ob_data))'); 
@@ -695,7 +696,53 @@ end
       ylabel('Angular Velocity [rpm]', 'interpreter','latex', 'fontsize',14); 
       xlabel('Time [s]', 'interpreter','latex', 'fontsize',12); 
       grid on;
-       
+      
+%% 
+mtq_max_vector = [Const.mtq_max Const.mtq_max Const.mtq_max]';
+mtq_max_vector = mtq_max_vector * ones(1,length(Bbody_data));
+max_mtq_torque = abs(cross(mtq_max_vector,Bbody_data));
+figure()
+for i=1:3
+    subplot(3,3,i);
+    hold on;
+    plot(Time(21:length(rm)), max_mtq_torque(i, 21:length(rm)), 'LineWidth',1.5, 'Color','blue');
+    if (i==2), title('Maximum MTQ torque', 'interpreter','latex', 'fontsize',17);end
+    if (i==1), ylabel('X-axis [deg]'); end
+    if (i==2), ylabel('Y-axis [deg]'); end
+    if (i==3), ylabel('Z-axis [deg]'); end
+    xlabel('Time [$s$]', 'interpreter','latex', 'fontsize',12);
+    hold off;
+    grid on;
+end
+
+for i=1:3
+    subplot(3,3,i+3);
+    hold on;
+    plot(Time(21:length(rm)), total_torques(i,21:length(rm)), 'LineWidth',1.5, 'Color','blue');
+    if (i==2), title('Total actuator torque', 'interpreter','latex', 'fontsize',17);end
+    if (i==1), ylabel('X-axis [deg]'); end
+    if (i==2), ylabel('Y-axis [deg]'); end
+    if (i==3), ylabel('Z-axis [deg]'); end
+    xlabel('Time [$s$]', 'interpreter','latex', 'fontsize',12);
+    hold off;
+    grid on;
+end
+for i=1:3
+    subplot(3,3,i+6);
+    hold on;
+    plot(Time(22:length(rm)),tau_dist(i,22:length(rm)), 'LineWidth',1.5, 'Color','blue')
+    if (i==2), title('Total disturbance torque', 'interpreter','latex', 'fontsize',17);end
+    if (i==1), ylabel('X-axis [deg]'); end
+    if (i==2), ylabel('Y-axis [deg]'); end
+    if (i==3), ylabel('Z-axis [deg]'); end
+    xlabel('Time [$s$]', 'interpreter','latex', 'fontsize',12);
+    hold off;
+    grid on;
+end
+
+%Max actuator Torque - Actuator Torque - Total Disturbances
+      
+      
       figure()
       subplot(3,1,1)
       plot(1:length(Time),M_data(1, 1:length(Time)))
