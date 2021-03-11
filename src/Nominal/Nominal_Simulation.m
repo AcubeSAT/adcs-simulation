@@ -127,6 +127,10 @@ total_torques = zeros(3, length(Time));
 M_data = zeros(3, length(Time));
 tau_dist = zeros(3, length(Time));
 lambda=1;
+tau_ad = zeros(3, length(Time));
+tau_rm = zeros(3, length(Time));
+tau_g = zeros(3, length(Time));
+tau_sp = zeros(3, length(Time));
 
 %% Initialize matrices
 AngVel_rw_radps = zeros(3, 1); %1 = old, 2 = cur, 3 = next
@@ -316,8 +320,14 @@ for l=1:n_steps
         [~, ~, ~, AngVel_rw_radps(3,1), acceleration_rw(2,1), T_rw_total] = rw_model(0, AngVel_rw_radps(3,1)); 
         torq(3,1) = T_rw_total;
         
-        [T_dist, residual,~] = disturbances_pd(q_ob_data(:,(k-1)*10+c), sun_pos_orbit(:,(k-1)*10+c), mag_field_orbit(:,(k-1)*10+c)*10^(-9), disturbancesEnabled);
+        [T_dist, residual,~,ad,r,sp,g] = disturbances_pd(q_ob_data(:,(k-1)*10+c), sun_pos_orbit(:,(k-1)*10+c), mag_field_orbit(:,(k-1)*10+c)*10^(-9), disturbancesEnabled);
         rm = [rm residual];
+        tau_dist(:,(k-1)*10+c+1) = T_dist;
+        torq = torq + T_dist;
+        tau_ad(:,(k-1)*10+c+1) = ad;
+        tau_rm(:,(k-1)*10+c+1) = r;
+        tau_sp(:,(k-1)*10+c+1) = sp;
+        tau_g(:,(k-1)*10+c+1) = g;
         tau_dist(:,(k-1)*10+c+1) = T_dist;
         torq = torq + T_dist;
         x = real_model.stateTransFun(x, stateTransCookieFinalNominal(torq,rw_ang_momentum,[0;0;0])); 
@@ -434,8 +444,14 @@ for l=1:n_steps
         AngVel_rw_radps(3,1) = AngVel_rw_radps_next;
         M_data(:,(k-1)*10+c+1) = M;
         %%                    
-        [T_dist, residual,~] = disturbances_pd(q_ob_data(:,(k-1)*10+c), sun_pos_orbit(:,(k-1)*10+c), mag_field_orbit(:,(k-1)*10+c)*10^(-9), disturbancesEnabled);
+        [T_dist, residual,~,ad,r,sp,g] = disturbances_pd(q_ob_data(:,(k-1)*10+c), sun_pos_orbit(:,(k-1)*10+c), mag_field_orbit(:,(k-1)*10+c)*10^(-9), disturbancesEnabled);
         rm = [rm residual];
+        tau_dist(:,(k-1)*10+c+1) = T_dist;
+        torq = torq + T_dist;
+        tau_ad(:,(k-1)*10+c+1) = ad;
+        tau_rm(:,(k-1)*10+c+1) = r;
+        tau_sp(:,(k-1)*10+c+1) = sp;
+        tau_g(:,(k-1)*10+c+1) = g;
         tau_dist(:,(k-1)*10+c+1) = T_dist;
         torq = torq + T_dist;
         x = real_model.stateTransFun(x, stateTransCookieFinalNominal(torq,rw_ang_momentum,[0;0;0])); 
@@ -906,7 +922,118 @@ for i=1:3
     grid on;
 end
 
+%% Plotting disturbances
+ 
+    
+     T_disturbances = tau_rm + tau_ad + tau_sp + tau_g;
+     
+     subplot(3,5,1)
+     plot(1:length(Time),T_disturbances(1,1:length(Time)))
+     ylabel('Torque [Nm]')
+     xlabel('Time [s]');
+     title('Disturbances-x')
+     grid on;
+     subplot(3,5,6)
+     plot(1:1:length(Time),T_disturbances(2,1:length(Time)))
+     ylabel('Torque [Nm]')
+     title('Disturbances-y')
+     xlabel('Time [s]');
+     grid on;
+     subplot(3,5,11)
+     plot(1:1:length(Time),T_disturbances(3,1:length(Time)))
+     title('Disturbances-z')
+     ylabel('Torque [Nm]')
+     xlabel('Time [s]');
+     grid on;
+     
+     %% Plotting rm
+ 
 
+     subplot(3,5,2)
+     plot(1:length(Time),tau_rm(1,1:length(Time)))
+     ylabel('Torque [Am^2]')
+     xlabel('Time [s]');
+     title('MRD-x')
+     grid on;
+     subplot(3,5,7)
+     plot(1:length(Time),tau_rm(2,1:plotter_step:end))
+     ylabel('Torque [Am^2]')
+     title('MRD-y')
+     xlabel('Time [s]');
+     grid on;
+     subplot(3,5,12)
+     plot(1:plotter_step:reps,tau_rm(3,1:plotter_step:end))
+     title('MRD-z')
+     ylabel('Torque [Am^2]')
+     xlabel('Time [s]');
+     grid on;
+     
+     %% Plotting ad
+ 
+    
+     subplot(3,5,3)
+     plot(1:plotter_step:reps,tau_ad(1,1:plotter_step:end))
+     ylabel('Torque [Nm]')
+     xlabel('Time [s]');
+     title('Aerodynamic-x')
+     grid on;
+     subplot(3,5,8)
+     plot(1:plotter_step:reps,tau_ad(2,1:plotter_step:end))
+     ylabel('Torque [Nm]')
+     title('Aerodynamic-y')
+     xlabel('Time [s]');
+     grid on;
+     subplot(3,5,13)
+     plot(1:plotter_step:reps,tau_ad(3,1:plotter_step:end))
+     title('Aerodynamic-z')
+     ylabel('Torque [Nm]')
+     xlabel('Time [s]');
+     grid on;
+     
+     %% Plotting g
+ 
+ 
+     subplot(3,5,4)
+     plot(1:plotter_step:reps,tau_g(1,1:plotter_step:end))
+     ylabel('Torque [Nm]')
+     xlabel('Time [s]');
+     title('Gravitational-x')
+     grid on;
+     subplot(3,5,9)
+     plot(1:plotter_step:reps,tau_g(2,1:plotter_step:end))
+     ylabel('Torque [Nm]')
+     title('Gravitational-y')
+     xlabel('Time [s]');
+     grid on;
+     subplot(3,5,14)
+     plot(1:plotter_step:reps,tau_g(3,1:plotter_step:end))
+     title('Gravitational-z')
+     ylabel('Torque [Nm]')
+     xlabel('Time [s]');
+     grid on;
+     
+     %% Plotting sp
+ 
+ 
+     subplot(3,5,5)
+     plot(1:plotter_step:reps,tau_sp(1,1:plotter_step:end))
+     ylabel('Torque [Nm]')
+     xlabel('Time [s]');
+     title('Solar Pressure-x')
+     grid on;
+     subplot(3,5,10)
+     plot(1:plotter_step:reps,tau_sp(2,1:plotter_step:end))
+     ylabel('Torque [Nm]')
+     title('Solar Pressure-y')
+     xlabel('Time [s]');
+     grid on;
+     subplot(3,5,15)
+     plot(1:plotter_step:reps,tau_sp(3,1:plotter_step:end))
+     title('Solar Pressure-z')
+     ylabel('Torque [Nm]')
+     xlabel('Time [s]');
+     grid on;
+     
 
 
 
