@@ -123,6 +123,7 @@ rw_ang_vel_rpm = zeros(1, length(Time));    % RW angular velocity in rpm
 rw_accel = zeros(1, length(Time));          % RW acceleration
 tau_mtq = zeros(3, length(Time));           % Torques produced by MTQs
 tau_rw = zeros(1, length(Time));            % Torques produced by the RW
+total_torques = zeros(3, length(Time));
 M_data = zeros(3, length(Time));
 tau_dist = zeros(3, length(Time));
 lambda=1;
@@ -640,33 +641,61 @@ end
 %     hold off;
 % end
 %%  Plotting the produced Torques
+
+      total_torques = tau_mtq;
+      total_torques(3,:) = total_torques(3,:) + tau_rw;
  
       figure()
-      subplot(3,1,1)
+      subplot(3,3,1)
       plot(1:length(Time),tau_mtq(1,1:length(Time)))
       title('Magnetic Torques', 'interpreter','latex', 'fontsize',17)
       ylabel('Torque-x [Nm]', 'interpreter','latex', 'fontsize',14)
       xlabel('Time [s]', 'interpreter','latex', 'fontsize',12)
       grid on;
-      subplot(3,1,2)
+      subplot(3,3,4)
       plot(1:length(Time),tau_mtq(2,1:length(Time)))
       ylabel('Torque-y [Nm]', 'interpreter','latex', 'fontsize',14)
       xlabel('Time [s]', 'interpreter','latex', 'fontsize',12)
       grid on;
-      subplot(3,1,3)
+      subplot(3,3,7)
       plot(1:length(Time),tau_mtq(3,1:length(Time)))
       ylabel('Torque-z [Nm]', 'interpreter','latex', 'fontsize',14)
       xlabel('Time [s]', 'interpreter','latex', 'fontsize',12)
       grid on;
-    
-      figure()
+      
+      subplot(3,3,3)
+      plot(1:length(Time),total_torques(1,1:length(Time)))
+      ylabel('Torques - x', 'interpreter','latex', 'fontsize',14)
+      xlabel('Time [s]', 'interpreter','latex', 'fontsize',12)
+      title('Total Torques', 'interpreter','latex', 'fontsize',17)
+      grid on;
+      
+      subplot(3,3,6)
+      plot(1:length(Time),total_torques(2,1:length(Time)))
+      ylabel('Torques - y', 'interpreter','latex', 'fontsize',14)
+      xlabel('Time [s]', 'interpreter','latex', 'fontsize',12)
+      grid on;      
+      
+      subplot(3,3,9)
+      plot(1:length(Time),total_torques(3,1:length(Time)))
+      ylabel('Torques - z', 'interpreter','latex', 'fontsize',14)
+      xlabel('Time [s]', 'interpreter','latex', 'fontsize',12)
+      grid on;
+
+      subplot(3,3,8)
       plot(1:length(Time),tau_rw(1, 1:length(Time)))
       title('Reaction Wheel Torque-z', 'interpreter','latex', 'fontsize',17)
       ylabel('Torque [Nm]', 'interpreter','latex', 'fontsize',14)
       xlabel('Time [s]', 'interpreter','latex', 'fontsize',12)
       grid on;
 
-      
+      subplot(3,3,2)
+      plot(Time, rw_ang_vel_rpm(1,1:length(Time)),'LineWidth',1.5, 'Color','blue'); 
+      title('Angular velocity of RW', 'interpreter','latex', 'fontsize',17); 
+      ylabel('Angular Velocity [rpm]', 'interpreter','latex', 'fontsize',14); 
+      xlabel('Time [s]', 'interpreter','latex', 'fontsize',12); 
+      grid on;
+       
       figure()
       subplot(3,1,1)
       plot(1:length(Time),M_data(1, 1:length(Time)))
@@ -687,12 +716,12 @@ end
       xlabel('Time [s]', 'interpreter','latex', 'fontsize',12)
       grid on;
 %% 
-     figure() 
-     plot(Time, rw_ang_vel_rpm(1,1:length(Time)),'LineWidth',1.5, 'Color','blue'); 
-     title('Angular velocity of RW', 'interpreter','latex', 'fontsize',17); 
-     ylabel('Angular Velocity [rpm]', 'interpreter','latex', 'fontsize',14); 
-     xlabel('Time [s]', 'interpreter','latex', 'fontsize',12); 
-     grid on;
+%      figure() 
+%      plot(Time, rw_ang_vel_rpm(1,1:length(Time)),'LineWidth',1.5, 'Color','blue'); 
+%      title('Angular velocity of RW', 'interpreter','latex', 'fontsize',17); 
+%      ylabel('Angular Velocity [rpm]', 'interpreter','latex', 'fontsize',14); 
+%      xlabel('Time [s]', 'interpreter','latex', 'fontsize',12); 
+%      grid on;
  
  %%  Plotting the Disturbances
  
