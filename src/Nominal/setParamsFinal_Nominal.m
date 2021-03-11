@@ -3,7 +3,7 @@ function Param = setParamsFinal_Nominal(I)
 
 %% ======= Satellite ========
 dt = .1; %Timestep for Orbit Propagator
-orbits=1;
+orbits=5;
 orbitPeriod=5545;
 tf = orbits*orbitPeriod; %Total Simulation Seconds
 %tf =(5545+0.9); %Total Simulation Seconds
@@ -90,16 +90,23 @@ plotter_step=10;
 %% ======= Albedo ========
 %albedo = load("sso_albedo.mat");  % Choose albedo depending on orbit
 %albedo = load("iss_albedo.mat");
-albedo = load("SSO_500_6PM_1_Orbit_051231.mat");
+base_albedo = load("SSO_500_6PM_1_Orbit_051231.mat");
+base_albedo = base_albedo.new;
+base_albedo_inaccurate = load("SSO_500_6PM_1_Orbit_050101");
+base_albedo_inaccurate = base_albedo_inaccurate.new;
+albedo = base_albedo;
+albedo_inaccurate = base_albedo_inaccurate;
+if orbits>1
+    for i=1:orbits-1
+        albedo = [albedo base_albedo];
+        albedo_inaccurate = [albedo_inaccurate base_albedo_inaccurate];
+    end
+end
 
 
-albedo = albedo.new;
-albedo = [albedo albedo];
-albedo_inaccurate = load("SSO_500_6PM_1_Orbit_050101");
 %albedo_inaccurate = load("sso_albedo.mat"); 
 
-albedo_inaccurate = albedo_inaccurate.new;
-albedo_inaccurate = [albedo_inaccurate albedo_inaccurate];
+
 %% ======= Kalman filter params ========
 % Variances
 Q = 0.5e-05*eye(n_dim_error,n_dim_error); % Variance of the process noise w[k]
