@@ -54,9 +54,9 @@ Q0 = [-0.4493; 0.1189; -0.8854; 0.0122];% [1, 0, 0, 0] TLE -> 6PM 2-offset
 
 Q0 = Q0/norm(Q0); %Normalised Quaternion
 init_bias = [.01;0.15;-.08]; % bias initialization
-%vRot0 = [0; 0; 0];
+vRot0 = [0; 0; 0];
 %vRot0 = [pi/4; pi/2; pi/8];
-vRot0 = [0.035; 0.035; 0.035]; %Initial Angular Velocities from Body to ECI frame expressed in Body.
+%vRot0 = [0.035; 0.035; 0.035]; %Initial Angular Velocities from Body to ECI frame expressed in Body.
 x0 = [Q0;vRot0]; %Initial state consists of [Quaternion;Angular Velocity]
 % Random Initial State Estimation
 Q0_hat = [.6;.1;-.7;.01];
@@ -155,8 +155,6 @@ use_analytic_jacob = true;
     Param.disturbancesEnabled = disturbancesEnabled;
     Param.setDisturbances = setDisturbances;
     Param.plotter_step = plotter_step;
-    Param.mtq_max = mtq_max;
-    
 
     Param.xsat_ecf = xsat_ecf;
     Param.vsat_ecf = vsat_ecf;

@@ -435,7 +435,7 @@ for l=1:n_steps
                 acceleration_rw_cur, rw_ang_momentum, init_AngVel_dz, init_accel_dz, V_mtq, I_mtq, P_thermal_mtq, ...
                     timeflag_dz,M] = ...
                         PD(Kp_gain, Kd_gain, q_desired ,q_ob_hat, y_noise(4:6)-ekf.theta(5:7) , y_noise(1:3)*norm(mag_field_orbit(:,(k-1)*10+c)*10^(-9)) , eclipse((k-1)*10+c), ...
-                            Const.mtq_max, Const.lim_dz, AngVel_rw_radps(2,1), AngVel_rw_rpm(2,1), ...
+                            Const.mtq_max1, Const.mtq_max2, Const.mtq_max3, Const.lim_dz, AngVel_rw_radps(2,1), AngVel_rw_rpm(2,1), ...
                                 acceleration_rw(1,1), init_AngVel_dz, init_accel_dz, timeflag_dz,Const.rw_max_torque,y_real(1:3)*norm(mag_field_orbit(:,(k-1)*10+c)*10^(-9)), l, sat_llh(3,(k-1)*10+c));
         tau_rw(1, (k-1)*10+c+1) = T_rw(3);
         tau_mtq(:, (k-1)*10+c+1) = T_magnetic_effective;
@@ -718,7 +718,7 @@ end
       grid on;
       
 %% 
-mtq_max_vector = [Const.mtq_max Const.mtq_max Const.mtq_max]';
+mtq_max_vector = [Const.mtq_max1 Const.mtq_max1 Const.mtq_max2]';
 mtq_max_vector = mtq_max_vector * ones(1,length(Bbody_data));
 max_mtq_torque = abs(cross(mtq_max_vector,Bbody_data));
 figure()

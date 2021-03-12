@@ -1,7 +1,7 @@
 function  [torque, T_rw, T_magnetic_effective, V_rw, I_rw, P_thermal_rw, AngVel_rw_rpm_new, AngVel_rw_radps_new,...
             acceleration_rw_cur, rw_ang_momentum, init_AngVel_dz, init_accel_dz, V_mtq, I_mtq, P_thermal_mtq, ...
                 timeflag_dz,M] = ...
-                    PD(Kp_gain, Kd_gain, q_desired , q_orbit_body , w_b_ib , B_body , eclipse, mtq_max, ...
+                    PD(Kp_gain, Kd_gain, q_desired , q_orbit_body , w_b_ib , B_body , eclipse, mtq_max1, mtq_max2, mtq_max3, ...
                         lim_dz, AngVel_rw_radps_cur, AngVel_rw_rpm_cur, acceleration_rw_old, init_AngVel_dz, ...
                             init_accel_dz,timeflag_dz,rw_max_torque,B_body_real,time,altitude)
     
@@ -44,8 +44,8 @@ function  [torque, T_rw, T_magnetic_effective, V_rw, I_rw, P_thermal_rw, AngVel_
     Tw = T_rw/norm(T_rw);
     Kma = (Tm'-(Tw'*Tm)*Tw')*T_commanded/(1-(Tw'*Tm)^2);
     Kwa = (Tw'-(Tm'*Tw)*Tm')*T_commanded/(1-(Tm'*Tw)^2);
-    if max(abs(M)) > mtq_max
-    Kma_s = min(abs(mtq_max./M2));
+    if max(abs(M(1))) > mtq_max1 || max(abs(M(2))) > mtq_max2 || max(abs(M(3))) > mtq_max3
+    Kma_s = min(abs([mtq_max1; mtq_max2; mtq_max3]./M2));
     Kwa_s = Kma_s*Kwa/Kma;
     Ms = Kma_s*M2;
     T_magnetic = skew(B_body)'*Ms;
@@ -95,7 +95,7 @@ function  [torque, T_rw, T_magnetic_effective, V_rw, I_rw, P_thermal_rw, AngVel_
 
         T_magnetic = skew(b_hat)'*skew(b_hat) * (T_commanded - T_rw);   
         M = skew(B_body)*T_magnetic/(B_body'*B_body);
-        M = mtq_scaling(M, mtq_max);
+        M = mtq_scaling(M, mtq_max1, mtq_max2, mtq_max3);
         T_magnetic_effective = cross(M,B_body);
     else
        if timeflag_dz ~= 0

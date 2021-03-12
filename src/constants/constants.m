@@ -70,7 +70,9 @@ function Const = constants()
 
     orbitPeriod = (2 * pi) / (w_o);       % Orbit Period
     n = orbitPeriod * orbits;             % Total simulation time
-    mtq_max = 0.18;
+    mtq_max1 = 0.3;
+    mtq_max2 = 0.3;
+    mtq_max3 = 0.3;
     rw_max_torque = 1e-4;
 
 %%  Passing the values of the parameters in a struct.
@@ -102,7 +104,9 @@ function Const = constants()
     Const.c_friction = c_friction;
     Const.Rb = Rb;
     Const.lim_dz = lim_dz;
-    Const.mtq_max = mtq_max;
+    Const.mtq_max1 = mtq_max1;
+    Const.mtq_max2 = mtq_max2;
+    Const.mtq_max3 = mtq_max3;
     Const.rw_max_torque = rw_max_torque;
     Const.p = p_400;
     Const.Cm = Cm;
