@@ -24,7 +24,7 @@ function Const = constants()
                             % of the satellite (on the axis the RW is placed)
     Kv = 1/Km;        % Motor velocity constant (back-EMF constant)
     T_friction = 0.002; % The torque due to Friction Force
-    b_friction = 1.9e-9;     % Viscuous friction
+    b_friction = 9.5e-9;     % Viscuous friction
     c_friction = 1.9e-7;      % Coulomb friction
     Jw = 1.9e-6;         % Inertia of the RW
     A = 0.12;            % Used when desaturation of the RW
