@@ -21,7 +21,7 @@ function  [torque, T_rw, T_magnetic_effective, V_rw, I_rw, P_thermal_rw, AngVel_
 %     end
     
   %  R_OB = quat2dcm(q_orbit_body'); % Calculating the transformation matrix from orbit to body frame
-
+    
     q_w_b_io = quatProd(quatconj(q_orbit_body') ,quatProd([0;w_o_io],q_orbit_body));
     w_b_io = q_w_b_io(2:4);
 
@@ -31,10 +31,13 @@ function  [torque, T_rw, T_magnetic_effective, V_rw, I_rw, P_thermal_rw, AngVel_
     T_commanded = -sign(q_error(1))*Kp_gain*q_error(2:4) - Kd_gain*w_b_ob;
     known_rm = [0.048 0.051 0.047];
     estimated_rm_dist =  cross(known_rm, B_body);
+    mtq_max1 = mtq_max1 - known_rm(1);
+    mtq_max2 = mtq_max2 - known_rm(2);
+    mtq_max3 = mtq_max3 - known_rm(3);
     
     b_hat=B_body/norm(B_body); 
     T_rw =[0;0;1]*(B_body'*T_commanded)/B_body(3);
-    T_magnetic = skew(b_hat)'*skew(b_hat) * (T_commanded-T_rw) -estimated_rm_dist';   
+    T_magnetic = skew(b_hat)'*skew(b_hat) * (T_commanded-T_rw);   
     M=skew(B_body)*T_magnetic/(B_body'*B_body);
 
     % Calculating gains in case of saturation
@@ -56,15 +59,21 @@ function  [torque, T_rw, T_magnetic_effective, V_rw, I_rw, P_thermal_rw, AngVel_
     end
 
     M = -cross(T_magnetic,B_body)/(norm(B_body))^2;
-    %   M = mtq_scaling(M, mtq_max);
+    M(1) = M(1) - known_rm(1);    %   M = mtq_scaling(M, mtq_max);
+    M(2) = M(2) - known_rm(2); 
+    M(3) = M(3) - known_rm(3); 
     %   M=M-rm;
     T_magnetic_effective = cross(M,B_body);
-
+    mtq_max1 = 0.3;
+    mtq_max2 = 0.3;
+    mtq_max3 = 0.3;
+    
+    
     %%  Saturation of the RW
    
     if time > 1 
     [T_magnetic_effective, T_rw] = ...
-        rw_saturation(T_magnetic_effective, T_rw, acceleration_rw_old, AngVel_rw_rpm_cur, B_body);
+        rw_saturation(T_magnetic_effective, T_rw, acceleration_rw_old, AngVel_rw_rpm_cur, B_body, mtq_max1, mtq_max2, mtq_max3);
     
     if T_rw(3) > Max_RW_torq
         T_rw(3) = Max_RW_torq;
@@ -130,7 +139,11 @@ function  [torque, T_rw, T_magnetic_effective, V_rw, I_rw, P_thermal_rw, AngVel_
     elseif T_rw(3) < -rw_max_torque
         T_rw(3) = -rw_max_torque;
     end
-    
+%     Tc = T_commanded/norm(T_commanded);
+%     T  = T_magnetic_effective + T_rw;
+%     T=T/norm(T);
+%     acosd(T'*Tc)
+%     pause;
     T_rw_data = [T_rw_data T_rw];
     T_magnetic_data= [T_magnetic_data T_magnetic_effective];
     torque = T_magnetic_effective + T_rw;

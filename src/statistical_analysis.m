@@ -10,6 +10,7 @@ alpha = 0.05;
 error_estimation(1,:) = bootci(100,{@median,final_error(1,:)},'alpha',alpha,'type','percentile')';
 error_estimation(2,:) = bootci(100,{@median,final_error(2,:)},'alpha',alpha,'type','percentile')';
 error_estimation(3,:) = bootci(100,{@median,final_error(3,:)},'alpha',alpha,'type','percentile')';
+error_estimation
 figure
 subplot(3,1,1)
 plot(final_error(1,:))
