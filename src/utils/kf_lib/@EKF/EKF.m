@@ -162,14 +162,15 @@ classdef EKF < handle
             if (nargin < 2), cookie=[]; end
             % ==== Jacobian Matrix and state estimation calculation ====
             if (~isempty(cookie))
-                this.F_k = this.stateTransFunJacob_ptr(this.theta, cookie);             
-                this.theta = this.stateTransFun_ptr(this.theta, cookie);
+                this.F_k = this.stateTransFunJacob_ptr(this.theta, cookie);   % Transition matrix          
+                this.theta = this.stateTransFun_ptr(this.theta, cookie);   % State
             else
                 this.F_k = this.stateTransFunJacob_ptr(this.theta);             
                 this.theta = this.stateTransFun_ptr(this.theta);
             end
             % =====  Calculate new covariance  =====
-            A = [        -this.F_k, this.Q;
+            %% The following integrates P-dot to get P (error covariance)
+            A = [        -this.F_k, this.Q;    
                  zeros(6,6),     this.F_k'];
             B = expm(A*dt);
             Phi = B(7:12, 7:12)';
@@ -191,45 +192,50 @@ classdef EKF < handle
             z_hat = this.msrFun_ptr(this.theta, cookie);
 
             % =====  Correction estimates ===== 
-            
-            this.H_k;
+                      
             S_k = (this.H_k*this.P*this.H_k' + this.R); % Innovation covariance
-            Kg = this.P*this.H_k'/S_k;
+            Kg = this.P*this.H_k'/S_k; % Kalman gain calculation
             
-            if cookie.eclipse ~= 0              
-                this.innov_history = [this.innov_history (z - z_hat)];
-            end
+%             if cookie.eclipse ~= 0              
+%                 this.innov_history = [this.innov_history (z - z_hat)];
+%             end
                                            
-            error_state =  Kg * (z - z_hat);
+            error_state =  Kg * (z - z_hat); % Local error state
             
-            error_quaternion = [1 ; 0.5 * error_state(1:3)];
+            error_quaternion = [1 ; 0.5 * error_state(1:3)]; % Create error quaternion assuming it's close to identity
                                   
-            this.theta(1:4) = quatProd(this.theta(1:4),error_quaternion);
+            this.theta(1:4) = quatProd(this.theta(1:4),error_quaternion); % Update global state quaternion with local error quaternion
             this.theta(1:4) = this.theta(1:4)/norm(this.theta(1:4));
-            this.theta(5:7) = this.theta(5:7) + error_state(4:6);
-            
-            % =====  Apply projection if enabled  ===== 
-            proj_flag = false;
-            D = []; % active contraints
-            d = [];
-            if ( this.enable_constraints && ~isempty(this.b_c) )
-                ind = find(this.A_c*this.theta > this.b_c);
-                if (~isempty(ind))
-                    proj_flag = true;
-                    D = this.A_c(ind,:);
-                    d = this.b_c(ind);
-                end     
-            end
+            this.theta(5:7) = this.theta(5:7) + error_state(4:6); % Update bias            
             
             N_params = 6;
             I = eye(N_params, N_params);
             
-            if (proj_flag)
-                % Kg = ( I - this.P*D'/(D*this.P*D')*D ) * Kg;
-                % this.theta = this.theta - this.P*D'/(D*this.P*D')*(D*this.theta-d); 
-                Kg = ( I - D'/(D*D')*D ) * Kg;
-                this.theta = this.theta - D'/(D*D')*(D*this.theta-d); 
-            end
+            this.P = (I - Kg*this.H_k) * this.P; % Updating error covariance
+            this.K = Kg;
+            
+%             % =====  Apply projection if enabled  ===== 
+%             proj_flag = false;
+%             D = []; % active contraints
+%             d = [];
+%             if ( this.enable_constraints && ~isempty(this.b_c) )
+%                 ind = find(this.A_c*this.theta > this.b_c);
+%                 if (~isempty(ind))
+%                     proj_flag = true;
+%                     D = this.A_c(ind,:);
+%                     d = this.b_c(ind);
+%                 end     
+%             end
+%             
+%             N_params = 6;
+%             I = eye(N_params, N_params);
+%             
+%             if (proj_flag)
+%                 % Kg = ( I - this.P*D'/(D*this.P*D')*D ) * Kg;
+%                 % this.theta = this.theta - this.P*D'/(D*this.P*D')*(D*this.theta-d); 
+%                 Kg = ( I - D'/(D*D')*D ) * Kg;
+%                 this.theta = this.theta - D'/(D*D')*(D*this.theta-d); 
+%             end
             
 %             if (proj_flag)
 %                 ind = find(this.A_c*this.theta - this.b_c > 1e-6);
@@ -246,20 +252,18 @@ classdef EKF < handle
 
 %       =====  Calculate new covariance  =====
 %             this.P = (I - Kg*this.H_k) * this.P;
-        if cookie.eclipse
-            S_hat = zeros(9,9);
-            window = 70;
-            if length(this.innov_history(1,:))>=window + 1
-                for j=0:window-1
-                    S_hat = S_hat + this.innov_history(:,end-j)*this.innov_history(:,end-j)';
-                end
-                S_hat = S_hat/window;                
-                this.Q = Kg * S_hat * Kg';
-            end
-         end
-           % end
-            this.P = (I - Kg*this.H_k) * this.P;
-            this.K = Kg;
+%         if cookie.eclipse
+%             S_hat = zeros(9,9);
+%             window = 70;
+%             if length(this.innov_history(1,:))>=window + 1
+%                 for j=0:window-1
+%                     S_hat = S_hat + this.innov_history(:,end-j)*this.innov_history(:,end-j)';
+%                 end
+%                 S_hat = S_hat/window;                
+%                 this.Q = Kg * S_hat * Kg';
+%             end
+%          end
+           % end            
 
         end
         
