@@ -60,15 +60,14 @@ function  [torque, T_rw, T_magnetic_effective, V_rw, I_rw, P_thermal_rw, AngVel_
     Kma_s = min(abs(Torque_split_maxima./M2));
     Kwa_s = Kma_s*Kwa/Kma;
     Ms = Kma_s*M2;
-    M = Ms;
-%     T_magnetic = skew(B_body)'*Ms;
+    T_magnetic = skew(B_body)'*Ms;
     T_rw = Kwa_s.*Tw;
     else
-%     T_magnetic = Kma.*Tm;
+    T_magnetic = Kma.*Tm;
     T_rw = Kwa.*Tw;
     end
 
-    
+    M = -cross(T_magnetic,B_body)/(norm(B_body))^2;
     M(1) = M(1) - known_rm(1);    %   M = mtq_scaling(M, mtq_max);
     M(2) = M(2) - known_rm(2); 
     M(3) = M(3) - known_rm(3); 
