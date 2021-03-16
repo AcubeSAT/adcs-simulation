@@ -1,3 +1,20 @@
+%% ========================================================================%%
+%   Function for desaturating the RW in case that the angular velocity of
+%   the RW exceeds a specified value.
+%   In case this happens, part of the RW Torque is added on the Magnetic
+%   Torque (if possible).
+%
+%   Inputs: Current Magnetic Torque 
+%           RW Torque
+%           RW Acceleration
+%           RW Angular Velocity
+%           Magnetic Field expressed on Body frame
+%           Maximum Dipole provided by each Magnetorquer
+%   Ouputs: Updated Magnetic Torque
+%           Updated RW Torque
+%
+% =========================================================================%
+
 function [T_mtq_effective, T_rw] = rw_saturation(T_magnetic_effective, T_rw, accel_rw, AngVel_rw, B_body, mtq_max1, mtq_max2, mtq_max3)
 
     % The angular velocity of the Reaction Wheel is given by a sensor

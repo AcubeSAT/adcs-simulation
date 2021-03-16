@@ -1,6 +1,6 @@
 function [xsat_ecf, vsat_ecf,xsat_eci,vsat_eci, sat_llh,eclipse, mag_field_ned,mag_field_eci,mag_field_ecef,mag_field_orbit, sun_pos_ned,sun_pos_eci,sun_pos_ecef,sun_pos_orbit,satrec,argpm,nodem,inclm,mm,xnode,xinc] = orbit_sgp4(satrec,dt,npts)
 
-% dt is xronos deigmatolipsias
+% dt is sampling time
 % npts is times the loop must be run (orbits*orbitPeriod)
 
 %% Initializations
@@ -12,7 +12,7 @@ npts=uint32(npts);
 tsince_offset =2000/60;
 
 t_array=double([0:npts-1]);
-tsince=tsince_offset+t_array*dt;%minutes
+tsince=tsince_offset+t_array*dt;    %minutes
 
 Eyear= satrec.epochyr + 2000;
 [Emon,Eday,Ehr,Emin,Esec] = days2mdh(Eyear,satrec.epochdays);

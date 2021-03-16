@@ -1,41 +1,48 @@
+%% ======================================================================= %%
+%   In this function all parameters regarding the physical architecture 
+%   of the satellite and the ADCS components are set.
+%   Input: Nothing
+%   Output: Struct where all values of the parameters are included
+% ======================================================================== %%
+
 function Const = constants()
 
     global orbits;
 
-    m = 4;       % Satellite mass [kg]
-    lx = 0.1;    % X-axis length
-    ly = 0.1;    % Y-axis length
-    lz = 0.3405;    % Z-axis length
+    m = 4;                                  % Satellite mass [kg]
+    lx = 0.1;                               % X-axis length
+    ly = 0.1;                               % Y-axis length
+    lz = 0.3405;                            % Z-axis length
 
     N_coils = [400 400 800];                % Number of turns of the coil
-    A_coils = [0.0022 0.0022 0.001566];  % Total area of the coil (m^2)
+    A_coils = [0.0022 0.0022 0.001566];     % Total area of the coil (m^2)
     R_coils = [110 110 31.32];              % Coil resistance (Ohm)
-    mt = [5 5 1];                   % For torquer rods: mt = 1.66 * (length/diameter)^1.5.
+    mt = [5 5 1];                           % For torquer rods: mt = 1.66 * (length/diameter)^1.5.
                                             % For air core magnetorquers: mt = 1.
-    W_up_limit = [0.2273 0.2273 0.8017];     % Upper limit of absolute power of mtq's (W)
-    I_up_limit = [0.0455 0.0455 0.1566];     % Upper limit of absolute current of mtq's (A)
-    
+    W_up_limit = [0.2273 0.2273 0.8017];    % Upper limit of absolute power of mtq's (W)
+    I_up_limit = [0.0455 0.0455 0.1566];    % Upper limit of absolute current of mtq's (A)
+
     K = eye(3) * diag([N_coils(1) * A_coils(1) / R_coils(1), N_coils(2) * A_coils(2) / R_coils(2), N_coils(3) * A_coils(3) / R_coils(3)]);
     K_inv = eye(3) / K;
 
-    Km = 20e-5;       % Motor torque constant (RW)
-    Rb = 10;           % Armature resistance (of RW)
-    Ai = 1;             % The influence of the RW on the angular acceleration
-                            % of the satellite (on the axis the RW is placed)
-    Kv = 1/Km;        % Motor velocity constant (back-EMF constant)
-    T_friction = 0.002; % The torque due to Friction Force
-    b_friction = 9.5e-9;     % Viscuous friction
-    c_friction = 1.9e-7;      % Coulomb friction
-    Jw = 1.9e-6;         % Inertia of the RW
-    A = 0.12;            % Used when desaturation of the RW
-    lim_dz = 300;         % The absolute value of the limits of the deadzone (in rpm)
-  
-    p_400 = 7.55e-12;   % Atmospheric density [kg/m^3]
+    Km = 20e-5;                     % Motor torque constant (RW)
+    Rb = 10;                        % Armature resistance (of RW)
+    Ai = 1;                         % The influence of the RW on the angular acceleration
+                                    % of the satellite (on the axis the RW is placed)
+    Kv = 1/Km;                      % Motor velocity constant (back-EMF constant)
+    T_friction = 0.002;             % The torque due to Friction Force
+    b_friction = 9.5e-9;            % Viscuous friction
+    c_friction = 1.9e-7;            % Coulomb friction
+    Jw = 1.9e-6;                    % Inertia of the RW
+    A = 0.12;                       % Used when desaturation of the RW
+    lim_dz = 300;                   % The absolute value of the limits of the deadzone (in rpm)
+
+    p_400 = 7.55e-12;               % Atmospheric density [kg/m^3]
     p_500 = 1.80e-12;
-    
-    Ix = (m / 12) * (ly^2 + lz^2); % Xaxis inertia
-    Iy = (m / 12) * (lx^2 + lz^2); % Yaxis inertia
-    Iz = (m / 12) * (lx^2 + ly^2); % Zaxis inertia
+
+    Ix = (m / 12) * (ly^2 + lz^2);  % Xaxis inertia
+    Iy = (m / 12) * (lx^2 + lz^2);  % Yaxis inertia
+    Iz = (m / 12) * (lx^2 + ly^2);  % Zaxis inertia
 
 %% Current Inertia
 %     PMI = diag([0.03868845951 0.03899129965 0.00696263029]); %Principal Moments of Inertia
@@ -47,18 +54,17 @@ function Const = constants()
 %     Cm = [0.03111 -0.02099 0.08135]';  % Center of mass
 
 %% THIS INERTIA MAKES ME HAPPY
-    PMI = diag([0.03552528444 0.03572444349 0.00626757327]); %Principal Moments of Inertia
-    PAI = [0.98, 0.2, -0.02; -0.20, 0.98, 0.00 ; 0.02, 0.01, 1.00]; %Principal Axes of Inertia
-    Cm =  [0.00121 0.00057 0.00188]'; % Center of mass
-
-
+    
+    PMI = diag([0.03552528444 0.03572444349 0.00626757327]);        % Principal Moments of Inertia
+    PAI = [0.98, 0.2, -0.02; -0.20, 0.98, 0.00 ; 0.02, 0.01, 1.00]; % Principal Axes of Inertia
+    Cm =  [0.00121 0.00057 0.00188]';                               % Center of mass
 
     for j=1:3
         PAI(:,j) = PAI(:,j)/norm(PAI(:,j));
     end
     I = PAI*PMI*PAI';
     I_inv = eye(3,3)/I;
-       
+
     Re = 6371.2e3;                        % Earth radius [m]
     Rs = 500e3;                           % Satellite altitude [m]
     Radius = Re + Rs;                     % Distance from earth center to satellite [m]
@@ -79,7 +85,6 @@ function Const = constants()
 
     Const.K = K;
     Const.K_inv = K_inv;
-
     Const.Radius = Radius;
     Const.w_o = w_o;
     Const.v_satellite = v_satellite;
@@ -110,4 +115,5 @@ function Const = constants()
     Const.rw_max_torque = rw_max_torque;
     Const.p = p_400;
     Const.Cm = Cm;
+    
 end

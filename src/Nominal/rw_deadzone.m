@@ -1,3 +1,22 @@
+%% ========================================================================%%
+%   Function dedicated for the behaviour of the RW during deadzone.
+%   Modelled using data from the component's datasheet. It will be updated
+%       after specified testing for the RW.
+%   
+%   Inputs:  Current angular velocity of the RW, 
+%            Counter which indicates the time present in the deadzone,
+%            Initial RW acceleration when entering deadzone,
+%            Initial RW angular velocity when entering deadzone
+%   Outputs: Voltage applied on RW, 
+%            Amperage applied on RW, 
+%            Power consumed from RW,  
+%            Next angular velocity of the RW, 
+%            Acceleration of the RW,
+%            Next RW Torque, 
+%            Updated counter, 
+%            Initial RW acceleration when entering deadzone
+% =========================================================================%
+
 function [V_rw, I_rw, P_thermal_rw, AngVel_rw_new, accel_rw, T_rw_new, timeflag_dz, init_accel_dz] = ...
                 rw_deadzone(AngVel_rw, timeflag_dz, init_accel_dz, initAngVel_dz)
 
