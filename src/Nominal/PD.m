@@ -31,10 +31,12 @@ function  [torque, T_rw, T_magnetic_effective, V_rw, I_rw, P_thermal_rw, AngVel_
     T_commanded = -sign(q_error(1))*Kp_gain*q_error(2:4) - Kd_gain*w_b_ob;
     known_rm = [0.048 0.051 0.047];
     estimated_rm_dist =  cross(known_rm, B_body);
-    mtq_max1 = mtq_max1 - known_rm(1);
-    mtq_max2 = mtq_max2 - known_rm(2);
-    mtq_max3 = mtq_max3 - known_rm(3);
-    
+    mtq_maxima = zeros(3,2);
+    mtq_maxima(:,1) = [mtq_max1 + known_rm(1),mtq_max2 + known_rm(2), mtq_max3 + known_rm(3)];
+    mtq_maxima(:,2) = [mtq_max1 - known_rm(1),mtq_max2 - known_rm(2), mtq_max3 - known_rm(3)];
+
+    Torque_split_maxima = zeros(3,1);
+
     b_hat=B_body/norm(B_body); 
     T_rw =[0;0;1]*(B_body'*T_commanded)/B_body(3);
     T_magnetic = skew(b_hat)'*skew(b_hat) * (T_commanded-T_rw);   
@@ -47,26 +49,31 @@ function  [torque, T_rw, T_magnetic_effective, V_rw, I_rw, P_thermal_rw, AngVel_
     Tw = T_rw/norm(T_rw);
     Kma = (Tm'-(Tw'*Tm)*Tw')*T_commanded/(1-(Tw'*Tm)^2);
     Kwa = (Tw'-(Tm'*Tw)*Tm')*T_commanded/(1-(Tm'*Tw)^2);
-    if max(abs(M(1))) > mtq_max1 || max(abs(M(2))) > mtq_max2 || max(abs(M(3))) > mtq_max3
-    Kma_s = min(abs([mtq_max1; mtq_max2; mtq_max3]./M2));
+    if M(1) > mtq_maxima(1,1) || M(2) > mtq_maxima(2,1) || M(3) > mtq_maxima(3,1) || M(1) < -mtq_maxima(1,2) || M(2) < -mtq_maxima(2,2) || M(3) < -mtq_maxima(3,2)
+        for j = 1:3
+            if M(j) > 0
+                Torque_split_maxima(j) = mtq_maxima(j,1);
+            elseif M(j) < 0
+                Torque_split_maxima(j) = mtq_maxima(j,2);
+            end
+        end
+    Kma_s = min(abs(Torque_split_maxima./M2));
     Kwa_s = Kma_s*Kwa/Kma;
     Ms = Kma_s*M2;
-    T_magnetic = skew(B_body)'*Ms;
+%     T_magnetic = skew(B_body)'*Ms;
     T_rw = Kwa_s.*Tw;
     else
-    T_magnetic = Kma.*Tm;
+%     T_magnetic = Kma.*Tm;
     T_rw = Kwa.*Tw;
     end
 
-    M = -cross(T_magnetic,B_body)/(norm(B_body))^2;
+    M = Ms;
     M(1) = M(1) - known_rm(1);    %   M = mtq_scaling(M, mtq_max);
     M(2) = M(2) - known_rm(2); 
     M(3) = M(3) - known_rm(3); 
     %   M=M-rm;
-    T_magnetic_effective = cross(M,B_body);
-    mtq_max1 = 0.3;
-    mtq_max2 = 0.3;
-    mtq_max3 = 0.3;
+    T_magnetic_effective = cross(M,B_body_real);
+
     
     
     %%  Saturation of the RW
