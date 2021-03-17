@@ -1,26 +1,47 @@
+%% CSS Noise Function
+%% Inputs: 
+% Sun position in ECI frame(sun_eci), the quaternion from ECI to Body frame (q_eci_body),
+% the position of the satellite in ECI frame, the percantage of sunlight diffused from earth that
+% interacts with the satellite (albedo_perc), and finally the poisson
+% parameter used to add noise (lambda).
+%% Outputs: 
+% the total sun vector, i.e. including both sun, albedo, and error
+% measurement in the body frame (total_sun_vector).
+%% 
+% The function finds where each of the 6 Coarse sun sensors look at the
+% giving time by turning the Body frame to an angle according to the
+% position of the sensor, and then calculates how much albedo each sensor 
+% receives and adds this as a noise in the measurement. All albedo radiation 
+% is asumed to come from Nadir. Furthermore, in all 6 measurements, 
+% a Poisson noise is added, since CSS are not 100% accurate. 
+% The measurements of the CSS are 6 currents, from which we can calculate 
+% the total sun vector in the Body Frame. If one of the currents is negative, 
+% it means that this sensor does not see the sun.
+% For more details, you can refer to DDJF_AOCS file.
+
 function total_sun_vector = css_noise(sun_eci,q_eci_body,xsat_eci,albedo_perc,lambda)
     
     sun_eci = sun_eci/norm(sun_eci);
     temp = quatProd(quatconj(q_eci_body'),quatProd([0;sun_eci],q_eci_body));
     sun_body = temp(2:4);
     
-    %f1 = roty(0);
-    f2 = roty(90);
-    f3 = roty(-90);
-    f4 = roty(180);
-    f5 = rotz(90);
-    f6 = rotz(-90);
+    %frame_of_css_1 = roty(0); the first frame is the same with the Body!
+    frame_of_css_2 = roty(90);
+    frame_of_css_3 = roty(-90);
+    frame_of_css_4 = roty(180);
+    frame_of_css_5 = rotz(90);
+    frame_of_css_6 = rotz(-90);
 
     xsat_eci = xsat_eci/norm(xsat_eci);
     xsat_body = quatProd(quatconj(q_eci_body'),quatProd([0;xsat_eci],q_eci_body));
     nadir = -xsat_body(2:4);
     
     %q1 = dcm2quat(f1);
-    q2 = dcm2quat(f2);
-    q3 = dcm2quat(f3);
-    q4 = dcm2quat(f4);
-    q5 = dcm2quat(f5);
-    q6 = dcm2quat(f6);
+    q2 = dcm2quat(frame_of_css_2);
+    q3 = dcm2quat(frame_of_css_3);
+    q4 = dcm2quat(frame_of_css_4);
+    q5 = dcm2quat(frame_of_css_5);
+    q6 = dcm2quat(frame_of_css_6);
 
     temp_sun(:,1) = [0;sun_body];
     temp_sun(:,2) = quatProd(quatconj(q2),quatProd([0;sun_body],q2));
@@ -38,7 +59,11 @@ function total_sun_vector = css_noise(sun_eci,q_eci_body,xsat_eci,albedo_perc,la
 
     final_sun = temp_sun(2:4,:);
     final_nadir = temp_nadir(2:4,:); 
-
+    
+    current_sun = zeros(6,1);
+    current_albedo = zeros(6,1);
+    total_current = zeros(6,1);
+    
     for i = 1:6
         current_sun(i) = dot(final_sun(:,i),[1;0;0]);
         sign=randi([0 1]); 
