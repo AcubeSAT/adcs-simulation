@@ -1,6 +1,6 @@
 % -----------------------------------------------------------------------------
 %
-%                              procedure msrCookieFinal
+%                              procedure orbit_sgp4
 %
 %  This function propagates the satellite by utilizing 
 %  the SPG4 orbit propagator software. Based on the propagator, 
