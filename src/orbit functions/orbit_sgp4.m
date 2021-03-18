@@ -96,7 +96,7 @@ sat_llh =ecf2llhT(xsat_ecf);
 %% Calculate reference vectors
 time = satrec.jdsatepoch + tsince(1:npts)/1440;
 
-[sun_pos_ned,sun_pos_eci,sun_pos_ecef,sun_pos_orbit,mag_field_ned, mag_field_eci,mag_field_ecef,mag_field_orbit] = reference_vectors_calc(sat_llh, time,nodem,inclm,argpm,mm,tsince,time_gregorian);
+[sun_pos_ned,sun_pos_eci,sun_pos_ecef,sun_pos_orbit,mag_field_ned, mag_field_eci,mag_field_ecef,mag_field_orbit] = reference_vectors_calc(sat_llh, time,nodem,inclm,argpm,mm,time_gregorian);
 
 %% Calculate Eclipse
 eclipse = calculate_eclipse(xsat_eci/1000,sun_pos_eci);
