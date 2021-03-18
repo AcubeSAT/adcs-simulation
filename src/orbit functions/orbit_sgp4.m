@@ -1,9 +1,46 @@
+% -----------------------------------------------------------------------------
+%
+%                              procedure msrCookieFinal
+%
+%  This function propagates the satellite by utilizing 
+%  the SPG4 orbit propagator software. Based on the propagator, 
+%  the function returns magnetic field, sun position and eclipse calculations.
+%
+%   inputs        :
+%     satrec      - struct including all required SPG4 orbit propagator variables
+%     dt          - timestep for the orbit propagator
+%     ntps        - total simulation seconds
+%
+%   outputs       :
+%     xsat_ecf      - satellite position in the ECEF frame
+%     vsat_ecf      - satellite velocity in the ECEF frame
+%     xsat_eci      - satellite position in the ECI frame
+%     vsat_eci      - satellite velocity in the ECI frame
+%     sat_llh       - satellite position in Latitude, Longitude, Altitude
+%     eclipse       - existence or not of eclipse conditions
+%     mag_field_ned - reference magnetic field vector in NED frame
+%     mag_field_eci - reference magnetic field vector in ECI frame
+%     mag_field_ecef - reference magnetic field vector in ECEF frame
+%     mag_field_orbit - reference magnetic field vector in Orbit frame
+%     sun_pos_ned   - reference sun position vector in NED frame
+%     sun_pos_eci   - reference sun position vector in ECI frame 
+%     sun_pos_ecef  - reference sun position vector in ECEF frame
+%     sun_pos_orbit - reference sun position vector in Orbit frame
+%     satrec        - struct including all required SPG4 orbit propagator variables
+%     argpm         - argument of perigee 
+%     nodem         - right ascension of the ascending node
+%     inclm         - inclination                         
+%     mm            - mean anomaly                                
+%     xnode         - right ascension of the ascending node for short period periodics                 
+%     xinc          - inclination for short period periodics     
+
+%  ----------------------------------------------------------------------------*/
+
+
 function [xsat_ecf, vsat_ecf,xsat_eci,vsat_eci, sat_llh,eclipse, mag_field_ned,mag_field_eci,mag_field_ecef,mag_field_orbit, sun_pos_ned,sun_pos_eci,sun_pos_ecef,sun_pos_orbit,satrec,argpm,nodem,inclm,mm,xnode,xinc] = orbit_sgp4(satrec,dt,npts)
 
-% dt is sampling time
-% npts is times the loop must be run (orbits*orbitPeriod)
 
-%% Initializations
+%% Parameter initialization
 dt=dt/60;
 npts = npts/(dt*60);
 npts=uint32(npts);
@@ -35,7 +72,7 @@ for i=1:length(tsince)
 end
 time_gregorian=time_gregorian';
 
-%% Calculates x and v of the satellite in ECI and ECEF every dt
+%% Calculates position and velocity of the satellite in ECI and ECEF every dt
 n=1;
 
 while n<=npts
@@ -43,7 +80,6 @@ while n<=npts
     
     %This segment converts eci coordinates to ecf
     %Compute Greenwich Apparent Siderial Time
-    tsince(n);
     gst=gstime(satrec.jdsatepoch+tsince(n)/1440);
     [xsat_ecf(:,n),vsat_ecf(:,n)] = ECI2ECEF(xsat_eci(:,n),vsat_eci(:,n),gst,1);
     n=n+1;
@@ -77,11 +113,4 @@ else
     normal=normal+1;
 end
 end
-normal;
-penumbral;
-umbral;
-normal+penumbral+umbral;
-npts;
-
-
 end
