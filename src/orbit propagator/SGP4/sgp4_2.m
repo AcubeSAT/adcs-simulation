@@ -28,6 +28,12 @@
 %   outputs       :
 %     r           - position vector                     km
 %     v           - velocity                            km/sec
+%     argpm       - argument of perigee                 rad
+%     nodem       - right ascension of the ascending node  rad
+%     inclm       - inclination                         rad                     
+%     mm          - mean anomaly                        rad                        
+%     xnode       - right ascension of the ascending node for short period periodics      rad                   
+%     xinc        - inclination for short period periodics                                rad
 %     return code - non-zero on error.
 %                    1 - mean elements, ecc >= 1.0 or ecc < -0.001 or a < 0.95 er
 %                    2 - mean motion less than 0.0
