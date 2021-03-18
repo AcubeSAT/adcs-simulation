@@ -10,7 +10,7 @@
 %     magn_ref    - reference magnetic field vector
 %     sun_ref     - reference sun position vector
 %     eclipse     - existence or not of eclipse conditions
-%     gyro_msr    - gyroscope measurement
+%     gyro        - gyroscope measurement
 %
 %   outputs       :
 %     cookie      - struct including all input variables
