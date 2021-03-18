@@ -43,11 +43,7 @@ function  [torque, T_rw, T_magnetic_effective, V_rw, I_rw, P_thermal_rw, AngVel_
    else 
    T_rw =[0;0;1]*(B_body'*T_commanded)/(B_body(3)+1e-06);
    end
-   if T_rw(3) > Max_RW_torq
-        T_rw(3) = Max_RW_torq;
-   elseif T_rw(3) < -Max_RW_torq
-        T_rw(3) = -Max_RW_torq;
-   end
+
     T_magnetic = skew(b_hat)'*skew(b_hat) * (T_commanded-T_rw);   
     M=skew(B_body)*T_magnetic/(B_body'*B_body);
 
