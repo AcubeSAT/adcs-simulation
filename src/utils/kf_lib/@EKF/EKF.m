@@ -170,12 +170,9 @@ classdef EKF < handle
             end
             % =====  Calculate new covariance  =====
             %% The following integrates P-dot to get P (error covariance)
-            A = [        -this.F_k, this.Q;    
-                 zeros(6,6),     this.F_k'];
-            B = expm(A*dt);
-            Phi = B(7:12, 7:12)';
-            Qs = Phi * B(1:6, 7:12);
-            this.P = Phi*this.P*Phi' + Qs;
+
+            Phi = expm(this.F_k * dt);
+            this.P = Phi*this.P*Phi' + this.Q;
                 
         end
         
