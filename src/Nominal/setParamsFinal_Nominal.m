@@ -14,9 +14,9 @@ q_desired = [ 1 0 0 0 ] ; %Desired quaternion
 [satrec, x] = orbit_init();
 [xsat_ecf, vsat_ecf,xsat_eci,vsat_eci, sat_llh,eclipse, mag_field_ned,mag_field_eci,mag_field_ecef,mag_field_orbit, sun_pos_ned,sun_pos_eci,sun_pos_ecef,sun_pos_orbit,satrec,argpm,nodem,inclm,mm,xnode,xinc] = orbit_sgp4(satrec,dt,tf+dt);
 
-for(i=1:length(xsat_eci))
-    xsat_eci_normalized(:,i) = xsat_eci(:,i)/norm(xsat_eci(:,i));
-end
+% for(i=1:length(xsat_eci))
+%     xsat_eci_normalized(:,i) = xsat_eci(:,i)/norm(xsat_eci(:,i));
+% end
 
 %eclipse = zeros(1,55460);
 % save('mag_orbit_10.mat','mag_field_orbit');
@@ -96,6 +96,7 @@ base_albedo_inaccurate = load("SSO_500_6PM_1_Orbit_050101");
 base_albedo_inaccurate = base_albedo_inaccurate.new;
 albedo = base_albedo;
 albedo_inaccurate = base_albedo_inaccurate;
+
 if orbits>1
     for i=1:orbits-1
         albedo = [albedo base_albedo];
@@ -120,7 +121,7 @@ sigma_u = 7.7570e-04;
 % Gyro white noise std dev
 sigma_v = 0.0026;
 
-% R Variances used in EKF
+% R Variances used in MEKF
 % R_hat_coeff=[1e-3;1e-3;1e-3;8e-3;8e-3;8e-3;5e-3;5e-3;5e-3];
 R_hat_coeff=[.5e-3;.5e-3;.5e-3;4e-3;4e-3;4e-3;1e-3;1e-3;1e-3];
 R_hat = R_hat_coeff.*eye(n_msr,n_msr);

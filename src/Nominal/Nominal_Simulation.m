@@ -84,21 +84,21 @@ global Rb; Rb=Const.Rb;
 global flag; flag = 0;
 global Max_RW_torq; Max_RW_torq=Const.rw_max_torque;
 
-%% Construct the EKF
+%% Construct the MEKF
 
 Q_struct = load('idealQ.mat', 'IDEALQ');
 Q_eclipse_load = Q_struct.IDEALQ;
 n_params = length(x0_hat); %Init number of parameters
-ekf = EKF(n_params, n_msr, @model.stateTransFun, @model.msrFun); %Init EKF
-ekf.theta = x0_hat; %Init state estimation
-ekf.P = P0; %Init Covariance matrix
-ekf.setProcessNoiseCov(Q); %Q variance matrix
-ekf.setMeasureNoiseCov(R_hat); %R variance matrix
-ekf.setFadingMemoryCoeff(1.00); %This parameter defined the "memory" of the filter, 1 meaning regular
-ekf.setPartDerivStep(0.001); %arithmetical jacobian step
+mekf = MEKF(n_params, n_msr, @model.stateTransFun, @model.msrFun); %Init EKF
+mekf.global_state = x0_hat; %Init state estimation
+mekf.P = P0; %Init Covariance matrix
+mekf.setProcessNoiseCov(Q); %Q variance matrix
+mekf.setMeasureNoiseCov(R_hat); %R variance matrix
+mekf.setFadingMemoryCoeff(1.00); %This parameter defined the "memory" of the filter, 1 meaning regular
+mekf.setPartDerivStep(0.001); %arithmetical jacobian step
 if (use_analytic_jacob) %if analytical jacobian is used, define the functions
-    ekf.setStateTransFunJacob(@model.stateTransFunJacob);
-    ekf.setMsrFunJacob(@model.msrFunJacob);
+    mekf.setStateTransFunJacob(@model.stateTransFunJacob);
+    mekf.setMsrFunJacob(@model.msrFunJacob);
 end
 
 
@@ -182,7 +182,7 @@ for l=1:n_steps
 
         %% Wahba
         [q_wahba,~]=wahba(y_noise(7:9),y_noise(1:3),sun_pos_eci(:,(l-1)*10+1),mag_field_eci(:,(l-1)*10+1));
-        ekf.theta(1:4) = q_wahba';
+        mekf.global_state(1:4) = q_wahba';
 
 
         %% Bias timer
@@ -231,9 +231,9 @@ for l=1:n_steps
         end
 
         initial_bias_estimate = real_rate-mean_omega;
-        ekf.theta(5:7) = initial_bias_estimate; %Initialize angular velocity equal to gyroscope measurement 
+        mekf.global_state(5:7) = initial_bias_estimate; %Initialize angular velocity equal to gyroscope measurement 
 
-        x_hat = ekf.theta;
+        x_hat = mekf.global_state;
 
         % Main continuous loop
         for k=l:n_steps
@@ -255,8 +255,8 @@ for l=1:n_steps
 %               %Q_eclipse = Q_eclipse_load;
 %               R_hat_coeff=10000*[.5e-3;.5e-3;.5e-3;4e-3;4e-3;4e-3;1e-3;1e-3;1e-3];
 %               R_hat = R_hat_coeff.*eye(n_msr,n_msr);
-%               ekf.setProcessNoiseCov(Q_eclipse); %Q variance matrix
-%               ekf.setMeasureNoiseCov(R_hat); %R variance matrix
+%               mekf.setProcessNoiseCov(Q_eclipse); %Q variance matrix
+%               mekf.setMeasureNoiseCov(R_hat); %R variance matrix
 %               entered_eclipse = true;
 %           end
 %           
@@ -265,8 +265,8 @@ for l=1:n_steps
 %               Q_outside(4:6,4:6) = 0.5e-07*eye(3,3);
 %               %Q_outside = Q_eclipse_load;
 %               %Q_outside = Q;
-%               ekf.setProcessNoiseCov(Q_outside);
-%               ekf.setMeasureNoiseCov(Param.R_hat); %R variance matrix
+%               mekf.setProcessNoiseCov(Q_outside);
+%               mekf.setMeasureNoiseCov(Param.R_hat); %R variance matrix
 %               exited_eclipse = true;
 %               entered_eclipse = false;
 %           end
@@ -275,15 +275,15 @@ for l=1:n_steps
             % Variances
             Q = Q_eclipse_load; % Variance of the process noise w[k]
 
-            % R Variances used in EKF
+            % R Variances used in MEKF
             % R_hat_coeff=[1e-3;1e-3;1e-3;8e-3;8e-3;8e-3;5e-3;5e-3;5e-3];
             R_hat_coeff=10000*[.5e-3;.5e-3;.5e-3;4e-3;4e-3;4e-3;1e-3;1e-3;1e-3];
             R_hat = R_hat_coeff.*eye(n_msr,n_msr);
-            ekf.setProcessNoiseCov(Q); %Q variance matrix
-             ekf.setMeasureNoiseCov(R_hat); %R variance matrix
+            mekf.setProcessNoiseCov(Q); %Q variance matrix
+             mekf.setMeasureNoiseCov(R_hat); %R variance matrix
         else
-            ekf.setProcessNoiseCov(Param.Q); %Q variance matrix
-            ekf.setMeasureNoiseCov(Param.R_hat); %R variance matrix
+            mekf.setProcessNoiseCov(Param.Q); %Q variance matrix
+            mekf.setMeasureNoiseCov(Param.R_hat); %R variance matrix
         end
        
         
@@ -307,11 +307,11 @@ for l=1:n_steps
         y_noise(1:3)=y_noise(1:3)/norm(y_noise(1:3)); 
         
         gyro = y_noise(4:6);
-        ekf.correct(y_noise, msrCookieFinalExtended(mag_field_eci(:,(k-1)*10+c),...
+        mekf.correct(y_noise, msrCookieFinalExtended(mag_field_eci(:,(k-1)*10+c),...
             sun_pos_eci(:,(k-1)*10+c),eclipse((k-1)*10+c),gyro,xsat_eci(:,(k-1)*10+c),albedo_inaccurate(:,(k-1)*10+c),lambda));
             %sun_pos_eci(:,(k-1)*10+c),eclipse((k-1)*10+c),gyro,xsat_eci(:,(k-1)*10+c),0,lambda));
         
-        x_hat = ekf.theta;
+        x_hat = mekf.global_state;
         x_hat(1:4) = x_hat(1:4) / norm(x_hat(1:4));
         x_hat_data = [x_hat_data x_hat];
 
@@ -351,7 +351,7 @@ for l=1:n_steps
         % P[k+1|k]. These will be utilized by the filter at the next time step.
         
         gyro = y_noise(4:6);
-        ekf.predict(stateTransCookieFinalNominal(torq,rw_ang_momentum,gyro),dt);
+        mekf.predict(stateTransCookieFinalNominal(torq,rw_ang_momentum,gyro),dt);
      end 
     %  
     %  q_ob_hat_prev =quat_EB2OB(x_hat(1:4), nodem(1,(k-1)*10+c),inclm(1,(k-1)*10+c),argpm(1,(k-1)*10+c),mm(1,(k-1)*10+c) );
@@ -393,11 +393,11 @@ for l=1:n_steps
             % R_hat_coeff=[1e-3;1e-3;1e-3;8e-3;8e-3;8e-3;5e-3;5e-3;5e-3];
             R_hat_coeff=10000*[.5e-3;.5e-3;.5e-3;4e-3;4e-3;4e-3;1e-3;1e-3;1e-3];
             R_hat = R_hat_coeff.*eye(n_msr,n_msr);
-            ekf.setProcessNoiseCov(Q); %Q variance matrix
-             ekf.setMeasureNoiseCov(R_hat); %R variance matrix
+            mekf.setProcessNoiseCov(Q); %Q variance matrix
+             mekf.setMeasureNoiseCov(R_hat); %R variance matrix
         else
-            ekf.setProcessNoiseCov(Param.Q); %Q variance matrix
-            ekf.setMeasureNoiseCov(Param.R_hat); %R variance matrix
+            mekf.setProcessNoiseCov(Param.Q); %Q variance matrix
+            mekf.setMeasureNoiseCov(Param.R_hat); %R variance matrix
         end
 
         y_real = real_model.msrFun(x_real(:,(k-1)*10+c),msrCookieFinal(mag_field_eci(:,(k-1)*10+c),...
@@ -408,7 +408,7 @@ for l=1:n_steps
         gyro_noise_data = [gyro_noise_data gyro_noise];
         y_noise(4:6) = y_real(4:6) + gyro_noise; 
         
-        x_hat = ekf.theta;
+        x_hat = mekf.global_state;
         x_hat(1:4) = x_hat(1:4) / norm(x_hat(1:4));
         x_hat_data = [x_hat_data x_hat];
         q_ob_hat = quat_EB2OB(x_hat(1:4), nodem(1,(k-1)*10+c-1),inclm(1,(k-1)*10+c-1),argpm(1,(k-1)*10+c-1),mm(1,(k-1)*10+c-1) );
@@ -434,7 +434,7 @@ for l=1:n_steps
         [torq, T_rw, T_magnetic_effective, V_rw, I_rw, P_thermal_rw, AngVel_rw_rpm_next, AngVel_rw_radps_next,...
                 acceleration_rw_cur, rw_ang_momentum, init_AngVel_dz, init_accel_dz, V_mtq, I_mtq, P_thermal_mtq, ...
                     timeflag_dz,M] = ...
-                        PD(Kp_gain, Kd_gain, q_desired ,q_ob_hat, y_noise(4:6)-ekf.theta(5:7) , y_noise(1:3)*norm(mag_field_orbit(:,(k-1)*10+c)*10^(-9)) , eclipse((k-1)*10+c), ...
+                        PD(Kp_gain, Kd_gain, q_desired ,q_ob_hat, y_noise(4:6)-mekf.global_state(5:7) , y_noise(1:3)*norm(mag_field_orbit(:,(k-1)*10+c)*10^(-9)) , eclipse((k-1)*10+c), ...
                             Const.mtq_max1, Const.mtq_max2, Const.mtq_max3, Const.lim_dz, AngVel_rw_radps(2,1), AngVel_rw_rpm(2,1), ...
                                 acceleration_rw(1,1), init_AngVel_dz, init_accel_dz, timeflag_dz,Const.rw_max_torque,y_real(1:3)*norm(mag_field_orbit(:,(k-1)*10+c)*10^(-9)), l, sat_llh(3,(k-1)*10+c));
         tau_rw(1, (k-1)*10+c+1) = T_rw(3);
@@ -469,7 +469,7 @@ for l=1:n_steps
 %         end  
     %     q_prev = q_ob_data(:,(k-1)*10+c+1);
         gyro = y_noise(4:6);
-        ekf.predict(stateTransCookieFinalNominal(torq,rw_ang_momentum,gyro),dt);
+        mekf.predict(stateTransCookieFinalNominal(torq,rw_ang_momentum,gyro),dt);
      end
         end
         break;
