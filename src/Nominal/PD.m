@@ -38,7 +38,12 @@ function  [torque, T_rw, T_magnetic_effective, V_rw, I_rw, P_thermal_rw, AngVel_
     Torque_split_maxima = zeros(3,1);
 
     b_hat=B_body/norm(B_body); 
-    T_rw =[0;0;1]*(B_body'*T_commanded)/B_body(3);
+    if abs(B_body(3))>1e-07
+   T_rw =[0;0;1]*(B_body'*T_commanded)/B_body(3);
+   else 
+   T_rw =[0;0;1]*(B_body'*T_commanded)/(B_body(3)+1e-06);
+   end
+
     T_magnetic = skew(b_hat)'*skew(b_hat) * (T_commanded-T_rw);   
     M=skew(B_body)*T_magnetic/(B_body'*B_body);
 
