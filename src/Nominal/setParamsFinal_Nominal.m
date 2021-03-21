@@ -78,7 +78,7 @@ disturbancesEnabled = "total";
 %% ======= Simulation Constants ========
 n_dim = length(x0); % state length
 n_dim_error = 6; % error state length
-n_msr = 9; %Measurements length
+number_of_measurments = 9; %Measurements length
 Kp=100;
 mtq_max = 0.2;
 setDisturbances = "total";   % Set which disturbances you want to activate: tau_g, tau_ad, tau_sp, tau_rm, total, zero
@@ -114,7 +114,7 @@ Q = 0.5e-05*eye(n_dim_error,n_dim_error); % Variance of the process noise w[k]
 %MGN noise 1e-3 (norm) | GYRO noise 1.57e-2| SUN noise 8.7e-3(norm)
 % R_coeff=[1e-6;1e-6;1e-6;5e-5;5e-5;5e-5;1.2e-5;1.2e-5;1.2e-5];   
 R_coeff=[1.83e-6;1.83e-6;1.83e-6;0;0;0;0;0;0];   
-R = R_coeff.*eye(n_msr,n_msr); % Variance of the measurement noise v[k]
+R = R_coeff.*eye(number_of_measurments,number_of_measurments); % Variance of the measurement noise v[k]
 
 % Gyro bias std dev
 sigma_u = 7.7570e-04;
@@ -124,7 +124,7 @@ sigma_v = 0.0026;
 % R Variances used in MEKF
 % R_hat_coeff=[1e-3;1e-3;1e-3;8e-3;8e-3;8e-3;5e-3;5e-3;5e-3];
 R_hat_coeff=[.5e-3;.5e-3;.5e-3;4e-3;4e-3;4e-3;1e-3;1e-3;1e-3];
-R_hat = R_hat_coeff.*eye(n_msr,n_msr);
+R_hat = R_hat_coeff.*eye(number_of_measurments,number_of_measurments);
 
 % Initialize Covariance matrix
 P0 = 1*eye(n_dim_error,n_dim_error);
@@ -146,7 +146,7 @@ use_analytic_jacob = true;
     Param.sun_ref = sun_ref;
     Param.real_model = real_model;
     Param.model = model;
-    Param.n_msr = n_msr;
+    Param.number_of_measurments = number_of_measurments;
     Param.n_dim = n_dim;
     Param.kd = kd;
     Param.albedo = albedo;
