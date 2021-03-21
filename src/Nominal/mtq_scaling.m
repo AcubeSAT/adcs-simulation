@@ -7,12 +7,12 @@
 %   Ouput: Scaled Magnetic Dipole
 % ========================================================================= %
 
-function [scaled_dipole] = mtq_scaling(M, mtq_max1, mtq_max2, mtq_max3)
+function [scaled_dipole] = mtq_scaling(M, mtq_max)
 
 scaled_dipole = M;
-max1 = mtq_max1; 
-max2 = mtq_max2;
-max3 = mtq_max3;
+max1 = mtq_max(1); 
+max2 = mtq_max(2);
+max3 = mtq_max(3);
 
 %% If M exceeds max value, then scale M to max
 if(M(1) > max1)

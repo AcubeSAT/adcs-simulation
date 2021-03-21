@@ -1,100 +1,107 @@
+% ======================================================================== %
+%   Implementation of the PD controller that calculates the desired torque 
+%   to be applied in order to achieve nadir pointing.
+%
+%   Inputs:
+%     Kp_gain                - Proportional positive scalar gain
+%     Kd_gain                - Derivative positive scalar gain
+%     q_desired              - Desired quaternion
+%     q_orbit_body           - Quaternion that expresses the rotation from
+%                              the orbit frame to the body frame
+%     w_o_io                 - Angular velocity of the ECI frame with
+%                              respect to the orbit frame, expressed in the
+%                              orbit frame
+%     w_b_ib                 - Angular velocity of the ECI frame with
+%                              respect to the body frame, expressed in the
+%                              body frame
+%     B_body                 - Estimated magnetic field expressed on Body frame
+%     mtq_max                - Maximum dipole provided by each Magnetorquer
+%     lim_dz                 - Absolute value of the limits of the deadzone [revolutions/min]
+%     AngVel_rw_radps_cur    - RW angular velocity [rad/sec]
+%     AngVel_rw_rpm_cur      - RW angular velocity [revolutions/min]
+%     acceleration_rw_old    - RW acceleration
+%     init_AngVel_dz         - Initial RW angular velocity when entering deadzone
+%     init_accel_dz          - Initial RW acceleration when entering deadzone
+%     timeflag_dz            - Counter which indicates the time present in the deadzone 
+%     rw_max_torque          - Maximum torque provided by each Magnetorquer
+%     B_body_real            - Real magnetic field expressed on Body frame
+%     time                   - Current time step
+%     known_rm               - Estimated constant residual magnetic dipole
+% 
+%
+%   Outputs:
+%     torque                 - Total applied torque
+%     T_rw                   - Torque provided by the RW
+%     T_magnetic_effective   - Torque provided by the MTQs
+%     V_rw                   - Voltage applied on RW
+%     I_rw                   - Amperage applied on RW
+%     P_thermal_rw           - Power consumed from RW
+%     AngVel_rw_rpm_new      - Next RW angular velocity [revolutions/min]
+%     AngVel_rw_radps_new    - Next RW angular velocity [rad/sec]
+%     acceleration_rw_cur    - Current RW acceleration
+%     rw_ang_momentum        - RW angular momentum
+%     init_AngVel_dz         - Initial RW angular velocity when entering deadzone
+%     init_accel_dz          - Initial RW acceleration when entering deadzone
+%     V_mtq                  - Voltage applied on MTQs
+%     I_mtq                  - Amperage applied on MTQs
+%     P_thermal_mtq          - Power consumed from MTQs
+%     timeflag_dz            - Counter which indicates the time present in the deadzone 
+%     M                      - Magnetic Dipole
+% ======================================================================== %
+
+
 function  [torque, T_rw, T_magnetic_effective, V_rw, I_rw, P_thermal_rw, AngVel_rw_rpm_new, AngVel_rw_radps_new,...
             acceleration_rw_cur, rw_ang_momentum, init_AngVel_dz, init_accel_dz, V_mtq, I_mtq, P_thermal_mtq, ...
                 timeflag_dz,M] = ...
-                    PD(Kp_gain, Kd_gain, q_desired , q_orbit_body , w_b_ib , B_body , eclipse, mtq_max1, mtq_max2, mtq_max3, ...
+                    PD(Kp_gain, Kd_gain, q_desired, q_orbit_body, w_o_io, w_b_ib, B_body, mtq_max, ...
                         lim_dz, AngVel_rw_radps_cur, AngVel_rw_rpm_cur, acceleration_rw_old, init_AngVel_dz, ...
-                            init_accel_dz,timeflag_dz,rw_max_torque,B_body_real,time,altitude)
+                            init_accel_dz, timeflag_dz, rw_max_torque, B_body_real, time, known_rm)
     
     global T_rw_data;
     global T_magnetic_data;
     global flag;
     global Jw;
     global Max_RW_torq;
-    
-%     Kp_gain= 1e-04*diag([5 10 5]);                                                  % Calculate gain (wrt Markley-Crassidis)
-%     Kd_gain= 1e-02*diag([1 1 1]);
-    w_o_io = [0;0.00110808802079241;0];
-    %w_o = 0.00113308802079241;
-    
-%     if q_orbit_body(1)<0
-%         q_orbit_body = -q_orbit_body;
-%     end
-    
-  %  R_OB = quat2dcm(q_orbit_body'); % Calculating the transformation matrix from orbit to body frame
-    
-    q_w_b_io = quatProd(quatconj(q_orbit_body') ,quatProd([0;w_o_io],q_orbit_body));
+
+    q_w_b_io = quatProd(quatconj(q_orbit_body'), quatProd([0;w_o_io], q_orbit_body));
     w_b_io = q_w_b_io(2:4);
 
-    w_b_ob = w_b_ib - w_b_io; % Calculating angular rate of satellite relative to ECI frame
-
-    q_error=quatProd(conj(q_desired),q_orbit_body);
+    w_b_ob = w_b_ib - w_b_io; 
+    
+    q_error = quatProd(conj(q_desired), q_orbit_body);
     T_commanded = -sign(q_error(1))*Kp_gain*q_error(2:4) - Kd_gain*w_b_ob;
-    known_rm = [0.048 0.051 0.047];
-    estimated_rm_dist =  cross(known_rm, B_body);
-    mtq_maxima = zeros(3,2);
-    mtq_maxima(:,1) = [mtq_max1 + known_rm(1),mtq_max2 + known_rm(2), mtq_max3 + known_rm(3)];
-    mtq_maxima(:,2) = [mtq_max1 - known_rm(1),mtq_max2 - known_rm(2), mtq_max3 - known_rm(3)];
-
-    Torque_split_maxima = zeros(3,1);
 
     b_hat=B_body/norm(B_body); 
-    if abs(B_body(3))>1e-07
-   T_rw =[0;0;1]*(B_body'*T_commanded)/B_body(3);
-   else 
-   T_rw =[0;0;1]*(B_body'*T_commanded)/(B_body(3)+1e-06);
-   end
+    
+    if abs(B_body(3)) > 1e-07
+        T_rw = [0;0;1]*(B_body'*T_commanded)/B_body(3);
+    else 
+        T_rw = [0;0;1]*(B_body'*T_commanded)/(B_body(3)+1e-06);
+    end
 
     T_magnetic = skew(b_hat)'*skew(b_hat) * (T_commanded-T_rw);   
-    M=skew(B_body)*T_magnetic/(B_body'*B_body);
-
-    % Calculating gains in case of saturation
-
-    M2 = (1/norm(T_magnetic))*M;
-    Tm = T_magnetic/norm(T_magnetic);
-    Tw = T_rw/norm(T_rw);
-    Kma = (Tm'-(Tw'*Tm)*Tw')*T_commanded/(1-(Tw'*Tm)^2);
-    Kwa = (Tw'-(Tm'*Tw)*Tm')*T_commanded/(1-(Tm'*Tw)^2);
-    if M(1) > mtq_maxima(1,1) || M(2) > mtq_maxima(2,1) || M(3) > mtq_maxima(3,1) || M(1) < -mtq_maxima(1,2) || M(2) < -mtq_maxima(2,2) || M(3) < -mtq_maxima(3,2)
-        for j = 1:3
-            if M(j) > 0
-                Torque_split_maxima(j) = mtq_maxima(j,1);
-            elseif M(j) < 0
-                Torque_split_maxima(j) = mtq_maxima(j,2);
-            end
-        end
-    Kma_s = min(abs(Torque_split_maxima./M2));
-    Kwa_s = Kma_s*Kwa/Kma;
-    Ms = Kma_s*M2;
-    T_magnetic = skew(B_body)'*Ms;
-    T_rw = Kwa_s.*Tw;
-    else
-    T_magnetic = Kma.*Tm;
-    T_rw = Kwa.*Tw;
-    end
+    M = skew(B_body)*T_magnetic/(B_body'*B_body);
+    
+    %%  Saturation of the MTQs
+    
+    [T_magnetic, T_rw] = mtq_saturation(T_magnetic, T_rw, T_commanded, B_body, M, mtq_max, known_rm);
 
     M = -cross(T_magnetic,B_body)/(norm(B_body))^2;
-    M(1) = M(1) - known_rm(1);    %   M = mtq_scaling(M, mtq_max);
-    M(2) = M(2) - known_rm(2); 
-    M(3) = M(3) - known_rm(3); 
-    %   M=M-rm;
-    T_magnetic_effective = cross(M,B_body_real);
+    M = M - known_rm';
+    T_magnetic_effective = cross(M,B_body_real);    
 
-    
-    
     %%  Saturation of the RW
-   
+
     if time > 1 
-    [T_magnetic_effective, T_rw] = ...
-        rw_saturation(T_magnetic_effective, T_rw, acceleration_rw_old, AngVel_rw_rpm_cur, B_body, mtq_max1, mtq_max2, mtq_max3);
-    
-    if T_rw(3) > Max_RW_torq
-        T_rw(3) = Max_RW_torq;
-    elseif T_rw(3) < -Max_RW_torq
-        T_rw(3) = -Max_RW_torq;
+        [T_magnetic_effective, T_rw] = ...
+            rw_saturation(T_magnetic_effective, T_rw, acceleration_rw_old, AngVel_rw_rpm_cur, B_body, mtq_max);
+
+        if T_rw(3) > Max_RW_torq
+            T_rw(3) = Max_RW_torq;
+        elseif T_rw(3) < -Max_RW_torq
+            T_rw(3) = -Max_RW_torq;
+        end
     end
-    
-    T_commanded = T_magnetic_effective + T_rw;
-   end
 
     %% Calculation of V_rw, I_rw, P_Rw in case of no-zero crossing
 
@@ -116,7 +123,7 @@ function  [torque, T_rw, T_magnetic_effective, V_rw, I_rw, P_thermal_rw, AngVel_
 
         T_magnetic = skew(b_hat)'*skew(b_hat) * (T_commanded - T_rw);   
         M = skew(B_body)*T_magnetic/(B_body'*B_body);
-        M = mtq_scaling(M, mtq_max1, mtq_max2, mtq_max3);
+        M = mtq_scaling(M, mtq_max);
         T_magnetic_effective = cross(M,B_body);
     else
        if timeflag_dz ~= 0
@@ -150,12 +157,8 @@ function  [torque, T_rw, T_magnetic_effective, V_rw, I_rw, P_thermal_rw, AngVel_
         T_rw(3) = rw_max_torque;
     elseif T_rw(3) < -rw_max_torque
         T_rw(3) = -rw_max_torque;
-    end
-%     Tc = T_commanded/norm(T_commanded);
-%     T  = T_magnetic_effective + T_rw;
-%     T=T/norm(T);
-%     acosd(T'*Tc)
-%     pause;
+    end    
+
     T_rw_data = [T_rw_data T_rw];
     T_magnetic_data= [T_magnetic_data T_magnetic_effective];
     torque = T_magnetic_effective + T_rw;

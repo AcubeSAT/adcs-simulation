@@ -72,13 +72,13 @@ function Const = constants()
     M = 5.972e24;                         % Earth mass
     w_o = sqrt(G * M / Radius^3);         % Satellite angular velocity relative to Earth
     v_satellite = sqrt(G * M / Radius);   % Satellite's velocity in orbit
-    w_o_io = [0 -w_o 0]';
+    w_o_io = [0 w_o 0]';
+
+    known_rm = [0.048 0.051 0.047];
 
     orbitPeriod = (2 * pi) / (w_o);       % Orbit Period
     n = orbitPeriod * orbits;             % Total simulation time
-    mtq_max1 = 0.3;
-    mtq_max2 = 0.3;
-    mtq_max3 = 0.3;
+    mtq_max = [0.3, 0.3, 0.3];
     rw_max_torque = 1e-4;
 
 %%  Passing the values of the parameters in a struct.
@@ -109,11 +109,10 @@ function Const = constants()
     Const.c_friction = c_friction;
     Const.Rb = Rb;
     Const.lim_dz = lim_dz;
-    Const.mtq_max1 = mtq_max1;
-    Const.mtq_max2 = mtq_max2;
-    Const.mtq_max3 = mtq_max3;
+    Const.mtq_max = mtq_max;
     Const.rw_max_torque = rw_max_torque;
-    Const.p = p_400;
+    Const.p = p_500;
     Const.Cm = Cm;
+    Const.known_rm = known_rm;
     
 end
