@@ -61,8 +61,7 @@ for i=1:length(Time)
         accel_b_ob(:,i) = (w_b_ob(:,i) - w_b_ob(:,i-1))/1;
     end
     w_b_ob_magn(i) = norm(w_b_ob(:,i));
-    [T_disturbances, disturbancesMessage] = disturbances_bdot(R_BO, quat2eul(q_orbit_body'), ... 
-      sun_pos_orbit(:,i), B_body_ctrl(:,i), setDisturbances);
+    [T_disturbances, disturbancesMessage] = disturbances_bdot(R_BO, sun_pos_orbit(:,i), B_body_ctrl(:,i), setDisturbances);
 for j=1:(dt/dt_model*0.1)
         x = real_model.stateTransFun(x, stateTransCookieFinalNominal(T_disturbances,0,0)); 
 end
@@ -163,8 +162,7 @@ end
         nominal_activation_matrix(2,i) = nonBdot_activation;
         
     %%
-    [T_disturbances, disturbancesMessage] = disturbances_bdot(R_BO, quat2eul(q_orbit_body'), ... 
-      sun_pos_orbit(:,i), B_body_ctrl(:,i), setDisturbances);
+    [T_disturbances, disturbancesMessage] = disturbances_bdot(R_BO, sun_pos_orbit(:,i), B_body_ctrl(:,i), setDisturbances);
     torq = T_magnetic + T_disturbances; 
     for j=1:(dt/dt_model*0.1)
         x = real_model.stateTransFun(x, stateTransCookieFinalNominal(T_disturbances,0,0)); 
