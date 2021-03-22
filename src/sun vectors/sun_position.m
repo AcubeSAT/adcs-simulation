@@ -1,11 +1,23 @@
+% -----------------------------------------------------------------------------
+%
+%                              procedure sun_position
+%
+%  This procedure estimates the predicted sun position on the
+%  Earth-Centered Inertial frame based on the satellite time. 
+%
+%   inputs        :
+%   time          - Time in JD format
+%
+%   outputs       :
+%     sun_pos_eci - Sun position in the ECI frame
+%  ----------------------------------------------------------------------------*/
+
 function [sun_pos_eci] = sun_position(time)
 
-% Based on vallado's book
-
-%% Convert time
+% Convert time
 ut1=(time - 2451545.0) / 36525.0;
 
-%% Find constants
+%% ------ Algorithm --------
 meanlong = 280.4606184 + 36000.77005361*ut1;
 meanlong=mod(meanlong,360); %deg
 meananomaly=357.5277233+35999.05034*ut1;
