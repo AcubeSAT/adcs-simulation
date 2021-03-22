@@ -131,12 +131,12 @@ clc;
 
 
     for cycle_index = 1:bias_wahba_loops+1
-    
-        if eclipse((cycle_index-1)*N_Timesteps+1)==0
-        
+        current_timestep = (cycle_index-1)*N_Timesteps+1;
+        if eclipse(current_timestep)==0
+            
             %% Measurements
-            y_real = real_model.msrFun(x_real(:,(cycle_index-1)*N_Timesteps+1),msrCookieFinal(mag_field_eci(:,(cycle_index-1)*N_Timesteps+1),...
-                sun_pos_eci(:,(cycle_index-1)*N_Timesteps+1),eclipse((cycle_index-1)*N_Timesteps+1),[0;0;0]));
+            y_real = real_model.msrFun(x,msrCookieFinal(mag_field_eci(:,current_timestep),...
+                sun_pos_eci(:,current_timestep),eclipse(current_timestep),[0;0;0]));
             y_noise = y_real + sqrt(R)*randn(size(y_real));
             [gyro_noise,real_bias] = gyro_noise_func(real_bias,dt,sigma_u,sigma_v);
             
@@ -146,7 +146,7 @@ clc;
 %             if sign==0 
 %                 sign=-1; 
 %             end 
-            y_noise(7:9) = css_noise(sun_pos_eci(:,(cycle_index-1)*N_Timesteps+1),x_real(1:4,(cycle_index-1)*N_Timesteps+1),xsat_eci(:,(cycle_index-1)*N_Timesteps+1),albedo(:,(cycle_index-1)*N_Timesteps+1),lambda);
+            y_noise(7:9) = css_noise(sun_pos_eci(:,current_timestep),x(1:4),xsat_eci(:,current_timestep),albedo(:,current_timestep),lambda);
 
             if eclipse((cycle_index-1)*N_Timesteps+1)~=0
                 y_noise(7:9)=zeros(3,1);
@@ -156,7 +156,7 @@ clc;
             y_noise(1:3)=y_noise(1:3)/norm(y_noise(1:3)); 
 
             %% Wahba
-            [q_wahba,~]=wahba(y_noise(7:9),y_noise(1:3),sun_pos_eci(:,(cycle_index-1)*N_Timesteps+1),mag_field_eci(:,(cycle_index-1)*N_Timesteps+1)*N_Timesteps^(-9));
+            [q_wahba,~]=wahba(y_noise(7:9),y_noise(1:3),sun_pos_eci(:,current_timestep),mag_field_eci(:,current_timestep)*10^(-9));
             mekf.global_state(1:4) = q_wahba';
 
 
@@ -169,25 +169,25 @@ clc;
 
                 for i=1:10
                     %% Propagate the system
-                    
+                    current_timestep = (cycle_index-1)*N_Timesteps+i;
                 
-                    q_ob = quat_EB2OB(x(1:4), nodem(1,(cycle_index-1)*N_Timesteps+i),inclm(1,(cycle_index-1)*N_Timesteps+i),...
-                        argpm(1,(cycle_index-1)*N_Timesteps+i),mm(1,(cycle_index-1)*N_Timesteps+i) );
-                    [T_dist, ~,~,~,~,~,~] = disturbances_pd(q_ob, sun_pos_orbit(:,(cycle_index-1)*N_Timesteps+i),...
-                        mag_field_orbit(:,(cycle_index-1)*N_Timesteps+i)*N_Timesteps^(-9), disturbancesEnabled);
+                    q_ob = quat_EB2OB(x(1:4), nodem(1,current_timestep),inclm(1,current_timestep),...
+                        argpm(1,current_timestep),mm(1,current_timestep) );
+                    [T_dist, ~,~,~,~,~,~] = disturbances_pd(q_ob, sun_pos_orbit(:,current_timestep),...
+                        mag_field_orbit(:,current_timestep)*10^(-9), disturbancesEnabled);
                 
                     torq = T_dist;
 
                     x = real_model.stateTransFun(x, stateTransCookieFinalNominal(torq,rw_ang_momentum,[0;0;0])); 
-                    x_real(:,(cycle_index-1)*N_Timesteps+i+1)=x;
+                    x_real(:,current_timestep)=x;
                     t = t + dt;
                     
                     %% Matrices update
-                    x_hat_data(:,(cycle_index-1)*N_Timesteps+i) =  zeros(7,1);
-                    q_ob_data(:,(cycle_index-1)*N_Timesteps+i) = quat_EB2OB(x(1:4), nodem(1,(cycle_index-1)*N_Timesteps+i),...
-                        inclm(1,(cycle_index-1)*N_Timesteps+i),argpm(1,(cycle_index-1)*N_Timesteps+i),mm(1,(cycle_index-1)*N_Timesteps+i) );
-                    bias_data(:,(cycle_index-1)*N_Timesteps+i) = real_bias;
-                    gyro_noise_data(:,(cycle_index-1)*N_Timesteps+i) = gyro_noise;
+                    x_hat_data(:,current_timestep) =  zeros(7,1);
+                    q_ob_data(:,current_timestep) = quat_EB2OB(x(1:4), nodem(1,current_timestep),...
+                        inclm(1,current_timestep),argpm(1,current_timestep),mm(1,current_timestep) );
+                    bias_data(:,current_timestep) = real_bias;
+                    gyro_noise_data(:,current_timestep) = gyro_noise;
                 end
                 continue
             end
@@ -220,12 +220,13 @@ clc;
     end
         %% Main continuous loop
         for cycle_index = cycle_index:number_of_cycles
-            
-             q_ob_data(:,(cycle_index-1)*N_Timesteps+1) = quat_EB2OB(x(1:4), nodem(1,(cycle_index-1)*N_Timesteps+1),inclm(1,(cycle_index-1)*N_Timesteps+1),argpm(1,(cycle_index-1)*N_Timesteps+1),mm(1,(cycle_index-1)*N_Timesteps+1) );   
+  
              for timestep_index = 1:3
+                 
+                current_timestep = (cycle_index-1)*N_Timesteps+timestep_index;
                 %% ================ Adaptive ======================================
     %
-    %           if(entered_eclipse == false) && (eclipse((cycle_index-1)*N_Timesteps+timestep_index) ~= 0)
+    %           if(entered_eclipse == false) && (eclipse(current_timestep) ~= 0)
     %               Q_eclipse =  eye(n_dim_error,n_dim_error);
     %               Q_eclipse(4:6,4:6) = 0.5e-06*eye(3,3);
     %               %Q_eclipse = Q_eclipse_load;
@@ -236,7 +237,7 @@ clc;
     %               entered_eclipse = true;
     %           end
     %           
-    %           if(exited_eclipse == false) && (entered_eclipse == true) && (eclipse((cycle_index-1)*N_Timesteps+timestep_index) == 0)
+    %           if(exited_eclipse == false) && (entered_eclipse == true) && (eclipse(current_timestep) == 0)
     %               Q_outside =  0.5e-05*eye(n_dim_error,n_dim_error);
     %               Q_outside(4:6,4:6) = 0.5e-07*eye(3,3);
     %               %Q_outside = Q_eclipse_load;
@@ -247,7 +248,7 @@ clc;
     %               entered_eclipse = false;
     %           end
                 %% ============ IdealQ ============================================        
-                if (eclipse((cycle_index-1)*N_Timesteps+timestep_index))
+                if (eclipse(current_timestep))
                     % Variances
                     Q = Q_eclipse_load; % Variance of the process noise w[cycle_index]
 
@@ -261,20 +262,21 @@ clc;
                     mekf.setProcessNoiseCov(Param.Q); %Q variance matrix
                     mekf.setMeasureNoiseCov(Param.R_hat); %R variance matrix
                 end
-       
+                
+                
                 %% Sensor Measurements
-                y_real = real_model.msrFun(x,msrCookieFinal(mag_field_eci(:,(cycle_index-1)*N_Timesteps+timestep_index),...
-                    sun_pos_eci(:,(cycle_index-1)*N_Timesteps+timestep_index),eclipse((cycle_index-1)*N_Timesteps+timestep_index),[0;0;0]));
+                y_real = real_model.msrFun(x,msrCookieFinal(mag_field_eci(:,current_timestep),...
+                    sun_pos_eci(:,current_timestep),eclipse(current_timestep),[0;0;0]));
                 
                 y_noise = y_real + sqrt(R)*randn(size(y_real));
                 [gyro_noise,real_bias] = gyro_noise_func(real_bias,dt,sigma_u,sigma_v);
 
                 y_noise(4:6) = y_real(4:6) + gyro_noise;
              
-                y_noise(7:9) = css_noise(sun_pos_eci(:,(cycle_index-1)*N_Timesteps+timestep_index),x(1:4),...
-                    xsat_eci(:,(cycle_index-1)*N_Timesteps+timestep_index),albedo(:,(cycle_index-1)*N_Timesteps+timestep_index),lambda);
+                y_noise(7:9) = css_noise(sun_pos_eci(:,current_timestep),x(1:4),...
+                    xsat_eci(:,current_timestep),albedo(:,current_timestep),lambda);
         
-                if eclipse((cycle_index-1)*N_Timesteps+timestep_index)~=0
+                if eclipse(current_timestep)~=0
                     y_noise(7:9)=zeros(3,1);
                 else
                     y_noise(7:9)=y_noise(7:9)/norm(y_noise(7:9)); 
@@ -284,8 +286,9 @@ clc;
                 
                 %% MEKF correct
                 gyro = y_noise(4:6);
-                mekf.correct(y_noise, msrCookieFinalExtended(mag_field_eci(:,(cycle_index-1)*N_Timesteps+timestep_index),...
-                    sun_pos_eci(:,(cycle_index-1)*N_Timesteps+timestep_index),eclipse((cycle_index-1)*N_Timesteps+timestep_index),gyro,xsat_eci(:,(cycle_index-1)*N_Timesteps+timestep_index),albedo_inaccurate(:,(cycle_index-1)*N_Timesteps+timestep_index),lambda));
+                mekf.correct(y_noise, msrCookieFinalExtended(mag_field_eci(:,current_timestep),...
+                    sun_pos_eci(:,current_timestep),eclipse(current_timestep),gyro,xsat_eci(:,current_timestep),...
+                        albedo_inaccurate(:,current_timestep),lambda));
 
                 x_hat = mekf.global_state;
                 x_hat(1:4) = x_hat(1:4) / norm(x_hat(1:4));
@@ -293,12 +296,12 @@ clc;
 
                 %% Propagate the system
                 
-                q_ob_data(:,(cycle_index-1)*N_Timesteps+timestep_index) = quat_EB2OB(x(1:4), nodem(1,(cycle_index-1)*N_Timesteps+timestep_index),...
-                    inclm(1,(cycle_index-1)*N_Timesteps+timestep_index),argpm(1,(cycle_index-1)*N_Timesteps+timestep_index),mm(1,(cycle_index-1)*N_Timesteps+timestep_index) );                
+                q_ob_data(:,current_timestep) = quat_EB2OB(x(1:4), nodem(1,current_timestep),...
+                    inclm(1,current_timestep),argpm(1,current_timestep),mm(1,current_timestep) );                
                 [~, ~, ~, AngVel_rw_radps(3,1), acceleration_rw(2,1), T_rw_total] = rw_model(0, AngVel_rw_radps(3,1)); % RW model
                 
-                [T_dist, ~,~,ad,r,sp,g] = disturbances_pd(q_ob_data(:,(cycle_index-1)*N_Timesteps+timestep_index),...
-                    sun_pos_orbit(:,(cycle_index-1)*N_Timesteps+timestep_index), mag_field_orbit(:,(cycle_index-1)*N_Timesteps+timestep_index)*N_Timesteps^(-9), disturbancesEnabled);
+                [T_dist, ~,~,ad,r,sp,g] = disturbances_pd(q_ob_data(:,current_timestep),...
+                    sun_pos_orbit(:,current_timestep), mag_field_orbit(:,current_timestep)*10^(-9), disturbancesEnabled);
                 
                 torq = T_rw_total + T_dist;
                 x = real_model.stateTransFun(x, stateTransCookieFinalNominal(torq,rw_ang_momentum,[0;0;0])); 
@@ -314,26 +317,27 @@ clc;
                 
                 
                 %% Matrices update
-                x_hat_data(:,(cycle_index-1)*N_Timesteps+timestep_index) = x_hat;
-                tau_ad(:,(cycle_index-1)*N_Timesteps+timestep_index) = ad;
-                tau_rm(:,(cycle_index-1)*N_Timesteps+timestep_index) = r;
-                tau_sp(:,(cycle_index-1)*N_Timesteps+timestep_index) = sp;
-                tau_g(:,(cycle_index-1)*N_Timesteps+timestep_index) = g;
-                tau_dist(:,(cycle_index-1)*N_Timesteps+timestep_index) = T_dist;                
-                x_real(:,(cycle_index-1)*N_Timesteps+timestep_index)=x;
+                x_hat_data(:,current_timestep) = x_hat;
+                tau_ad(:,current_timestep) = ad;
+                tau_rm(:,current_timestep) = r;
+                tau_sp(:,current_timestep) = sp;
+                tau_g(:,current_timestep) = g;
+                tau_dist(:,current_timestep) = T_dist;                
+                x_real(:,current_timestep)=x;
                 AngVel_rw_rpm(3,1) = AngVel_rw_radps(3,1)*30/pi; 
-                rw_ang_vel_rpm(1,(cycle_index-1)*N_Timesteps+timestep_index+1) = AngVel_rw_rpm(3,1);  
-                Bbody_data(:,(cycle_index-1)*N_Timesteps+timestep_index) = y_real(1:3)*norm(mag_field_orbit(:,(cycle_index-1)*N_Timesteps+timestep_index)*N_Timesteps^(-9));
-                bias_data(:,(cycle_index-1)*N_Timesteps+timestep_index) = real_bias;
-                gyro_noise_data(:,(cycle_index-1)*N_Timesteps+timestep_index) = gyro_noise;
+                rw_ang_vel_rpm(1,current_timestep) = AngVel_rw_rpm(3,1);  
+                Bbody_data(:,current_timestep) = y_real(1:3)*norm(mag_field_orbit(:,current_timestep)*10^(-9));
+                bias_data(:,current_timestep) = real_bias;
+                gyro_noise_data(:,current_timestep) = gyro_noise;
                 
              end 
 
              for timestep_index=4:10   
         
+                 current_timestep = (cycle_index-1)*N_Timesteps+timestep_index;
                 %% ================ Adaptive ======================================
     %
-    %           if(entered_eclipse == false) && (eclipse((cycle_index-1)*N_Timesteps+timestep_index) ~= 0)
+    %           if(entered_eclipse == false) && (eclipse(current_timestep) ~= 0)
     %               Q_eclipse =  eye(n_dim_error,n_dim_error);
     %               Q_eclipse(4:6,4:6) = 0.5e-06*eye(3,3);
     %               %Q_eclipse = Q_eclipse_load;
@@ -344,7 +348,7 @@ clc;
     %               entered_eclipse = true;
     %           end
     %           
-    %           if(exited_eclipse == false) && (entered_eclipse == true) && (eclipse((cycle_index-1)*N_Timesteps+timestep_index) == 0)
+    %           if(exited_eclipse == false) && (entered_eclipse == true) && (eclipse(current_timestep) == 0)
     %               Q_outside =  0.5e-05*eye(n_dim_error,n_dim_error);
     %               Q_outside(4:6,4:6) = 0.5e-07*eye(3,3);
     %               %Q_outside = Q_eclipse_load;
@@ -355,7 +359,7 @@ clc;
     %               entered_eclipse = false;
     %           end
                 %% ============ IdealQ ============================================        
-                if (eclipse((cycle_index-1)*N_Timesteps+timestep_index))
+                if (eclipse(current_timestep))
                     % Variances
                     Q = Q_eclipse_load; % Variance of the process noise w[cycle_index]
 
@@ -369,10 +373,10 @@ clc;
                     mekf.setProcessNoiseCov(Param.Q); %Q variance matrix
                     mekf.setMeasureNoiseCov(Param.R_hat); %R variance matrix
                 end
-
+                
                 %% Sensor Measurements
-                y_real = real_model.msrFun(x,msrCookieFinal(mag_field_eci(:,(cycle_index-1)*N_Timesteps+timestep_index),...
-                    sun_pos_eci(:,(cycle_index-1)*N_Timesteps+timestep_index),eclipse((cycle_index-1)*N_Timesteps+timestep_index),[0;0;0]));
+                y_real = real_model.msrFun(x,msrCookieFinal(mag_field_eci(:,current_timestep),...
+                    sun_pos_eci(:,current_timestep),eclipse(current_timestep),[0;0;0]));
                 
                 [gyro_noise,real_bias] = gyro_noise_func(real_bias,dt,sigma_u,sigma_v);
                 y_noise(4:6) = y_real(4:6) + gyro_noise; 
@@ -380,8 +384,8 @@ clc;
                 x_hat = mekf.global_state;
                 x_hat(1:4) = x_hat(1:4) / norm(x_hat(1:4));
                 
-                q_ob_hat = quat_EB2OB(x_hat(1:4), nodem(1,(cycle_index-1)*N_Timesteps+timestep_index),inclm(1,(cycle_index-1)*N_Timesteps+timestep_index),...
-                    argpm(1,(cycle_index-1)*N_Timesteps+timestep_index),mm(1,(cycle_index-1)*N_Timesteps+timestep_index) );
+                q_ob_hat = quat_EB2OB(x_hat(1:4), nodem(1,current_timestep),inclm(1,current_timestep),...
+                    argpm(1,current_timestep),mm(1,current_timestep) );
 
                 %% PD function
 
@@ -395,18 +399,19 @@ clc;
                 [torq, T_rw, T_magnetic_effective, ~, ~, ~, AngVel_rw_rpm_next, AngVel_rw_radps_next,...
                         acceleration_rw_cur, rw_ang_momentum, init_AngVel_dz, init_accel_dz, ~, ~, ~, ...
                             timeflag_dz,M] = ...
-                                PD(Kp_gain, Kd_gain, q_desired ,q_ob_hat, Const.w_o_io, y_noise(4:6)-mekf.global_state(5:7) , y_noise(1:3)*norm(mag_field_orbit(:,(cycle_index-1)*N_Timesteps+timestep_index)*N_Timesteps^(-9)), ...
+                                PD(Kp_gain, Kd_gain, q_desired ,q_ob_hat, Const.w_o_io, y_noise(4:6)-mekf.global_state(5:7) , y_noise(1:3)*norm(mag_field_orbit(:,current_timestep)*10^(-9)), ...
                                     Const.mtq_max, Const.lim_dz, AngVel_rw_radps(2,1), AngVel_rw_rpm(2,1), ...
-                                        acceleration_rw(1,1), init_AngVel_dz, init_accel_dz, timeflag_dz,Const.rw_max_torque,y_real(1:3)*norm(mag_field_orbit(:,(cycle_index-1)*N_Timesteps+timestep_index)*N_Timesteps^(-9)), cycle_index, Const.known_rm);
+                                        acceleration_rw(1,1), init_AngVel_dz, init_accel_dz, timeflag_dz,Const.rw_max_torque,...
+                                            y_real(1:3)*norm(mag_field_orbit(:,current_timestep)*10^(-9)), cycle_index, Const.known_rm);
                 
            
                 
                 %% Propagate the system
                 
-                q_ob_data(:,(cycle_index-1)*N_Timesteps+timestep_index) = quat_EB2OB(x(1:4), nodem(1,(cycle_index-1)*N_Timesteps+timestep_index),...
-                    inclm(1,(cycle_index-1)*N_Timesteps+timestep_index),argpm(1,(cycle_index-1)*N_Timesteps+timestep_index),mm(1,(cycle_index-1)*N_Timesteps+timestep_index) );
-                [T_dist, ~,~,ad,r,sp,g] = disturbances_pd(q_ob_data(:,(cycle_index-1)*N_Timesteps+timestep_index),...
-                    sun_pos_orbit(:,(cycle_index-1)*N_Timesteps+timestep_index), mag_field_orbit(:,(cycle_index-1)*N_Timesteps+timestep_index)*N_Timesteps^(-9), disturbancesEnabled);
+                q_ob_data(:,current_timestep) = quat_EB2OB(x(1:4), nodem(1,current_timestep),...
+                    inclm(1,current_timestep),argpm(1,current_timestep),mm(1,current_timestep) );
+                [T_dist, ~,~,ad,r,sp,g] = disturbances_pd(q_ob_data(:,current_timestep),...
+                    sun_pos_orbit(:,current_timestep), mag_field_orbit(:,current_timestep)*10^(-9), disturbancesEnabled);
                 
                 torq = torq + T_dist;
                 
@@ -418,25 +423,23 @@ clc;
                 mekf.predict(stateTransCookieFinalNominal(torq,rw_ang_momentum,gyro),dt);
                 
                 %% Matrices update
-                tau_ad(:,(cycle_index-1)*N_Timesteps+timestep_index) = ad;
-                tau_rm(:,(cycle_index-1)*N_Timesteps+timestep_index) = r;
-                tau_sp(:,(cycle_index-1)*N_Timesteps+timestep_index) = sp;
-                tau_g(:,(cycle_index-1)*N_Timesteps+timestep_index) = g;
-                tau_dist(:,(cycle_index-1)*N_Timesteps+timestep_index) = T_dist;
-                x_real(:,(cycle_index-1)*N_Timesteps+timestep_index)=x;
-                q_ob_data(:,(cycle_index-1)*N_Timesteps+timestep_index) = quat_EB2OB(x(1:4), nodem(1,(cycle_index-1)*N_Timesteps+timestep_index),...
-                    inclm(1,(cycle_index-1)*N_Timesteps+timestep_index),argpm(1,(cycle_index-1)*N_Timesteps+timestep_index),mm(1,(cycle_index-1)*N_Timesteps+timestep_index) );
-                tau_rw(1, (cycle_index-1)*N_Timesteps+timestep_index) = T_rw(3);
-                tau_mtq(:, (cycle_index-1)*N_Timesteps+timestep_index) = T_magnetic_effective;
-                rw_ang_vel_rpm(1,(cycle_index-1)*N_Timesteps+timestep_index) = AngVel_rw_rpm(3,1); 
+                tau_ad(:,current_timestep) = ad;
+                tau_rm(:,current_timestep) = r;
+                tau_sp(:,current_timestep) = sp;
+                tau_g(:,current_timestep) = g;
+                tau_dist(:,current_timestep) = T_dist;
+                x_real(:,current_timestep)=x;
+                tau_rw(1, current_timestep) = T_rw(3);
+                tau_mtq(:, current_timestep) = T_magnetic_effective;
+                rw_ang_vel_rpm(1,current_timestep) = AngVel_rw_rpm(3,1); 
                 acceleration_rw(2,1) = acceleration_rw_cur;
                 AngVel_rw_rpm(3,1) = AngVel_rw_rpm_next;
                 AngVel_rw_radps(3,1) = AngVel_rw_radps_next;
-                M_data(:,(cycle_index-1)*N_Timesteps+timestep_index) = M;
-                bias_data(:,(cycle_index-1)*N_Timesteps+timestep_index) = real_bias;
-                gyro_noise_data(:,(cycle_index-1)*N_Timesteps+timestep_index) = gyro_noise;
-                x_hat_data(:,(cycle_index-1)*N_Timesteps+timestep_index) = x_hat;
-                Bbody_data(:,(cycle_index-1)*N_Timesteps+timestep_index) = y_real(1:3)*norm(mag_field_orbit(:,(cycle_index-1)*N_Timesteps+timestep_index)*N_Timesteps^(-9));
+                M_data(:,current_timestep) = M;
+                bias_data(:,current_timestep) = real_bias;
+                gyro_noise_data(:,current_timestep) = gyro_noise;
+                x_hat_data(:,current_timestep) = x_hat;
+                Bbody_data(:,current_timestep) = y_real(1:3)*norm(mag_field_orbit(:,current_timestep)*10^(-9));
                 
              end
         end
@@ -584,9 +587,9 @@ end
         subplot(3,1,i);
         plot(Time(1:end-1),x_real(4+i,1:length(Time)-1),'LineWidth',2.0, 'Color','blue');
         xlabel('Time [s]', 'interpreter','latex', 'fontsize',12);
-        if (i==1), ylabel('\omega1 [rad/sec]', 'interpreter','latex', 'fontsize',14); end
-        if (i==2), ylabel('\omega2 [rad/sec]', 'interpreter','latex', 'fontsize',14); end
-        if (i==3), ylabel('\omega3 [rad/sec]', 'interpreter','latex', 'fontsize',14); end
+        if (i==1), ylabel('\omega_1 [rad/sec]', 'interpreter','latex', 'fontsize',14); end
+        if (i==2), ylabel('\omega_2 [rad/sec]', 'interpreter','latex', 'fontsize',14); end
+        if (i==3), ylabel('\omega_3 [rad/sec]', 'interpreter','latex', 'fontsize',14); end
         ylabel(['$\omega_' num2str(i) '$' '[rad/sec]'], 'interpreter','latex', 'fontsize',14);
         if (i==1), legend('Angular Velocity');end
         if (i==1), title('Angular Velocities', 'interpreter','latex', 'fontsize',17); end
@@ -993,7 +996,8 @@ end
      xlabel('Time [s]');
      grid on;
 
-
+    figure()
+    plot(Bbody_data(3,:))
 
 
 

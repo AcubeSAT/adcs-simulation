@@ -78,7 +78,7 @@ function Const = constants()
 
     orbitPeriod = (2 * pi) / (w_o);       % Orbit Period
     n = orbitPeriod * orbits;             % Total simulation time
-    mtq_max = [0.3, 0.3, 0.3];
+    mtq_max = [0.2, 0.2, 0.2];
     rw_max_torque = 1e-4;
 
 %%  Passing the values of the parameters in a struct.
