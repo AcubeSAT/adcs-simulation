@@ -5,7 +5,7 @@ This folder includes Albedo effect matrices created by the corresponding defined
 This folder includes the Albedo Toolbox is directly cloned from the [Website of Dan D. V. Bhanderi](https://www.bhanderi.dk/downloads/). It is used to calculate the introduced albedo effect of the earth on the satellite body frame, which megatively affects the coarse sun sensor measurements.
 
 ## Bdot
-This folder includes he AOCS simulation analysis main files regarding the AOCS Detumbling Mode.
+This folder includes the AOCS simulation analysis main files regarding the AOCS Detumbling Mode.
 
 The purpose of the AOCS Detumbling Mode is to autonomously dissipate and control the satellite's angular velocity. This is achieved with a B-dot controller directly using measurements from the high precision 3-axis magnetometer. In case of magnetometer failure, the redundant 3-axis magnetometer unit integrated in the iMTQ board is used. Actuation is performed solely by the magnetorquers. No satellite orbit propagation, initialized by a TLE file, is performed during this mode.
 
@@ -14,7 +14,7 @@ This folder includes the AOCS simulation analysis main files regarding the AOCS 
 
 The purpose of the AOCS nominal mode is nadir-pointing according to the requirements. Nadir-pointing enables the reliable and continuous data transmission via the S-band to the GS. Nadir-pointing is achieved by determining and controlling the satellite's attitude. Attitude is determined by combining sensor measurements from the magnetometer, the sun sensors and the gyroscope. Attitude control is carried out by the magnetorquers and the reaction wheel.
 
-## Sun Pointing (Nominal_Moustakas+Pappa)
+## Sun Pointing
 This folder includes the AOCS simulation analysis main files regarding the AOCS Nominal Mode while Sun Pointing.
 
 This is an optional attitude profile of AOCS nominal mode being utilized in specified orbits, for which the power budget does not meet the mission's requirements. The attitude determination and orbit propagator algorithms remain the same as in N-01(Nadir Pointing). A PD controller that aims to achieve sun-pointing is implemented and the commanded torque is split between both the actuators.
