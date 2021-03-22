@@ -1,3 +1,18 @@
+% -----------------------------------------------------------------------------
+%
+%                              procedure ECEF2NED
+%
+%  this procedure rotates a vector from the ECEF to the NED frame
+%
+%   inputs        :
+%   ref_vec_ecef  - Vector in ECEF frame
+%   lat           - Latitude
+%   long          - Longitude
+%
+%   outputs       :
+%   ref_vector_ned - Vector in NED frame
+%  ----------------------------------------------------------------------------*/
+
 function ref_vector_ned = ECEF2NED(ref_vec_ecef,lat,long)
 for n=1:size(ref_vec_ecef,2)
     c1=[-sin(lat(n))*cos(long(n));-sin(lat(n))*sin(long(n));cos(lat(n))];
