@@ -1,3 +1,19 @@
+% -----------------------------------------------------------------------------
+%
+%                              procedure Orbit2ECI
+%
+%  this procedure rotates a vector from the Orbit to the ECI frame
+%
+%   inputs        :
+%   ref_vector_orbit - Vector in Orbit frame
+%   nodeo         - Right Ascension of the Ascending Node
+%   incl          - Inclination
+%   argp_mo       - Addition of Argument of Perigee with Mean Anomaly
+%
+%   outputs       :
+%   ref_vector_eci - Vector in ECI frame
+%  ----------------------------------------------------------------------------*/
+
 function DCM = Orbit_DCM(nodeo,incl,argp_mo)
 R=zeros(3,3);
 R(1,1) = -sin(argp_mo) * sin(nodeo) * cos(incl) + cos(argp_mo) * cos(nodeo);
@@ -12,5 +28,6 @@ R(3,1) = sin(incl) * sin(nodeo);
 R(3,2) = -sin(incl) * cos(nodeo);
 R(3,3) = cos(incl);
 
+%% Rotation of the initial Orbit frame to coincide it with the Body frame
 DCM = [-R(1,:); R(3,:); R(2,:)];
 end
