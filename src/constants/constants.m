@@ -3,46 +3,86 @@
 %   of the satellite and the ADCS components are set.
 %   Input: Nothing
 %   Output: Struct where all values of the parameters are included
+%   
+%   Parameters:
+%       m             - Satellite mass [kg]
+%       lx            - Satellite X-axis length [m]
+%       ly            - Satellite Y-axis length [m]
+%       lz            - Satellite Z-axis length [m]
+%       N_coils       - Number of turns of the coils
+%       A_coils       - Total area of the coils [m^2]
+%       R_coils       - Coils resistance [Ohm]
+%       mt            - Proportional parameter for calculating the current on each MTQ
+%                       For torquer rods: mt = 1.66 * (length/diameter)^1.5.
+%                       For air core magnetorquers: mt = 1.
+%       W_up_limit    - Upper limit of absolute power of mtq's [W]
+%       I_up_limit    - Upper limit of absolute current of mtq's [A]
+%       Km            - Motor torque constant (RW)
+%       Rb            - Armature resistance (RW)
+%       Kv            - Motor velocity constant (back-EMF constant) -> 1/Km
+%       b_friction    - Viscuous friction
+%       c_friction    - Coulomb friction
+%       Jw            - Inertia of the RW
+%       A             - Parameter which indicates the percentance of RW desaturation torque
+%       lim_dz        - The absolute value of the limits of the deadzone (in rpm)
+%       p_400         - Atmospheric density in an altitude of 400km [kg/m^3]
+%       p_500         - Atmospheric density in an altitude of 500km [kg/m^3]
+%       Ix            - Xaxis inertia (simplified)
+%       Iy            - Yaxis inertia (simplified)
+%       Iz            - Zaxis inertia (simplified)
+%       PMI           - Principal Moments of Inertia
+%       PAI           - Principal Axes of Inertia
+%       Cm            - Center of mass
+%       I             - Inertia matrix -> PAI*PMI*PAI'
+%       I_inv 	      - Inverse inertia matrix -> eye(3,3)/I;
+%       Re            - Earth radius [m]
+%       Rs            - Satellite altitude [m]
+%       Radius        - Distance from earth center to satellite [m]
+%       G             - Earth gravitational constant
+%       M             - Earth mass
+%       w_o           - Satellite angular velocity relative to Earth
+%       v_satellite   - Satellite's velocity in orbit
+%       known_rm      - Residual magnetic dipole
+%       orbitPeriod   - Orbit Period
+%       n             - Total simulation time
+%       mtq_max       - Maximum magnetic dipole of magnetorquers
+%       rw_max_torque - Maximum torque of the Reaction Wheel
+
 % ======================================================================== %%
 
 function Const = constants()
 
     global orbits;
 
-    m = 4;                                  % Satellite mass [kg]
-    lx = 0.1;                               % X-axis length
-    ly = 0.1;                               % Y-axis length
-    lz = 0.3405;                            % Z-axis length
+    m = 4;                                  
+    lx = 0.1;
+    ly = 0.1;                              
+    lz = 0.3405;                          
 
-    N_coils = [400 400 800];                % Number of turns of the coil
-    A_coils = [0.0022 0.0022 0.001566];     % Total area of the coil (m^2)
-    R_coils = [110 110 31.32];              % Coil resistance (Ohm)
-    mt = [5 5 1];                           % For torquer rods: mt = 1.66 * (length/diameter)^1.5.
-                                            % For air core magnetorquers: mt = 1.
-    W_up_limit = [0.2273 0.2273 0.8017];    % Upper limit of absolute power of mtq's (W)
-    I_up_limit = [0.0455 0.0455 0.1566];    % Upper limit of absolute current of mtq's (A)
+    N_coils = [400 400 800];               
+    A_coils = [0.0022 0.0022 0.001566];     
+    R_coils = [110 110 31.32];             
+    mt = [5 5 1];
+    W_up_limit = [0.2273 0.2273 0.8017];   
+    I_up_limit = [0.0455 0.0455 0.1566];
 
-    K = eye(3) * diag([N_coils(1) * A_coils(1) / R_coils(1), N_coils(2) * A_coils(2) / R_coils(2), N_coils(3) * A_coils(3) / R_coils(3)]);
-    K_inv = eye(3) / K;
+    Km = 20e-5;                     
+    Rb = 10;                        
+    Ai = 1;                        
+                                    
+    Kv = 1/Km;                     
+    b_friction = 9.5e-9;            
+    c_friction = 1.9e-7;            
+    Jw = 1.9e-6;                    
+    A = 0.12;                       
+    lim_dz = 300;                   
 
-    Km = 20e-5;                     % Motor torque constant (RW)
-    Rb = 10;                        % Armature resistance (of RW)
-    Ai = 1;                         % The influence of the RW on the angular acceleration
-                                    % of the satellite (on the axis the RW is placed)
-    Kv = 1/Km;                      % Motor velocity constant (back-EMF constant)
-    T_friction = 0.002;             % The torque due to Friction Force
-    b_friction = 9.5e-9;            % Viscuous friction
-    c_friction = 1.9e-7;            % Coulomb friction
-    Jw = 1.9e-6;                    % Inertia of the RW
-    A = 0.12;                       % Used when desaturation of the RW
-    lim_dz = 300;                   % The absolute value of the limits of the deadzone (in rpm)
-
-    p_400 = 7.55e-12;               % Atmospheric density [kg/m^3]
+    p_400 = 7.55e-12;              
     p_500 = 1.80e-12;
 
-    Ix = (m / 12) * (ly^2 + lz^2);  % Xaxis inertia
-    Iy = (m / 12) * (lx^2 + lz^2);  % Yaxis inertia
-    Iz = (m / 12) * (lx^2 + ly^2);  % Zaxis inertia
+    Ix = (m / 12) * (ly^2 + lz^2);  
+    Iy = (m / 12) * (lx^2 + lz^2);  
+    Iz = (m / 12) * (lx^2 + ly^2); 
 
 %% Current Inertia
 %     PMI = diag([0.03868845951 0.03899129965 0.00696263029]); %Principal Moments of Inertia
@@ -55,9 +95,9 @@ function Const = constants()
 
 %% THIS INERTIA MAKES ME HAPPY
     
-    PMI = diag([0.03552528444 0.03572444349 0.00626757327]);        % Principal Moments of Inertia
-    PAI = [0.98, 0.2, -0.02; -0.20, 0.98, 0.00 ; 0.02, 0.01, 1.00]; % Principal Axes of Inertia
-    Cm =  [0.00121 0.00057 0.00188]';                               % Center of mass
+    PMI = diag([0.03552528444 0.03572444349 0.00626757327]);        
+    PAI = [0.98, 0.2, -0.02; -0.20, 0.98, 0.00 ; 0.02, 0.01, 1.00]; 
+    Cm =  [0.00121 0.00057 0.00188]';                               
 
     for j=1:3
         PAI(:,j) = PAI(:,j)/norm(PAI(:,j));
@@ -65,19 +105,19 @@ function Const = constants()
     I = PAI*PMI*PAI';
     I_inv = eye(3,3)/I;
 
-    Re = 6371.2e3;                        % Earth radius [m]
-    Rs = 500e3;                           % Satellite altitude [m]
-    Radius = Re + Rs;                     % Distance from earth center to satellite [m]
-    G = 6.67428e-11;                      % Earth gravitational constant
-    M = 5.972e24;                         % Earth mass
-    w_o = sqrt(G * M / Radius^3);         % Satellite angular velocity relative to Earth
-    v_satellite = sqrt(G * M / Radius);   % Satellite's velocity in orbit
+    Re = 6371.2e3;                        
+    Rs = 500e3;                           
+    Radius = Re + Rs;                     
+    G = 6.67428e-11;                     
+    M = 5.972e24;                     
+    w_o = sqrt(G * M / Radius^3);        
+    v_satellite = sqrt(G * M / Radius); 
     w_o_io = [0 w_o 0]';
 
     known_rm = [0.048 0.051 0.047];
 
-    orbitPeriod = (2 * pi) / (w_o);       % Orbit Period
-    n = orbitPeriod * orbits;             % Total simulation time
+    orbitPeriod = (2 * pi) / (w_o);      
+    n = orbitPeriod * orbits;     
     mtq_max = [0.2, 0.2, 0.2];
     rw_max_torque = 1e-4;
 
