@@ -1,9 +1,25 @@
+% -----------------------------------------------------------------------------
+%
+%                              procedure calculate_eclipse
+%
+%  this procedure extracts all required data from the TLE file
+%  and initializes the SGP4 orbit propagator
+%
+%   inputs        :
+%   xsat_eci      - Satellite position in ECI frame
+%   sun_pos_eci   - Sun position in ECI frame
+%
+%   outputs       :
+%     eclipse     - Ecistence (or not) of elcipse in umbral or penumbral conditions
+%  ----------------------------------------------------------------------------*/
+
 function eclipse = calculate_eclipse(xsat_eci,sun_pos_eci)
-%% Calculate eclipse
+%% -------- Constants ------
 R_EARTH = 6371;
 R_SUN=696000;
 AU = 149600000;
 
+%% -------- Algorithm ------
 for n=1:size(xsat_eci,2)
     
     x1 = R_EARTH*AU/(R_SUN+R_EARTH);
@@ -22,8 +38,4 @@ for n=1:size(xsat_eci,2)
         eclipse(n) =0;
     end
 end
-alpha1;
-alpha2;
-alpha;
-eclipse;
 end
