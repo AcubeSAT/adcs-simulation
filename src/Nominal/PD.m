@@ -17,9 +17,10 @@
 %     B_body                 - Estimated magnetic field expressed on Body frame
 %     mtq_max                - Maximum dipole provided by each Magnetorquer
 %     lim_dz                 - Absolute value of the limits of the deadzone [revolutions/min]
-%     AngVel_rw_radps_cur    - RW angular velocity [rad/sec]
-%     AngVel_rw_rpm_cur      - RW angular velocity [revolutions/min]
-%     acceleration_rw_old    - RW acceleration
+%     AngVel_rw_radps_cur    - Current RW angular velocity [rad/sec]
+%     AngVel_rw_rpm_cur      - Current RW angular velocity [revolutions/min]
+%     acceleration_rw_old    - RW acceleration during the previous timestep
+%                              [revolutions/(min*sec)]
 %     init_AngVel_dz         - Initial RW angular velocity when entering deadzone
 %     init_accel_dz          - Initial RW acceleration when entering deadzone
 %     timeflag_dz            - Counter which indicates the time present in the deadzone 
@@ -38,7 +39,7 @@
 %     P_thermal_rw           - Power consumed from RW
 %     AngVel_rw_rpm_new      - Next RW angular velocity [revolutions/min]
 %     AngVel_rw_radps_new    - Next RW angular velocity [rad/sec]
-%     acceleration_rw_cur    - Current RW acceleration
+%     acceleration_rw_cur    - Current RW acceleration [revolutions/(min*sec)]
 %     rw_ang_momentum        - RW angular momentum
 %     init_AngVel_dz         - Initial RW angular velocity when entering deadzone
 %     init_accel_dz          - Initial RW acceleration when entering deadzone

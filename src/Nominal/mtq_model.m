@@ -1,3 +1,15 @@
+% =========================================================================%
+%   Function for calculating the voltage, amperage and power of the magnetorquers 
+%
+%   Inputs:
+%       m              - Magnetic Dipole provided to magnetorquers
+%
+%   Ouputs:
+%       V_mtq          - Voltage on MTQs
+%       I_mtq          - Amperage on MTQs
+%       P_thermal_mtq  - Power consumed by MTQs
+% =========================================================================%
+
 function [V_mtq, I_mtq, P_thermal_mtq] = mtq_model(m)
 
     % Global constants may be taken as input from the function.

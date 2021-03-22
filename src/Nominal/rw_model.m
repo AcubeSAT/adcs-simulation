@@ -1,3 +1,20 @@
+% =========================================================================%
+%   Function for calculating the current state of the Reaction Wheel
+%
+%   Inputs:
+%       T_rw_desired        - Desired torque 
+%       AngVel_rw           - Current angular velocity of the RW
+%
+%   Outputs:
+%       V_rw                - Voltage of RW
+%       I_rw                - Amperage of RW
+%       P_thermal_rw        - Total power consumed on RW
+%       AngVel_rw_new       - Angular velocity of RW on next timestep
+%       acceleration        - Acceleration of RW
+%       T_rw_total          - Total RW torque (with frictions)
+%
+% =========================================================================%
+
 function [V_rw, I_rw, P_thermal_rw, AngVel_rw_new, acceleration, T_rw_total] = rw_model(T_rw_desired, AngVel_rw)
     % The angular velocity of the Reaction Wheel is given by a sensor
     % placed on the RW.
