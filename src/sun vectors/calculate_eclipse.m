@@ -2,8 +2,7 @@
 %
 %                              procedure calculate_eclipse
 %
-%  this procedure extracts all required data from the TLE file
-%  and initializes the SGP4 orbit propagator
+%  this procedure calculates the extistence of eclipse at any time during in-orbit
 %
 %   inputs        :
 %   xsat_eci      - Satellite position in ECI frame
