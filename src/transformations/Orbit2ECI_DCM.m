@@ -2,7 +2,7 @@
 %
 %                              procedure Orbit2ECI
 %
-%  this procedure rotates a vector from the Orbit to the ECI frame
+%  this procedure returns the matrix that rotates from the Orbit to the ECI frame
 %
 %   inputs        :
 %   nodeo           - Right Ascension of the Ascending Node
