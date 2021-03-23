@@ -59,7 +59,7 @@ classdef real_SatelliteModel
         %
         function y = msrFun(this, x, cookie)
 
-            this.magn_ref = cookie.magn_ref
+            this.magn_ref = cookie.magn_ref;
             this.sun_ref = cookie.sun_ref;
             this.eclipse = cookie.eclipse;
             
