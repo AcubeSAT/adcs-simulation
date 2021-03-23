@@ -1,12 +1,14 @@
 %% CSS Noise Function
 %% Inputs: 
-% Sun position in ECI frame(sun_eci), the quaternion from ECI to Body frame (q_eci_body),
-% the position of the satellite in ECI frame, the percantage of sunlight diffused from earth that
-% interacts with the satellite (albedo_perc), and finally the poisson
-% parameter used to add noise (lambda).
+% sun_eci = Sun in the ECI frame 
+% q_eci_body = the quaternion from ECI to Body frame
+% xsat_eci = the position of the Satellite in the ECI frame
+% albedo_perc = the percentage of the sunlight diffused from earth that
+% interacts with the satellite
+% labda = the poisson parameter used to add noise
 %% Outputs: 
-% the total sun vector, i.e. including both sun, albedo, and error
-% measurement in the body frame (total_sun_vector).
+% total_sun_vector = the total sun vector, i.e. including both sun, albedo, 
+% and error measurement in the body frame
 %% 
 % The function finds where each of the 6 Coarse sun sensors look at the
 % giving time by turning the Body frame to an angle according to the
