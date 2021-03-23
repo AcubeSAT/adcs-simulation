@@ -123,8 +123,6 @@ function Const = constants()
 
 %%  Passing the values of the parameters in a struct.
 
-    Const.K = K;
-    Const.K_inv = K_inv;
     Const.Radius = Radius;
     Const.w_o = w_o;
     Const.v_satellite = v_satellite;
@@ -144,7 +142,6 @@ function Const = constants()
     Const.Km = Km;
     Const.Kv = Kv;
     Const.Ai = Ai;
-    Const.T_friction = T_friction;
     Const.b_friction = b_friction;
     Const.c_friction = c_friction;
     Const.Rb = Rb;
