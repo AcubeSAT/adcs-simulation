@@ -19,7 +19,6 @@ Q12 = zeros(4,1);
 Q12(1) = n1*n2 - e1'*e2;
 Q12(2:4) = n1*e2 + n2*e1 + cross(e1,e2);
 
-% if Q12(1)<0, Q12=-Q12; end
 
 end
 
