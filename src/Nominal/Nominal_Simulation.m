@@ -118,8 +118,8 @@ clc;
     bias_data = zeros(3,length(Time));
     gyro_noise_data = zeros(3,length(Time));
     Bbody_data = zeros(3,length(Time));
-%     entered_eclipse = false;
-%     exited_eclipse = false;
+    entered_eclipse = false;
+    exited_eclipse = false;
     
     
 %% Next we initialize the bias estimation by solving Wahba's problem n times. 
@@ -130,7 +130,7 @@ clc;
     real_bias=init_bias;
 
 
-    for cycle_index = 1:bias_wahba_loops+1
+    for cycle_index = 1:bias_wahba_loops
         current_timestep = (cycle_index-1)*N_Timesteps+1;
         if eclipse(current_timestep)==0
             
@@ -168,13 +168,19 @@ clc;
                   %Set measurements to 0 until bias has initialized
 
                 for i=1:10
+                    %% Current SGP4 matrices values
+                    Nodem = nodem(1,current_timestep);
+                    Inclm = inclm(1,current_timestep);
+                    Argpm = argpm(1,current_timestep);
+                    Mm = mm(1,current_timestep);
+                    Sun_pos_orbit = sun_pos_orbit(:,current_timestep);
+                    Mag_field_orbit = mag_field_orbit(:,current_timestep)*10^(-9);
+                    
                     %% Propagate the system
                     current_timestep = (cycle_index-1)*N_Timesteps+i;
                 
-                    q_ob = quat_EB2OB(x(1:4), nodem(1,current_timestep),inclm(1,current_timestep),...
-                        argpm(1,current_timestep),mm(1,current_timestep) );
-                    [T_dist, ~,~,~,~,~,~] = disturbances_pd(q_ob, sun_pos_orbit(:,current_timestep),...
-                        mag_field_orbit(:,current_timestep)*10^(-9), disturbancesEnabled);
+                    q_ob = quat_EB2OB(x(1:4),Nodem,Inclm,Argpm,Mm);
+                    [T_dist, ~,~,~,~,~,~] = disturbances_pd(q_ob, Sun_pos_orbit,Mag_field_orbit, disturbancesEnabled);
                 
                     torq = T_dist;
 
@@ -223,58 +229,36 @@ clc;
   
              for timestep_index = 1:3
                  
-                current_timestep = (cycle_index-1)*N_Timesteps+timestep_index;
-                %% ================ Adaptive ======================================
-    %
-    %           if(entered_eclipse == false) && (eclipse(current_timestep) ~= 0)
-    %               Q_eclipse =  eye(n_dim_error,n_dim_error);
-    %               Q_eclipse(4:6,4:6) = 0.5e-06*eye(3,3);
-    %               %Q_eclipse = Q_eclipse_load;
-    %               R_hat_coeff=10000*[.5e-3;.5e-3;.5e-3;4e-3;4e-3;4e-3;1e-3;1e-3;1e-3];
-    %               R_hat = R_hat_coeff.*eye(number_of_measurments,number_of_measurments);
-    %               mekf.setProcessNoiseCov(Q_eclipse); %Q variance matrix
-    %               mekf.setMeasureNoiseCov(R_hat); %R variance matrix
-    %               entered_eclipse = true;
-    %           end
-    %           
-    %           if(exited_eclipse == false) && (entered_eclipse == true) && (eclipse(current_timestep) == 0)
-    %               Q_outside =  0.5e-05*eye(n_dim_error,n_dim_error);
-    %               Q_outside(4:6,4:6) = 0.5e-07*eye(3,3);
-    %               %Q_outside = Q_eclipse_load;
-    %               %Q_outside = Q;
-    %               mekf.setProcessNoiseCov(Q_outside);
-    %               mekf.setMeasureNoiseCov(Param.R_hat); %R variance matrix
-    %               exited_eclipse = true;
-    %               entered_eclipse = false;
-    %           end
-                %% ============ IdealQ ============================================        
-                if (eclipse(current_timestep))
-                    % Variances
-                    Q = Q_eclipse_load; % Variance of the process noise w[cycle_index]
-
-                    % R Variances used in MEKF
-                    % R_hat_coeff=[1e-3;1e-3;1e-3;8e-3;8e-3;8e-3;5e-3;5e-3;5e-3];
-                    R_hat_coeff=10000*[.5e-3;.5e-3;.5e-3;4e-3;4e-3;4e-3;1e-3;1e-3;1e-3];
-                    R_hat = R_hat_coeff.*eye(number_of_measurments,number_of_measurments);
-                    mekf.setProcessNoiseCov(Q); %Q variance matrix
-                     mekf.setMeasureNoiseCov(R_hat); %R variance matrix
-                else
-                    mekf.setProcessNoiseCov(Param.Q); %Q variance matrix
-                    mekf.setMeasureNoiseCov(Param.R_hat); %R variance matrix
-                end
+                current_timestep = (cycle_index-1)*N_Timesteps+timestep_index + 1;
                 
+                %% Current SGP4 matrices values
+                Mag_field_eci = mag_field_eci(:,current_timestep);
+                Sun_pos_eci = sun_pos_eci(:,current_timestep);
+                Eclipse = eclipse(current_timestep);
+                Xsat_eci = xsat_eci(:,current_timestep);
+                Albedo_inaccurate = albedo_inaccurate(:,current_timestep);
+                Albedo = albedo(:,current_timestep);
+                Nodem = nodem(1,current_timestep);
+                Inclm = inclm(1,current_timestep);
+                Argpm = argpm(1,current_timestep);
+                Mm = mm(1,current_timestep);
+                Sun_pos_orbit = sun_pos_orbit(:,current_timestep);
+                Mag_field_orbit = mag_field_orbit(:,current_timestep)*10^(-9);
+
+                %% Q covariance update
+                
+                [exited_eclipse,entered_eclipse] = Q_selection(Eclipse,Param.Q,Param.R_hat,mekf,Q_eclipse_load,...
+                    exited_eclipse,entered_eclipse,Param.set_Q_selection_method);
                 
                 %% Sensor Measurements
-                y_real = real_model.msrFun(x,msrCookieFinal(mag_field_eci(:,current_timestep),...
-                    sun_pos_eci(:,current_timestep),eclipse(current_timestep),[0;0;0]));
+                y_real = real_model.msrFun(x,msrCookieFinal(Mag_field_eci,Sun_pos_eci,Eclipse,[0;0;0]));
                 
                 y_noise = y_real + sqrt(R)*randn(size(y_real));
                 [gyro_noise,real_bias] = gyro_noise_func(real_bias,dt,sigma_u,sigma_v);
 
                 y_noise(4:6) = y_real(4:6) + gyro_noise;
              
-                y_noise(7:9) = css_noise(sun_pos_eci(:,current_timestep),x(1:4),...
-                    xsat_eci(:,current_timestep),albedo(:,current_timestep),lambda);
+                y_noise(7:9) = css_noise(Sun_pos_eci,x(1:4),Xsat_eci,Albedo,lambda);
         
                 if eclipse(current_timestep)~=0
                     y_noise(7:9)=zeros(3,1);
@@ -286,31 +270,26 @@ clc;
                 
                 %% MEKF correct
                 gyro = y_noise(4:6);
-                mekf.correct(y_noise, msrCookieFinalExtended(mag_field_eci(:,current_timestep),...
-                    sun_pos_eci(:,current_timestep),eclipse(current_timestep),gyro,xsat_eci(:,current_timestep),...
-                        albedo_inaccurate(:,current_timestep),lambda));
+                mekf.correct(y_noise, msrCookieFinalExtended(Mag_field_eci,Sun_pos_eci,Eclipse,gyro,Xsat_eci,Albedo_inaccurate,lambda));
 
                 x_hat = mekf.global_state;
                 x_hat(1:4) = x_hat(1:4) / norm(x_hat(1:4));
                 
 
                 %% Propagate the system
-                
-                q_ob_data(:,current_timestep) = quat_EB2OB(x(1:4), nodem(1,current_timestep),...
-                    inclm(1,current_timestep),argpm(1,current_timestep),mm(1,current_timestep) );                
+                              
                 [~, ~, ~, AngVel_rw_radps(3,1), acceleration_rw(2,1), T_rw_total] = rw_model(0, AngVel_rw_radps(3,1)); % RW model
-                
-                [T_dist, ~,~,ad,r,sp,g] = disturbances_pd(q_ob_data(:,current_timestep),...
-                    sun_pos_orbit(:,current_timestep), mag_field_orbit(:,current_timestep)*10^(-9), disturbancesEnabled);
+                q_ob = quat_EB2OB(x(1:4), Nodem,Inclm,Argpm,Mm );
+                [T_dist, ~,~,ad,r,sp,g] = disturbances_pd(q_ob,Sun_pos_orbit, Mag_field_orbit, disturbancesEnabled);
                 
                 torq = T_rw_total + T_dist;
                 x = real_model.stateTransFun(x, stateTransCookieFinalNominal(torq,rw_ang_momentum,[0;0;0])); 
-
+                  
                 
                 %% MEKF predict
-                % Predict the states at next time step, cycle_index+1. This updates the State and
-                % StateCovariance properties of the filter to contain x[cycle_index+1|cycle_index] and
-                % P[cycle_index+1|cycle_index]. These will be utilized by the filter at the next time step.
+                % Predict the states at next time step, k+1. This updates the State and
+                % StateCovariance properties of the filter to contain x[k+1|k] and
+                % P[k+1|k]. These will be utilized by the filter at the next time step.
 
                 gyro = y_noise(4:6);
                 mekf.predict(stateTransCookieFinalNominal(torq,rw_ang_momentum,gyro),dt);
@@ -329,54 +308,33 @@ clc;
                 Bbody_data(:,current_timestep) = y_real(1:3)*norm(mag_field_orbit(:,current_timestep)*10^(-9));
                 bias_data(:,current_timestep) = real_bias;
                 gyro_noise_data(:,current_timestep) = gyro_noise;
+                q_ob_data(:,current_timestep) = q_ob;
                 
              end 
 
              for timestep_index=4:10   
         
-                 current_timestep = (cycle_index-1)*N_Timesteps+timestep_index;
-                %% ================ Adaptive ======================================
-    %
-    %           if(entered_eclipse == false) && (eclipse(current_timestep) ~= 0)
-    %               Q_eclipse =  eye(n_dim_error,n_dim_error);
-    %               Q_eclipse(4:6,4:6) = 0.5e-06*eye(3,3);
-    %               %Q_eclipse = Q_eclipse_load;
-    %               R_hat_coeff=10000*[.5e-3;.5e-3;.5e-3;4e-3;4e-3;4e-3;1e-3;1e-3;1e-3];
-    %               R_hat = R_hat_coeff.*eye(number_of_measurments,number_of_measurments);
-    %               ekf.setProcessNoiseCov(Q_eclipse); %Q variance matrix
-    %               ekf.setMeasureNoiseCov(R_hat); %R variance matrix
-    %               entered_eclipse = true;
-    %           end
-    %           
-    %           if(exited_eclipse == false) && (entered_eclipse == true) && (eclipse(current_timestep) == 0)
-    %               Q_outside =  0.5e-05*eye(n_dim_error,n_dim_error);
-    %               Q_outside(4:6,4:6) = 0.5e-07*eye(3,3);
-    %               %Q_outside = Q_eclipse_load;
-    %               %Q_outside = Q;
-    %               ekf.setProcessNoiseCov(Q_outside);
-    %               ekf.setMeasureNoiseCov(Param.R_hat); %R variance matrix
-    %               exited_eclipse = true;
-    %               entered_eclipse = false;
-    %           end
-                %% ============ IdealQ ============================================        
-                if (eclipse(current_timestep))
-                    % Variances
-                    Q = Q_eclipse_load; % Variance of the process noise w[cycle_index]
+                 current_timestep = (cycle_index-1)*N_Timesteps+timestep_index +1 ;
+                 
+                 %% Current SGP4 matrices values 
 
-                    % R Variances used in EKF
-                    % R_hat_coeff=[1e-3;1e-3;1e-3;8e-3;8e-3;8e-3;5e-3;5e-3;5e-3];
-                    R_hat_coeff=10000*[.5e-3;.5e-3;.5e-3;4e-3;4e-3;4e-3;1e-3;1e-3;1e-3];
-                    R_hat = R_hat_coeff.*eye(number_of_measurments,number_of_measurments);
-                    mekf.setProcessNoiseCov(Q); %Q variance matrix
-                     mekf.setMeasureNoiseCov(R_hat); %R variance matrix
-                else
-                    mekf.setProcessNoiseCov(Param.Q); %Q variance matrix
-                    mekf.setMeasureNoiseCov(Param.R_hat); %R variance matrix
-                end
+                 Mag_field_eci = mag_field_eci(:,current_timestep);
+                 Sun_pos_eci = sun_pos_eci(:,current_timestep);
+                 Eclipse = eclipse(current_timestep);
+                 Nodem = nodem(1,current_timestep);
+                 Inclm = inclm(1,current_timestep);
+                 Argpm = argpm(1,current_timestep);
+                 Mm = mm(1,current_timestep);
+                 Sun_pos_orbit = sun_pos_orbit(:,current_timestep);
+                 Mag_field_orbit = mag_field_orbit(:,current_timestep)*10^(-9);
+                 
+                 %% Q covariance update
+                 
+                 [exited_eclipse,entered_eclipse] = Q_selection(Eclipse,Param.Q,Param.R_hat,mekf,Q_eclipse_load,...
+                    exited_eclipse,entered_eclipse,Param.set_Q_selection_method);
                 
                 %% Sensor Measurements
-                y_real = real_model.msrFun(x,msrCookieFinal(mag_field_eci(:,current_timestep),...
-                    sun_pos_eci(:,current_timestep),eclipse(current_timestep),[0;0;0]));
+                y_real = real_model.msrFun(x,msrCookieFinal(Mag_field_eci,Sun_pos_eci,Eclipse,[0;0;0]));
                 
                 [gyro_noise,real_bias] = gyro_noise_func(real_bias,dt,sigma_u,sigma_v);
                 y_noise(4:6) = y_real(4:6) + gyro_noise; 
@@ -384,11 +342,11 @@ clc;
                 x_hat = mekf.global_state;
                 x_hat(1:4) = x_hat(1:4) / norm(x_hat(1:4));
                 
-                q_ob_hat = quat_EB2OB(x_hat(1:4), nodem(1,current_timestep),inclm(1,current_timestep),...
-                    argpm(1,current_timestep),mm(1,current_timestep) );
+                
 
                 %% PD function
-
+                    
+                q_ob_hat = quat_EB2OB(x_hat(1:4),Nodem,Inclm,Argpm,Mm);
                 acceleration_rw(1,1) = acceleration_rw(2,1);
                 acceleration_rw(2,1) = acceleration_rw(3,1);
                 AngVel_rw_radps(1,1) = AngVel_rw_radps(2,1);
@@ -399,19 +357,17 @@ clc;
                 [torq, T_rw, T_magnetic_effective, ~, ~, ~, AngVel_rw_rpm_next, AngVel_rw_radps_next,...
                         acceleration_rw_cur, rw_ang_momentum, init_AngVel_dz, init_accel_dz, ~, ~, ~, ...
                             timeflag_dz,M] = ...
-                                PD(Kp_gain, Kd_gain, q_desired ,q_ob_hat, Const.w_o_io, y_noise(4:6)-mekf.global_state(5:7) , y_noise(1:3)*norm(mag_field_orbit(:,current_timestep)*10^(-9)), ...
+                                PD(Kp_gain, Kd_gain, q_desired ,q_ob_hat, Const.w_o_io, y_noise(4:6)-mekf.global_state(5:7) , y_noise(1:3)*norm(Mag_field_orbit), ...
                                     Const.mtq_max, Const.lim_dz, AngVel_rw_radps(2,1), AngVel_rw_rpm(2,1), ...
                                         acceleration_rw(1,1), init_AngVel_dz, init_accel_dz, timeflag_dz,Const.rw_max_torque,...
-                                            y_real(1:3)*norm(mag_field_orbit(:,current_timestep)*10^(-9)), cycle_index, Const.known_rm);
+                                            y_real(1:3)*norm(Mag_field_orbit), cycle_index, Const.known_rm);
                 
            
                 
                 %% Propagate the system
                 
-                q_ob_data(:,current_timestep) = quat_EB2OB(x(1:4), nodem(1,current_timestep),...
-                    inclm(1,current_timestep),argpm(1,current_timestep),mm(1,current_timestep) );
-                [T_dist, ~,~,ad,r,sp,g] = disturbances_pd(q_ob_data(:,current_timestep),...
-                    sun_pos_orbit(:,current_timestep), mag_field_orbit(:,current_timestep)*10^(-9), disturbancesEnabled);
+                q_ob = quat_EB2OB(x(1:4),Nodem,Inclm,Argpm,Mm);
+                [T_dist, ~,~,ad,r,sp,g] = disturbances_pd(q_ob,Sun_pos_orbit, Mag_field_orbit, disturbancesEnabled);
                 
                 torq = torq + T_dist;
                 
@@ -440,6 +396,7 @@ clc;
                 gyro_noise_data(:,current_timestep) = gyro_noise;
                 x_hat_data(:,current_timestep) = x_hat;
                 Bbody_data(:,current_timestep) = y_real(1:3)*norm(mag_field_orbit(:,current_timestep)*10^(-9));
+                q_ob_data(:,current_timestep) = q_ob;
                 
              end
         end
@@ -460,7 +417,7 @@ figure();
 for i=1:3
     subplot(3,1,i);
     hold on;
-    plot(Time(21:length(APE)), APE(21:length(APE), i), 'LineWidth',1.5, 'Color','blue');
+    plot(Time(1:length(APE)), APE(1:length(APE), i), 'LineWidth',1.5, 'Color','blue');
     if (i==1), title('Absolute Performance Errors', 'interpreter','latex', 'fontsize',17);end
     if (i==1), ylabel('X-axis [deg]', 'interpreter','latex', 'fontsize',14); end
     if (i==2), ylabel('Y-axis [deg]', 'interpreter','latex', 'fontsize',14); end
@@ -499,7 +456,7 @@ figure();
 for i=1:6
     subplot(6,1,i);
     hold on;
-    plot(Time(21:length(instant_error_know)), instant_error_know(21:length(instant_error_know), i), 'LineWidth',1.5, 'Color','blue');
+    plot(Time(1:length(instant_error_know)), instant_error_know(1:length(instant_error_know), i), 'LineWidth',1.5, 'Color','blue');
     if (i==1), title('Absolute Knowledge Errors', 'interpreter','latex', 'fontsize',17);end
     if (i==1), ylabel('X-axis [deg]', 'interpreter','latex', 'fontsize',14); end
     if (i==2), ylabel('Y-axis [deg]', 'interpreter','latex', 'fontsize',14); end
@@ -587,9 +544,9 @@ end
         subplot(3,1,i);
         plot(Time(1:end-1),x_real(4+i,1:length(Time)-1),'LineWidth',2.0, 'Color','blue');
         xlabel('Time [s]', 'interpreter','latex', 'fontsize',12);
-        if (i==1), ylabel('\omega_1 [rad/sec]', 'interpreter','latex', 'fontsize',14); end
-        if (i==2), ylabel('\omega_2 [rad/sec]', 'interpreter','latex', 'fontsize',14); end
-        if (i==3), ylabel('\omega_3 [rad/sec]', 'interpreter','latex', 'fontsize',14); end
+        if (i==1), ylabel('$\omega_1$ [rad/sec]', 'interpreter','latex', 'fontsize',14); end
+        if (i==2), ylabel('$\omega_2$ [rad/sec]', 'interpreter','latex', 'fontsize',14); end
+        if (i==3), ylabel('$\omega_3$ [rad/sec]', 'interpreter','latex', 'fontsize',14); end
         ylabel(['$\omega_' num2str(i) '$' '[rad/sec]'], 'interpreter','latex', 'fontsize',14);
         if (i==1), legend('Angular Velocity');end
         if (i==1), title('Angular Velocities', 'interpreter','latex', 'fontsize',17); end
@@ -683,7 +640,7 @@ figure()
 for i=1:3
     subplot(3,3,i);
     hold on;
-    plot(Time(21:length(Time)), max_mtq_torque(i, 21:length(Time)), 'LineWidth',1.5, 'Color','blue');
+    plot(Time(1:length(Time)), max_mtq_torque(i, 1:length(Time)), 'LineWidth',1.5, 'Color','blue');
     if (i==2), title('Maximum MTQ torque', 'interpreter','latex', 'fontsize',17);end
     if (i==1), ylabel('X-axis [deg]'); end
     if (i==2), ylabel('Y-axis [deg]'); end
@@ -696,7 +653,7 @@ end
 for i=1:3
     subplot(3,3,i+3);
     hold on;
-    plot(Time(21:length(Time)), total_torques(i,21:length(Time)), 'LineWidth',1.5, 'Color','blue');
+    plot(Time(1:length(Time)), total_torques(i,1:length(Time)), 'LineWidth',1.5, 'Color','blue');
     if (i==2), title('Total actuator torque', 'interpreter','latex', 'fontsize',17);end
     if (i==1), ylabel('X-axis [deg]'); end
     if (i==2), ylabel('Y-axis [deg]'); end
@@ -773,13 +730,13 @@ end
 mean_error_perf = zeros(3, 11);
 for i = 1:3
     for j = 1:11*orbits
-    mean_error_perf(i, j) = mean(APE(21+((500/dt)*(j-1)):21+((500/dt)*j), i));
+    mean_error_perf(i, j) = mean(APE(1+((500/dt)*(j-1)):1+((500/dt)*j), i));
     end
 end
 
 mean_error_perf_matrix = zeros(length(x_hat_data),3);
 for j = 1:11*orbits
-    for i = 21+((500/dt)*(j-1)):21+((500/dt)*j)
+    for i = 1+((500/dt)*(j-1)):1+((500/dt)*j)
         mean_error_perf_matrix(i, :) = mean_error_perf(:,j);
     end
 end
@@ -803,13 +760,13 @@ end
 mean_error_know = zeros(6, 11);
 for i = 1:6
     for j = 1:11*orbits
-    mean_error_know(i, j) = mean(instant_error_know(21+((500/dt)*(j-1)):21+((500/dt)*j), i));
+    mean_error_know(i, j) = mean(instant_error_know(1+((500/dt)*(j-1)):1+((500/dt)*j), i));
     end
 end
 
 mean_error_know_matrix = zeros(length(x_hat_data),6);
 for j = 1:11*orbits
-    for i = 21+((500/dt)*(j-1)):21+((500/dt)*j)
+    for i = 1+((500/dt)*(j-1)):1+((500/dt)*j)
         mean_error_know_matrix(i, :) = mean_error_know(:,j);
     end
 end
@@ -839,7 +796,7 @@ figure();
 for i=1:3
     subplot(3,1,i);
     hold on;
-    plot(Time(21:length(relative_error_perf)), relative_error_perf(21:length(relative_error_perf), i), 'LineWidth',1.5, 'Color','blue');
+    plot(Time(1:length(relative_error_perf)), relative_error_perf(1:length(relative_error_perf), i), 'LineWidth',1.5, 'Color','blue');
     if (i==1), title('Relative Performance Errors', 'interpreter','latex', 'fontsize',17);end
     if (i==1), ylabel('X-axis [deg]'); end
     if (i==2), ylabel('Y-axis [deg]'); end
@@ -859,7 +816,7 @@ figure();
 for i=1:6
     subplot(6,1,i);
     hold on;
-    plot(Time(21:length(instant_error_know)), relative_error_know(21:length(relative_error_know), i), 'LineWidth',1.5, 'Color','blue');
+    plot(Time(1:length(instant_error_know)), relative_error_know(1:length(relative_error_know), i), 'LineWidth',1.5, 'Color','blue');
     ylabel(['$\tilde{x}_' num2str(i) ' [rad/sec]$'], 'interpreter','latex', 'fontsize',14);
     if (i==1), title('Relative Knowledge Errors', 'interpreter','latex', 'fontsize',17);end
     if (i==1), ylabel('X-axis [deg]', 'interpreter','latex', 'fontsize',14); end
@@ -874,7 +831,7 @@ end
 % for i=1:3
 %     subplot(3,1,i);
 %     hold on;
-%     plot(Time(21:length(rm)), rm(i, 21:length(rm)), 'LineWidth',1.5, 'Color','blue');
+%     plot(Time(1:length(rm)), rm(i, 1:length(rm)), 'LineWidth',1.5, 'Color','blue');
 %     if (i==1), title('Residual Magnetic Dipole', 'interpreter','latex', 'fontsize',17);end
 %     if (i==1), ylabel('X-axis [deg]'); end
 %     if (i==2), ylabel('Y-axis [deg]'); end

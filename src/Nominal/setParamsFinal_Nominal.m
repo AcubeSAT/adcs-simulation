@@ -80,7 +80,7 @@ n_dim = length(x0); % state length
 n_dim_error = 6; % error state length
 number_of_measurments = 9; %Measurements length
 Kp=100;
-mtq_max = 0.2;
+
 setDisturbances = "total";   % Set which disturbances you want to activate: tau_g, tau_ad, tau_sp, tau_rm, total, zero
 rng(1); % Fix the random number generator for reproducible results
 plotter_step=10;
@@ -120,7 +120,7 @@ R = R_coeff.*eye(number_of_measurments,number_of_measurments); % Variance of the
 sigma_u = 7.7570e-04;
 % Gyro white noise std dev
 sigma_v = 0.0026;
-
+set_Q_selection_method = "IdealQ"; % Set Q selection method : IdealQ, AdaptiveQ
 % R Variances used in MEKF
 % R_hat_coeff=[1e-3;1e-3;1e-3;8e-3;8e-3;8e-3;5e-3;5e-3;5e-3];
 R_hat_coeff=[.5e-3;.5e-3;.5e-3;4e-3;4e-3;4e-3;1e-3;1e-3;1e-3];
@@ -181,6 +181,7 @@ use_analytic_jacob = true;
 
     Param.init_bias = init_bias;
     Param.Q = Q;
+    Param.set_Q_selection_method = set_Q_selection_method;
     Param.Kp = Kp;
     Param.R_coeff = R_coeff;
     Param.R = R;
