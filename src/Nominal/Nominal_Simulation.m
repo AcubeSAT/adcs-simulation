@@ -118,8 +118,6 @@ clc;
     bias_data = zeros(3,length(Time));
     gyro_noise_data = zeros(3,length(Time));
     Bbody_data = zeros(3,length(Time));
-    entered_eclipse = false;
-    exited_eclipse = false;
     
     
 %% Next we initialize the bias estimation by solving Wahba's problem n times. 
@@ -247,8 +245,7 @@ clc;
 
                 %% Q covariance update
                 
-                [exited_eclipse,entered_eclipse] = Q_selection(Eclipse,Param.Q,Param.R_hat,mekf,Q_eclipse_load,...
-                    exited_eclipse,entered_eclipse,Param.set_Q_selection_method);
+                Q_selection(Eclipse,Param.Q,Param.R_hat,mekf,Q_eclipse_load);
                 
                 %% Sensor Measurements
                 y_real = real_model.msrFun(x,msrCookieFinal(Mag_field_eci,Sun_pos_eci,Eclipse,[0;0;0]));
@@ -330,8 +327,7 @@ clc;
                  
                  %% Q covariance update
                  
-                 [exited_eclipse,entered_eclipse] = Q_selection(Eclipse,Param.Q,Param.R_hat,mekf,Q_eclipse_load,...
-                    exited_eclipse,entered_eclipse,Param.set_Q_selection_method);
+                 Q_selection(Eclipse,Param.Q,Param.R_hat,mekf,Q_eclipse_load);
                 
                 %% Sensor Measurements
                 y_real = real_model.msrFun(x,msrCookieFinal(Mag_field_eci,Sun_pos_eci,Eclipse,[0;0;0]));

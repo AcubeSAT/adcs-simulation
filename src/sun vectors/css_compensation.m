@@ -1,11 +1,13 @@
-%% CSS Compensation
+%% ========================================================================
+% CSS Compensation
 %% Inputs:
-% Sun in the ECI frame (sun_eci), the quaternion from ECI to Body
-% frame,(q_eci,body), the position of the Satellite in the ECI frame and
-% the percentage of the sunlight diffused from earth that interacts with
-% the satellite (albedo_perc).
+% sun_eci = Sun in the ECI frame 
+% q_eci_body = the quaternion from ECI to Body frame
+% xsat_eci = the position of the Satellite in the ECI frame
+% albedo_perc = the percentage of the sunlight diffused from earth that
+% interacts with the satellite
 %% Outputs:
-% The total sun vector in the Body Frame (total_sun_vector)
+% total_sun_vector = The total sun vector in the Body Frame
 %%
 % This function is used in the Measurement Function of the Kalman Filter.
 % It's purpose is to provide what the measurment of the CSS will be. Hence,
@@ -14,7 +16,7 @@
 % Subsequently, the Measurement Function can define the difference between
 % the actual measurement (which comes from CSS Noise) and the expected
 % measurement (which comes from this function) and adjust accordingly.
-
+% =========================================================================
 
 
 function total_sun_vector = css_compensation(sun_eci,q_eci_body,xsat_eci,albedo_perc,~)
