@@ -9,7 +9,6 @@
 %         gyro               - Gyro measurements
 %         sun_ref            - Sun position
 %         eclipse            - Existence or not of eclipse conditions
-%         rw_ang_momentum    - RW angular momentum
 % ======================================================================== %
 
 classdef SatelliteModel
@@ -116,7 +115,6 @@ classdef SatelliteModel
         gyro
         sun_ref
         eclipse
-        rw_ang_momentum
     end
     
 end
