@@ -54,7 +54,7 @@
 function  [torque, T_rw, T_magnetic_effective, V_rw, I_rw, P_thermal_rw, AngVel_rw_rpm_new, AngVel_rw_radps_new,...
             acceleration_rw_cur, rw_ang_momentum, init_AngVel_dz, init_accel_dz, V_mtq, I_mtq, P_thermal_mtq, ...
                 timeflag_dz,M] = ...
-                    PD(Kp_gain, Kd_gain, q_desired, q_orbit_body, w_o_io, w_b_ib, B_body, mtq_max, ...
+                    PD(Eclipse,Kp_gain, Kd_gain, q_desired, q_orbit_body, w_o_io, w_b_ib, B_body, mtq_max, ...
                         lim_dz, AngVel_rw_radps_cur, AngVel_rw_rpm_cur, acceleration_rw_old, init_AngVel_dz, ...
                             init_accel_dz, timeflag_dz, rw_max_torque, B_body_real, time, known_rm)
     
@@ -64,6 +64,10 @@ function  [torque, T_rw, T_magnetic_effective, V_rw, I_rw, P_thermal_rw, AngVel_
     global Jw;
     global Max_RW_torq;
 
+    if Eclipse
+        Kd = 10.* Kd_gain;
+    end
+    
     q_w_b_io = quatProd(quatconj(q_orbit_body'), quatProd([0;w_o_io], q_orbit_body));
     w_b_io = q_w_b_io(2:4);
 
