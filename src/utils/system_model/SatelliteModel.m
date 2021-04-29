@@ -62,10 +62,8 @@ classdef SatelliteModel
             Q = x(1:4);
             
             y = zeros(6,1);
-
-            y1 = quatProd( quatconj(Q'), quatProd([0; this.magn_ref], Q) );
             
-            y(1:3) = y1(2:4); 
+            y(1:3) = rotate_vector(Q, this.magn_ref);
             y(1:3) = y(1:3)/norm(y(1:3));          
 
             if this.eclipse == 0

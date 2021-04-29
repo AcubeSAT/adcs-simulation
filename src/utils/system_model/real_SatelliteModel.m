@@ -70,17 +70,16 @@ classdef real_SatelliteModel
             y(4:6) = vRot;
             
             this.magn_ref=this.magn_ref/norm(this.magn_ref);
-            y1 = quatProd( quatInv(Q) , quatProd([0; this.magn_ref], Q) );
             
-            y(1:3) = y1(2:4);
+            y(1:3) = rotate_vector(Q,this.magn_ref);
+            
             y(1:3) = y(1:3)/norm(y(1:3));
     
             this.sun_ref = this.sun_ref/norm(this.sun_ref);
 
             if this.eclipse == 0
-                y2 = quatProd( quatInv(Q), quatProd([0; this.sun_ref], Q) );
-            
-                y(7:9) = y2(2:4);
+                y(7:9) = rotate_vector(Q,this.sun_ref);
+       
                 y(7:9) = y(7:9)/norm(y(7:9));
             else
                 y(7:9) = zeros(3,1);
