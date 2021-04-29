@@ -123,8 +123,8 @@ sigma_v = 0.0026;
 
 % R Variances used in MEKF
 % R_hat_coeff=[1e-3;1e-3;1e-3;8e-3;8e-3;8e-3;5e-3;5e-3;5e-3];
-R_hat_coeff=[.5e-3;.5e-3;.5e-3;4e-3;4e-3;4e-3;1e-3;1e-3;1e-3];
-R_hat = R_hat_coeff.*eye(number_of_measurments,number_of_measurments);
+R_hat_coeff=[.5e-3;.5e-3;.5e-3;1e-3;1e-3;1e-3];
+R_hat = R_hat_coeff.*eye(6,6);
 
 % Initialize Covariance matrix
 P0 = 1*eye(n_dim_error,n_dim_error);

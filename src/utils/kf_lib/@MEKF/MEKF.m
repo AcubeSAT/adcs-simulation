@@ -202,8 +202,11 @@ classdef MEKF < handle
             % =====  Correction procedure =====                      
             
             Kg = this.P * this.H_k' / (this.H_k * this.P * this.H_k' + this.R); % 
-                                                     
-            local_error_state =  Kg * (z - z_hat); 
+            
+            z_new(1:3) = z(1:3);
+            z_new(4:6) = z(7:9);
+            
+            local_error_state =  Kg * (z_new' - z_hat); 
             local_error_quaternion = [1 ; 0.5 * local_error_state(1:3)]; 
             
             this.global_state(1:4) = quatProd(this.global_state(1:4),local_error_quaternion); 

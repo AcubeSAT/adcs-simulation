@@ -62,17 +62,16 @@ classdef SatelliteModel
             Q = x(1:4);
             
             y = zeros(6,1);
-            y(4:6) = this.gyro - x(5:7);
-            
-            y1 = quatProd( quatInv(Q), quatProd([0; this.magn_ref], Q) );
+
+            y1 = quatProd( quatconj(Q'), quatProd([0; this.magn_ref], Q) );
             
             y(1:3) = y1(2:4); 
             y(1:3) = y(1:3)/norm(y(1:3));          
 
             if this.eclipse == 0
-                y(7:9) = css_compensation(this.sun_ref,Q,cookie.xsat_eci,cookie.albedo,cookie.lambda);
+                y(4:6) = css_compensation(this.sun_ref,Q,cookie.xsat_eci,cookie.albedo,cookie.lambda);
             else
-                y(7:9) = zeros(3,1);
+                y(4:6) = zeros(3,1);
             end
 
         end
@@ -88,7 +87,7 @@ classdef SatelliteModel
            z_hat = this.msrFun(x, cookie);
             
            H = [skew(z_hat(1:3)) zeros(3,3);...
-                skew(z_hat(4:6)) zeros(3,3);skew(z_hat(7:9)) zeros(3,3)];
+                skew(z_hat(4:6)) zeros(3,3)];
         end
 
 
