@@ -18,18 +18,18 @@
 
 fit = @fitness_function_Nominal;
 
-lb = [1 1 1 1 1 1];
-ub = [100 100 100 100 100 100];
+lb = [.1e-5 .1e-3 .1e-3 .1e-5 .1e-3 .1e-3];
+ub = [.9e-3 .9e1 .9e1 .9e-3 .9e1 .9e1];
 % lb = [0 0 0 0 0 0];
 % ub = [1 1 1];
 
 opts = optimoptions(@ga, ...
                     'PopulationSize', 20, ...
-                    'MaxGenerations', 10, ...
+                    'MaxGenerations', 6, ...
                     'UseParallel', true);
 
 [x, f] = ga(fit, 6, [], [], [], [], lb, ub, [], opts);                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      
 
-% M1 = x;
-% name = 'genetic.xls';
-% writematrix(M1, name)
+M1 = x;
+name = 'genetic.xls';
+writematrix(M1, name)
