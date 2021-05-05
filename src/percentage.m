@@ -41,3 +41,10 @@ per1 = total1/length(y) %X < 20
 per2 = total2/length(y) %Y < 20
 per3 = total3/length(y) % Z < 20
 
+error_estimation = zeros(2,2);
+
+alpha = 0.05;
+
+error_estimation(1,:) = bootci(100,{@median,angles(:,1)},'alpha',alpha,'type','percentile');
+error_estimation(2,:) = bootci(100,{@median,angles(:,2)},'alpha',alpha,'type','percentile')
+
