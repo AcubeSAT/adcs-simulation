@@ -2,13 +2,33 @@
 %Output: 95% confidence intervals of median absolute error on each axis
 
 %% The following is for excluding periods of eclipse
-%error_struct = load('performance_error1.mat');
-% indices = [1:15962 (29525):72540 (86242):129072 (142960):166351 186050 (199677):242583 (256394):299561 (313112):332701]; --> 6pm
-% indices = [1:22092 (43496):78813 (100217):135533 (156937):192189 (213657):248589 (270377):305525 (327097):332701]; --> 11pm
-% indices = [1:22611 (42025):80668 (100081):138725 (158136):196781 (216192):254838 (274248):312894 332304:332701]; --> 600km
-% indices = [1:20721 (40676):76918 (96873):133115 (153070):189313 (209267):245510 (265463):301707 (321660):332701]; --> 450km
-% indices = [1:23415 (44639):81471 (102695):139527 (160751):197584 (218808):255640 (276864):length(instant_error_perform)]; % --> 600km 11pm
+offset = 5000;
+timestamps= [];
+e =1;
 
+for i = 1:length(eclipse)
+    if eclipse(i) == e
+        timestamps = [timestamps i];
+        if e == 1
+            e = 0;
+        else
+            e = 1;
+        end
+    end
+end
+if mod(length(timestamps),2) == 0
+    timestamps = [timestamps 0];
+end
+indices = 1:timestamps(1);
+
+
+for i = 2:2:length(timestamps)
+    if timestamps(i+1) ~=0
+        indices = [indices (timestamps(i)+offset):timestamps(i+1)];
+    else
+        indices = [indices (timestamps(i)+offset):length(instant_error_perform)];
+    end
+end
 error = instant_error_perform(indices,:)';
 
 %% Main script
