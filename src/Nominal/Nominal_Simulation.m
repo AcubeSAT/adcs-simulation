@@ -10,7 +10,7 @@
 %     Time      - Timesteps [sec]
 % ======================================================================== 
 
-function [APE, Time] = Nominal_Simulation(Kp_gain, Kd_gain) 
+function [APE, Time, eclipse] = Nominal_Simulation(Kp_gain, Kd_gain) 
 
 close all;
 clc;
@@ -415,9 +415,9 @@ for i=1:3
     hold on;
     plot(Time(1:length(APE)), APE(1:length(APE), i), 'LineWidth',1.5, 'Color','blue');
     if (i==1), title('Absolute Performance Errors', 'interpreter','latex', 'fontsize',17);end
-    if (i==1), ylabel('X-axis [deg]', 'interpreter','latex', 'fontsize',14); end
+    if (i==1), ylabel('Z-axis [deg]', 'interpreter','latex', 'fontsize',14); end
     if (i==2), ylabel('Y-axis [deg]', 'interpreter','latex', 'fontsize',14); end
-    if (i==3), ylabel('Z-axis [deg]', 'interpreter','latex', 'fontsize',14); end
+    if (i==3), ylabel('X-axis [deg]', 'interpreter','latex', 'fontsize',14); end
     xlabel('Time [$s$]', 'interpreter','latex', 'fontsize',12);
     hold off;
     grid on;
@@ -815,9 +815,9 @@ for i=1:6
     plot(Time(1:length(instant_error_know)), relative_error_know(1:length(relative_error_know), i), 'LineWidth',1.5, 'Color','blue');
     ylabel(['$\tilde{x}_' num2str(i) ' [rad/sec]$'], 'interpreter','latex', 'fontsize',14);
     if (i==1), title('Relative Knowledge Errors', 'interpreter','latex', 'fontsize',17);end
-    if (i==1), ylabel('X-axis [deg]', 'interpreter','latex', 'fontsize',14); end
+    if (i==1), ylabel('Z-axis [deg]', 'interpreter','latex', 'fontsize',14); end
     if (i==2), ylabel('Y-axis [deg]', 'interpreter','latex', 'fontsize',14); end
-    if (i==3), ylabel('Z-axis [deg]', 'interpreter','latex', 'fontsize',14); end
+    if (i==3), ylabel('X-axis [deg]', 'interpreter','latex', 'fontsize',14); end
     xlabel('Time [$s$]', 'interpreter','latex', 'fontsize',12);
     hold off;
     grid on;

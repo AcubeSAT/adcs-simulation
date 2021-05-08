@@ -127,13 +127,13 @@ clear variables;
 % Kd_gain= 1e-04*diag([9.6 47.6 89.6]);
 
 % 
-Kp_gain= 1e-05*diag([30 50 60]);
-Kd_gain= 1e-04*diag([9.6 47.6 70]);
+% Kp_gain= 1e-05*diag([30 50 60]);
+% Kd_gain= 1e-04*diag([9.6 47.6 70]);
 
 %% =============== 11PM =============================
 
-% Kp_gain= 1e-05*diag([20 70 60]);
-% Kd_gain= 1e-04*diag([9.6 47.6 90]);
+Kp_gain= 1e-05*diag([20 120 120]);
+Kd_gain= 1e-04*diag([75 65 75]);
 
 %%
 %Kp_gain = 1e-05*diag([79.6779166239878,79.4583028666047,9.62090934528343]);%[78]
@@ -142,4 +142,4 @@ Kd_gain= 1e-04*diag([9.6 47.6 70]);
 %Kp_gain = 1e-05*diag([191.501367086860,186.798649551510,138.965724595163]);%[80]
 %Kd_gain = 1e-03*diag([0.612173320368121,56.4550153997157,52.6266508247473]);%[81]
 
-[instant_error_perform, Time] = Nominal_Simulation(Kp_gain, Kd_gain);
+[instant_error_perform, Time, eclipse] = Nominal_Simulation(Kp_gain, Kd_gain);
