@@ -65,10 +65,8 @@ function  [torque, T_rw, T_magnetic_effective, V_rw, I_rw, P_thermal_rw, AngVel_
     global Max_RW_torq;
 
     if (Eclipse)
-%         Kp_gain = 0.8* Kp_gain;      % 6PM
-        Kd_gain = 10.* Kd_gain;      % 6PM
-        
-%         Kd_gain = 20.* Kd_gain;      % 11PM
+        Kp_gain = 1.2* Kp_gain;
+        Kd_gain = 20.* Kd_gain;
     end
     
     q_w_b_io = quatProd(quatconj(q_orbit_body'), quatProd([0;w_o_io], q_orbit_body));
