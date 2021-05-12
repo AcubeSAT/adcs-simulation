@@ -435,11 +435,11 @@ instant_error_know(:, 1:3) = x_hat_euler_know(:, 1:3) - x_real_euler_know';
 instant_error_know(:, 4:6) = x_hat_data(5:7, 1:length(x_hat_data))' - bias_data';
 
 for i=1:3
-    for k=1:length(instant_error_know)
-        if instant_error_know(k, i) > 180
-            instant_error_know(k, i) = instant_error_know(k, i) - 360;
-        elseif instant_error_know(k, i) < -180
-            instant_error_know(k, i) = instant_error_know(k, i) + 360;
+    for cycle_index=1:length(instant_error_know)
+        if instant_error_know(cycle_index, i) > 180
+            instant_error_know(cycle_index, i) = instant_error_know(cycle_index, i) - 360;
+        elseif instant_error_know(cycle_index, i) < -180
+            instant_error_know(cycle_index, i) = instant_error_know(cycle_index, i) + 360;
         end
     end
 end
@@ -448,14 +448,14 @@ figure();
 for i=1:6
     subplot(6,1,i);
     hold on;
-    plot(Time(21:length(instant_error_know)), instant_error_know(21:length(instant_error_know), i), 'LineWidth',1.5, 'Color','blue');
+    plot(Time(1:length(instant_error_know)), instant_error_know(1:length(instant_error_know), i), 'LineWidth',1.5, 'Color','blue');
     if (i==1), title('Absolute Knowledge Errors', 'interpreter','latex', 'fontsize',17);end
     if (i==1), ylabel('X-axis [deg]', 'interpreter','latex', 'fontsize',14); end
     if (i==2), ylabel('Y-axis [deg]', 'interpreter','latex', 'fontsize',14); end
     if (i==3), ylabel('Z-axis [deg]', 'interpreter','latex', 'fontsize',14); end
-    if (i==4) ylabel(['$\omega_1 [rad/sec]$'], 'interpreter','latex', 'fontsize',14); end
-    if (i==5) ylabel(['$\omega_2 [rad/sec]$'], 'interpreter','latex', 'fontsize',14); end
-    if (i==6) ylabel(['$\omega_3 [rad/sec]$'], 'interpreter','latex', 'fontsize',14); end
+    if (i==4), ylabel('$\omega_1 [rad/sec]$', 'interpreter','latex', 'fontsize',14); end
+    if (i==5), ylabel('$\omega_2 [rad/sec]$', 'interpreter','latex', 'fontsize',14); end
+    if (i==6), ylabel('$\omega_3 [rad/sec]$', 'interpreter','latex', 'fontsize',14); end
     xlabel('Time [$s$]', 'interpreter','latex', 'fontsize',12);
     hold off;
     grid on;
@@ -477,7 +477,7 @@ for i=1:n_dim
     if (i==1),legend({['$x_' num2str(i) '$'],['$\hat{x}_' num2str(i) '$']}, 'interpreter','latex', 'fontsize',15);end
     ylabel(['$x_' num2str(i) '$'], 'interpreter','latex', 'fontsize',14);
     if (i==1), title('MEKF estimation results', 'interpreter','latex', 'fontsize',17);end
-    xlim([3 n_steps]);
+%     xlim([3 number_of_cycles]);
     xlabel('Time [$s$]', 'interpreter','latex', 'fontsize',12);
     hold off;
     grid on;
@@ -495,10 +495,10 @@ for i=1:4
     subplot(4,1,i);
     if (i==1), title('Quaternion', 'interpreter','latex', 'fontsize',17); end
     hold on;
-    plot(Time,q_ob_data(i,1:length(Time)), 'LineWidth',2.0, 'Color','blue');
+    plot(Time(1:end-1),q_ob_data(i,1:length(Time)-1), 'LineWidth',2.0, 'Color','blue');
     ylabel(['$q_{ob' num2str(i) '}$'], 'interpreter','latex', 'fontsize',14);
     xlabel('Time [s]', 'interpreter','latex', 'fontsize',12)
-    xlim([3 n_steps]);
+%     xlim([3 number_of_cycles]);
     hold off;
     grid on;
 end
@@ -509,7 +509,7 @@ end
     plot(1:length(eclipse),eclipse, 'LineWidth',2.0, 'Color','blue');
     title('Eclipse', 'interpreter','latex', 'fontsize',17)
     xlabel('Time [$s$]', 'interpreter','latex', 'fontsize',12);
-    ylabel(['Eclipse'], 'interpreter','latex', 'fontsize',14);
+    ylabel('Eclipse', 'interpreter','latex', 'fontsize',14);
     grid on;
     if (i==1), title('Umbral, Penumbral or no Eclipse', 'interpreter','latex', 'fontsize',17);end
 
@@ -525,7 +525,7 @@ end
 %     ylabel(['$\tilde{x}_' num2str(i) '$'], 'interpreter','latex', 'fontsize',14);
 %     if (i==1), legend({'State estimate','$\pm \sigma$'}, 'interpreter','latex', 'fontsize',11);end
 %     if (i==1), title('State estimation errors', 'interpreter','latex', 'fontsize',11); end
-%     xlim([3 n_steps]);
+%     xlim([3 number_of_cycles]);
 %     hold off;
 % end
 %
@@ -534,11 +534,11 @@ end
     figure();
     for i=1:3
         subplot(3,1,i);
-        plot(Time,x_real(4+i,1:length(Time)),'LineWidth',2.0, 'Color','blue');
+        plot(Time(1:end-1),x_real(4+i,1:length(Time)-1),'LineWidth',2.0, 'Color','blue');
         xlabel('Time [s]', 'interpreter','latex', 'fontsize',12);
-        if (i==1) ylabel(['\omega1 [rad/sec]'], 'interpreter','latex', 'fontsize',14); end
-        if (i==2) ylabel(['\omega2 [rad/sec]'], 'interpreter','latex', 'fontsize',14); end
-        if (i==3) ylabel(['\omega3 [rad/sec]'], 'interpreter','latex', 'fontsize',14); end
+        if (i==1), ylabel('$\omega_1$ [rad/sec]', 'interpreter','latex', 'fontsize',14); end
+        if (i==2), ylabel('$\omega_2$ [rad/sec]', 'interpreter','latex', 'fontsize',14); end
+        if (i==3), ylabel('$\omega_3$ [rad/sec]', 'interpreter','latex', 'fontsize',14); end
         ylabel(['$\omega_' num2str(i) '$' '[rad/sec]'], 'interpreter','latex', 'fontsize',14);
         if (i==1), legend('Angular Velocity');end
         if (i==1), title('Angular Velocities', 'interpreter','latex', 'fontsize',17); end
@@ -565,60 +565,154 @@ end
 %     hold on;
 %     plot(Time,eul_diff(i,1:length(Time)), 'LineWidth',2.0, 'Color','blue');
 %     ylabel(['$euler_{' num2str(i) '}$'], 'interpreter','latex', 'fontsize',17);
-%     xlim([3 n_steps]);
+%     xlim([3 number_of_cycles]);
 %     hold off;
 % end
 %%  Plotting the produced Torques
+
+      total_torques = tau_mtq;
+      total_torques(3,:) = total_torques(3,:) + tau_rw;
  
       figure()
-      subplot(3,1,1)
+      subplot(3,3,1)
       plot(1:length(Time),tau_mtq(1,1:length(Time)))
       title('Magnetic Torques', 'interpreter','latex', 'fontsize',17)
       ylabel('Torque-x [Nm]', 'interpreter','latex', 'fontsize',14)
       xlabel('Time [s]', 'interpreter','latex', 'fontsize',12)
       grid on;
-      subplot(3,1,2)
+      subplot(3,3,4)
       plot(1:length(Time),tau_mtq(2,1:length(Time)))
       ylabel('Torque-y [Nm]', 'interpreter','latex', 'fontsize',14)
       xlabel('Time [s]', 'interpreter','latex', 'fontsize',12)
       grid on;
-      subplot(3,1,3)
+      subplot(3,3,7)
       plot(1:length(Time),tau_mtq(3,1:length(Time)))
       ylabel('Torque-z [Nm]', 'interpreter','latex', 'fontsize',14)
       xlabel('Time [s]', 'interpreter','latex', 'fontsize',12)
       grid on;
-    
-      figure()
+      
+      subplot(3,3,3)
+      plot(1:length(Time),total_torques(1,1:length(Time)))
+      ylabel('Torques - x', 'interpreter','latex', 'fontsize',14)
+      xlabel('Time [s]', 'interpreter','latex', 'fontsize',12)
+      title('Total Torques', 'interpreter','latex', 'fontsize',17)
+      grid on;
+      
+      subplot(3,3,6)
+      plot(1:length(Time),total_torques(2,1:length(Time)))
+      ylabel('Torques - y', 'interpreter','latex', 'fontsize',14)
+      xlabel('Time [s]', 'interpreter','latex', 'fontsize',12)
+      grid on;      
+      
+      subplot(3,3,9)
+      plot(1:length(Time),total_torques(3,1:length(Time)))
+      ylabel('Torques - z', 'interpreter','latex', 'fontsize',14)
+      xlabel('Time [s]', 'interpreter','latex', 'fontsize',12)
+      grid on;
+
+      subplot(3,3,8)
       plot(1:length(Time),tau_rw(1, 1:length(Time)))
       title('Reaction Wheel Torque-z', 'interpreter','latex', 'fontsize',17)
       ylabel('Torque [Nm]', 'interpreter','latex', 'fontsize',14)
       xlabel('Time [s]', 'interpreter','latex', 'fontsize',12)
       grid on;
 
+      subplot(3,3,2)
+      plot(Time, rw_ang_vel_rpm(1,1:length(Time)),'LineWidth',1.5, 'Color','blue'); 
+      title('Angular velocity of RW', 'interpreter','latex', 'fontsize',17); 
+      ylabel('Angular Velocity [rpm]', 'interpreter','latex', 'fontsize',14); 
+      xlabel('Time [s]', 'interpreter','latex', 'fontsize',12); 
+      grid on;
+      
 %% 
-     figure() 
-     plot(Time, rw_ang_vel_rpm(1,1:length(Time)),'LineWidth',1.5, 'Color','blue'); 
-     title('Angular velocity of RW', 'interpreter','latex', 'fontsize',17); 
-     ylabel('Angular Velocity [rpm]', 'interpreter','latex', 'fontsize',14); 
-     xlabel('Time [s]', 'interpreter','latex', 'fontsize',12); 
-     grid on;
+mtq_max_vector = Const.mtq_max';
+mtq_max_vector = mtq_max_vector * ones(1,length(Bbody_data));
+max_mtq_torque = abs(cross(mtq_max_vector,Bbody_data));
+figure()
+for i=1:3
+    subplot(3,3,i);
+    hold on;
+    plot(Time(1:length(Time)), max_mtq_torque(i, 1:length(Time)), 'LineWidth',1.5, 'Color','blue');
+    if (i==2), title('Maximum MTQ torque', 'interpreter','latex', 'fontsize',17);end
+    if (i==1), ylabel('X-axis [deg]'); end
+    if (i==2), ylabel('Y-axis [deg]'); end
+    if (i==3), ylabel('Z-axis [deg]'); end
+    xlabel('Time [$s$]', 'interpreter','latex', 'fontsize',12);
+    hold off;
+    grid on;
+end
+
+for i=1:3
+    subplot(3,3,i+3);
+    hold on;
+    plot(Time(1:length(Time)), total_torques(i,1:length(Time)), 'LineWidth',1.5, 'Color','blue');
+    if (i==2), title('Total actuator torque', 'interpreter','latex', 'fontsize',17);end
+    if (i==1), ylabel('X-axis [deg]'); end
+    if (i==2), ylabel('Y-axis [deg]'); end
+    if (i==3), ylabel('Z-axis [deg]'); end
+    xlabel('Time [$s$]', 'interpreter','latex', 'fontsize',12);
+    hold off;
+    grid on;
+end
+for i=1:3
+    subplot(3,3,i+6);
+    hold on;
+    plot(Time(22:length(Time)),tau_dist(i,22:length(Time)), 'LineWidth',1.5, 'Color','blue')
+    if (i==2), title('Total disturbance torque', 'interpreter','latex', 'fontsize',17);end
+    if (i==1), ylabel('X-axis [deg]'); end
+    if (i==2), ylabel('Y-axis [deg]'); end
+    if (i==3), ylabel('Z-axis [deg]'); end
+    xlabel('Time [$s$]', 'interpreter','latex', 'fontsize',12);
+    hold off;
+    grid on;
+end
+
+%Max actuator Torque - Actuator Torque - Total Disturbances
+      
+      
+      figure()
+      subplot(3,1,1)
+      plot(1:length(Time),M_data(1, 1:length(Time)))
+      title('Induced dipole - x', 'interpreter','latex', 'fontsize',17)
+      ylabel('Torque [Nm]', 'interpreter','latex', 'fontsize',14)
+      xlabel('Time [s]', 'interpreter','latex', 'fontsize',12)
+      grid on;
+      subplot(3,1,2)
+      plot(1:length(Time),M_data(2, 1:length(Time)))
+      title('Induced dipole - y', 'interpreter','latex', 'fontsize',17)
+      ylabel('Torque [Nm]', 'interpreter','latex', 'fontsize',14)
+      xlabel('Time [s]', 'interpreter','latex', 'fontsize',12)
+      grid on;
+      subplot(3,1,3)
+      plot(1:length(Time),M_data(3, 1:length(Time)))
+      title('Induced dipole - z', 'interpreter','latex', 'fontsize',17)
+      ylabel('Torque [Nm]', 'interpreter','latex', 'fontsize',14)
+      xlabel('Time [s]', 'interpreter','latex', 'fontsize',12)
+      grid on;
+%% 
+%      figure() 
+%      plot(Time, rw_ang_vel_rpm(1,1:length(Time)),'LineWidth',1.5, 'Color','blue'); 
+%      title('Angular velocity of RW', 'interpreter','latex', 'fontsize',17); 
+%      ylabel('Angular Velocity [rpm]', 'interpreter','latex', 'fontsize',14); 
+%      xlabel('Time [s]', 'interpreter','latex', 'fontsize',12); 
+%      grid on;
  
  %%  Plotting the Disturbances
  
       figure()
       subplot(3,1,1)
-      plot(1:length(Time),tau_dist(1,1:length(Time)), 'LineWidth',1.5, 'Color','blue')
+      plot(Time(1:end-1),tau_dist(1,1:length(Time)-1), 'LineWidth',1.5, 'Color','blue')
       title('Disturbances', 'interpreter','latex', 'fontsize',17)
       ylabel('Disturbances-x [Nm]', 'interpreter','latex', 'fontsize',14)
       xlabel('Time [s]', 'interpreter','latex', 'fontsize',12)
       grid on;
       subplot(3,1,2)
-      plot(1:length(Time),tau_dist(2,1:length(Time)), 'LineWidth',1.5, 'Color','blue')
+      plot(Time(1:end-1),tau_dist(2,1:length(Time)-1), 'LineWidth',1.5, 'Color','blue')
       ylabel('Disturbances-y [Nm]', 'interpreter','latex', 'fontsize',14)
       xlabel('Time [s]', 'interpreter','latex', 'fontsize',12)
       grid on;
       subplot(3,1,3)
-      plot(1:length(Time),tau_dist(3,1:length(Time)), 'LineWidth',1.5, 'Color','blue')
+      plot(Time(1:end-1),tau_dist(3,1:length(Time)-1), 'LineWidth',1.5, 'Color','blue')
       ylabel('Disturbances-z [Nm]', 'interpreter','latex', 'fontsize',14)
       xlabel('Time [s]', 'interpreter','latex', 'fontsize',12)
       grid on;
@@ -628,13 +722,13 @@ end
 mean_error_perf = zeros(3, 11);
 for i = 1:3
     for j = 1:11*orbits
-    mean_error_perf(i, j) = mean(instant_error_perform(21+(5000*(j-1)):21+(5000*j), i));
+    mean_error_perf(i, j) = mean(APE(1+((500/dt)*(j-1)):1+((500/dt)*j), i));
     end
 end
 
-mean_error_perf_matrix = zeros(length(x_hat_data),3);
+mean_error_perf_matrix = zeros(length(APE),3);
 for j = 1:11*orbits
-    for i = 21+(5000*(j-1)):21+(5000*j)
+    for i = 1+((500/dt)*(j-1)):1+((500/dt)*j)
         mean_error_perf_matrix(i, :) = mean_error_perf(:,j);
     end
 end
@@ -658,13 +752,13 @@ end
 mean_error_know = zeros(6, 11);
 for i = 1:6
     for j = 1:11*orbits
-    mean_error_know(i, j) = mean(instant_error_know(21+(5000*(j-1)):21+(5000*j), i));
+    mean_error_know(i, j) = mean(instant_error_know(1+((500/dt)*(j-1)):1+((500/dt)*j), i));
     end
 end
 
 mean_error_know_matrix = zeros(length(x_hat_data),6);
 for j = 1:11*orbits
-    for i = 21+(5000*(j-1)):21+(5000*j)
+    for i = 1+((500/dt)*(j-1)):1+((500/dt)*j)
         mean_error_know_matrix(i, :) = mean_error_know(:,j);
     end
 end
@@ -683,23 +777,18 @@ for i=1:3
     grid on;
 end 
 
- figure()
- plot(Time(1:length(sun_pointing_error)),rad2deg(sun_pointing_error), 'LineWidth',1.5, 'Color','blue');
- title('Angle Between +X axis and Sun Vector [deg]', 'interpreter','latex', 'fontsize',17);
- xlabel('Time [$s$]', 'interpreter','latex', 'fontsize',12);
- grid on;
 
 %% Calculation and plotting of Relative Performance Error
-relative_error_perf = zeros(length(instant_error_perform(:,i)),3);
+relative_error_perf = zeros(length(mean_error_perf_matrix(:,i)),3);
 for i=1:3
-relative_error_perf(:,i) = instant_error_perform(:,i) - mean_error_perf_matrix(1:length(instant_error_perform(:,i)),i);
+relative_error_perf(:,i) = APE(1:length(mean_error_perf_matrix(:,i)),i) - mean_error_perf_matrix(:,i);
 end
 
 figure();
 for i=1:3
     subplot(3,1,i);
     hold on;
-    plot(Time(21:length(relative_error_perf)), relative_error_perf(21:length(relative_error_perf), i), 'LineWidth',1.5, 'Color','blue');
+    plot(Time(1:length(relative_error_perf)), relative_error_perf(1:length(relative_error_perf), i), 'LineWidth',1.5, 'Color','blue');
     if (i==1), title('Relative Performance Errors', 'interpreter','latex', 'fontsize',17);end
     if (i==1), ylabel('X-axis [deg]'); end
     if (i==2), ylabel('Y-axis [deg]'); end
@@ -719,13 +808,142 @@ figure();
 for i=1:6
     subplot(6,1,i);
     hold on;
-    plot(Time(21:length(instant_error_know)), relative_error_know(21:length(relative_error_know), i), 'LineWidth',1.5, 'Color','blue');
+    plot(Time(1:length(instant_error_know)), relative_error_know(1:length(relative_error_know), i), 'LineWidth',1.5, 'Color','blue');
     ylabel(['$\tilde{x}_' num2str(i) ' [rad/sec]$'], 'interpreter','latex', 'fontsize',14);
     if (i==1), title('Relative Knowledge Errors', 'interpreter','latex', 'fontsize',17);end
-    if (i==1), ylabel('X-axis [deg]', 'interpreter','latex', 'fontsize',14); end
+    if (i==1), ylabel('Z-axis [deg]', 'interpreter','latex', 'fontsize',14); end
     if (i==2), ylabel('Y-axis [deg]', 'interpreter','latex', 'fontsize',14); end
-    if (i==3), ylabel('Z-axis [deg]', 'interpreter','latex', 'fontsize',14); end
+    if (i==3), ylabel('X-axis [deg]', 'interpreter','latex', 'fontsize',14); end
     xlabel('Time [$s$]', 'interpreter','latex', 'fontsize',12);
     hold off;
     grid on;
 end
+% 
+% figure();
+% for i=1:3
+%     subplot(3,1,i);
+%     hold on;
+%     plot(Time(1:length(rm)), rm(i, 1:length(rm)), 'LineWidth',1.5, 'Color','blue');
+%     if (i==1), title('Residual Magnetic Dipole', 'interpreter','latex', 'fontsize',17);end
+%     if (i==1), ylabel('X-axis [deg]'); end
+%     if (i==2), ylabel('Y-axis [deg]'); end
+%     if (i==3), ylabel('Z-axis [deg]'); end
+%     xlabel('Time [$s$]', 'interpreter','latex', 'fontsize',12);
+%     hold off;
+%     grid on;
+% end
+
+%% Plotting disturbances
+ 
+    
+     T_disturbances = tau_rm + tau_ad + tau_sp + tau_g;
+     
+     subplot(3,5,1)
+     plot(1:length(Time),T_disturbances(1,1:length(Time)))
+     ylabel('Torque [Nm]')
+     xlabel('Time [s]');
+     title('Disturbances-x')
+     grid on;
+     subplot(3,5,6)
+     plot(1:1:length(Time),T_disturbances(2,1:length(Time)))
+     ylabel('Torque [Nm]')
+     title('Disturbances-y')
+     xlabel('Time [s]');
+     grid on;
+     subplot(3,5,11)
+     plot(1:1:length(Time),T_disturbances(3,1:length(Time)))
+     title('Disturbances-z')
+     ylabel('Torque [Nm]')
+     xlabel('Time [s]');
+     grid on;
+     
+     %% Plotting rm
+ 
+
+     subplot(3,5,2)
+     plot(1:length(Time),tau_rm(1,1:length(Time)))
+     ylabel('Torque [Am^2]')
+     xlabel('Time [s]');
+     title('MRD-x')
+     grid on;
+     subplot(3,5,7)
+     plot(1:length(Time),tau_rm(2,1:plotter_step:end))
+     ylabel('Torque [Am^2]')
+     title('MRD-y')
+     xlabel('Time [s]');
+     grid on;
+     subplot(3,5,12)
+     plot(1:plotter_step:reps,tau_rm(3,1:plotter_step:end))
+     title('MRD-z')
+     ylabel('Torque [Am^2]')
+     xlabel('Time [s]');
+     grid on;
+     
+     %% Plotting ad
+ 
+    
+     subplot(3,5,3)
+     plot(1:plotter_step:reps,tau_ad(1,1:plotter_step:end))
+     ylabel('Torque [Nm]')
+     xlabel('Time [s]');
+     title('Aerodynamic-x')
+     grid on;
+     subplot(3,5,8)
+     plot(1:plotter_step:reps,tau_ad(2,1:plotter_step:end))
+     ylabel('Torque [Nm]')
+     title('Aerodynamic-y')
+     xlabel('Time [s]');
+     grid on;
+     subplot(3,5,13)
+     plot(1:plotter_step:reps,tau_ad(3,1:plotter_step:end))
+     title('Aerodynamic-z')
+     ylabel('Torque [Nm]')
+     xlabel('Time [s]');
+     grid on;
+     
+     %% Plotting g
+ 
+ 
+     subplot(3,5,4)
+     plot(1:plotter_step:reps,tau_g(1,1:plotter_step:end))
+     ylabel('Torque [Nm]')
+     xlabel('Time [s]');
+     title('Gravitational-x')
+     grid on;
+     subplot(3,5,9)
+     plot(1:plotter_step:reps,tau_g(2,1:plotter_step:end))
+     ylabel('Torque [Nm]')
+     title('Gravitational-y')
+     xlabel('Time [s]');
+     grid on;
+     subplot(3,5,14)
+     plot(1:plotter_step:reps,tau_g(3,1:plotter_step:end))
+     title('Gravitational-z')
+     ylabel('Torque [Nm]')
+     xlabel('Time [s]');
+     grid on;
+     
+     %% Plotting sp
+ 
+ 
+     subplot(3,5,5)
+     plot(1:plotter_step:reps,tau_sp(1,1:plotter_step:end))
+     ylabel('Torque [Nm]')
+     xlabel('Time [s]');
+     title('Solar Pressure-x')
+     grid on;
+     subplot(3,5,10)
+     plot(1:plotter_step:reps,tau_sp(2,1:plotter_step:end))
+     ylabel('Torque [Nm]')
+     title('Solar Pressure-y')
+     xlabel('Time [s]');
+     grid on;
+     subplot(3,5,15)
+     plot(1:plotter_step:reps,tau_sp(3,1:plotter_step:end))
+     title('Solar Pressure-z')
+     ylabel('Torque [Nm]')
+     xlabel('Time [s]');
+     grid on;
+
+    figure()
+    plot(Bbody_data(3,:))
