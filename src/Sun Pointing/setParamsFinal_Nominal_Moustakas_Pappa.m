@@ -5,7 +5,7 @@ function Param = setParamsFinal_Nominal_Moustakas_Pappa(I)
 dt = .1; %Timestep for Orbit Propagator
 orbits=3;
 orbitPeriod=5545;
-tf = orbits*orbitPeriod+0.9; %Total Simulation Seconds
+tf = orbits*orbitPeriod; %Total Simulation Seconds
 %tf =(5545+0.9); %Total Simulation Seconds
 np = uint32((tf+dt)/dt); %Number of timesteps
 q_desired = [ 1 0 0 0 ] ; %Desired quaternion
@@ -14,9 +14,9 @@ q_desired = [ 1 0 0 0 ] ; %Desired quaternion
 [satrec, x] = orbit_init();
 [xsat_ecf, vsat_ecf,xsat_eci,vsat_eci, sat_llh,eclipse, mag_field_ned,mag_field_eci,mag_field_ecef,mag_field_orbit, sun_pos_ned,sun_pos_eci,sun_pos_ecef,sun_pos_orbit,satrec,argpm,nodem,inclm,mm,xnode,xinc] = orbit_sgp4(satrec,dt,tf+dt);
 
-for(i=1:length(xsat_eci))
-    xsat_eci_normalized(:,i) = xsat_eci(:,i)/norm(xsat_eci(:,i));
-end
+% for(i=1:length(xsat_eci))
+%     xsat_eci_normalized(:,i) = xsat_eci(:,i)/norm(xsat_eci(:,i));
+% end
 
 %eclipse = zeros(1,55460);
 % save('mag_orbit_10.mat','mag_field_orbit');
@@ -56,7 +56,7 @@ Q0 = Q0/norm(Q0); %Normalised Quaternion
 init_bias = [.01;0.15;-.08]; % bias initialization
 vRot0 = [0; 0; 0];
 %vRot0 = [pi/4; pi/2; pi/8];
-% vRot0 = [0.035; 0.035; 0.035]; %Initial Angular Velocities from Body to ECI frame expressed in Body.
+%vRot0 = [0.035; 0.035; 0.035]; %Initial Angular Velocities from Body to ECI frame expressed in Body.
 x0 = [Q0;vRot0]; %Initial state consists of [Quaternion;Angular Velocity]
 % Random Initial State Estimation
 Q0_hat = [.6;.1;-.7;.01];
@@ -78,9 +78,9 @@ disturbancesEnabled = "total";
 %% ======= Simulation Constants ========
 n_dim = length(x0); % state length
 n_dim_error = 6; % error state length
-n_msr = 9; %Measurements length
+number_of_measurments = 9; %Measurements length
 Kp=100;
-mtq_max = 0.2;
+
 setDisturbances = "total";   % Set which disturbances you want to activate: tau_g, tau_ad, tau_sp, tau_rm, total, zero
 rng(1); % Fix the random number generator for reproducible results
 plotter_step=10;
@@ -90,33 +90,42 @@ plotter_step=10;
 %% ======= Albedo ========
 %albedo = load("sso_albedo.mat");  % Choose albedo depending on orbit
 %albedo = load("iss_albedo.mat");
-albedo = load("SSO_500_6PM_1_Orbit_051231.mat");
+base_albedo = load("SSO_500_6PM_1_Orbit_051231.mat");
+base_albedo = base_albedo.new;
+base_albedo_inaccurate = load("SSO_500_6PM_1_Orbit_050101");
+base_albedo_inaccurate = base_albedo_inaccurate.new;
+albedo = base_albedo;
+albedo_inaccurate = base_albedo_inaccurate;
+
+if orbits>1
+    for i=1:orbits-1
+        albedo = [albedo base_albedo];
+        albedo_inaccurate = [albedo_inaccurate base_albedo_inaccurate];
+    end
+end
 
 
-albedo = albedo.new;
-albedo = [albedo albedo albedo];
-albedo_inaccurate = load("SSO_500_6PM_1_Orbit_050101");
 %albedo_inaccurate = load("sso_albedo.mat"); 
 
-albedo_inaccurate = albedo_inaccurate.new;
-albedo_inaccurate = [albedo_inaccurate albedo_inaccurate albedo_inaccurate];
+
 %% ======= Kalman filter params ========
 % Variances
-Q = 0.5e-05*eye(n_dim_error,n_dim_error); % Variance of the process noise w[k]
+%Q = 0.5e-05*eye(n_dim_error,n_dim_error); % Variance of the process noise w[k]
+Q = 1e-4*diag([1 1 1 1e-3 1e-3 1e-3]);
 %MGN noise 1e-3 (norm) | GYRO noise 1.57e-2| SUN noise 8.7e-3(norm)
 % R_coeff=[1e-6;1e-6;1e-6;5e-5;5e-5;5e-5;1.2e-5;1.2e-5;1.2e-5];   
 R_coeff=[1.83e-6;1.83e-6;1.83e-6;0;0;0;0;0;0];   
-R = R_coeff.*eye(n_msr,n_msr); % Variance of the measurement noise v[k]
+R = R_coeff.*eye(number_of_measurments,number_of_measurments); % Variance of the measurement noise v[k]
 
 % Gyro bias std dev
 sigma_u = 7.7570e-04;
 % Gyro white noise std dev
 sigma_v = 0.0026;
 
-% R Variances used in EKF
+% R Variances used in MEKF
 % R_hat_coeff=[1e-3;1e-3;1e-3;8e-3;8e-3;8e-3;5e-3;5e-3;5e-3];
-R_hat_coeff=[.5e-3;.5e-3;.5e-3;4e-3;4e-3;4e-3;1e-3;1e-3;1e-3];
-R_hat = R_hat_coeff.*eye(n_msr,n_msr);
+R_hat_coeff=[.5e-3;.5e-3;.5e-3;1e-3;1e-3;1e-3];
+R_hat = R_hat_coeff.*eye(6,6);
 
 % Initialize Covariance matrix
 P0 = 1*eye(n_dim_error,n_dim_error);
@@ -138,7 +147,7 @@ use_analytic_jacob = true;
     Param.sun_ref = sun_ref;
     Param.real_model = real_model;
     Param.model = model;
-    Param.n_msr = n_msr;
+    Param.number_of_measurments = number_of_measurments;
     Param.n_dim = n_dim;
     Param.kd = kd;
     Param.albedo = albedo;
@@ -148,8 +157,6 @@ use_analytic_jacob = true;
     Param.disturbancesEnabled = disturbancesEnabled;
     Param.setDisturbances = setDisturbances;
     Param.plotter_step = plotter_step;
-    Param.mtq_max = mtq_max;
-    
 
     Param.xsat_ecf = xsat_ecf;
     Param.vsat_ecf = vsat_ecf;

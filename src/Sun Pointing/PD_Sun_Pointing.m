@@ -48,7 +48,7 @@
 
 function  [torque, T_rw, T_magnetic_effective, V_rw, I_rw, P_thermal_rw, AngVel_rw_rpm_new, AngVel_rw_radps_new,...
             acceleration_rw_cur, rw_ang_momentum, init_AngVel_dz, init_accel_dz, V_mtq, I_mtq, P_thermal_mtq, ...
-                timeflag_dz, q_sun_body] = ...
+                timeflag_dz, M] = ...
                     PD_Sun_Pointing(q_desired, q_eci_body, w_b_ib, B_body, mtq_max, ...
                         lim_dz, AngVel_rw_radps_cur, AngVel_rw_rpm_cur, acceleration_rw_old, init_AngVel_dz, ...
                             init_accel_dz, timeflag_dz, rw_max_torque, B_body_real, time, sun_vector_eci, known_rm)
@@ -59,7 +59,7 @@ function  [torque, T_rw, T_magnetic_effective, V_rw, I_rw, P_thermal_rw, AngVel_
     global Jw;
     global Max_RW_torq;
     
-    Kp_gain= 8e-03*diag([1 1 1]);  
+    Kp_gain= 8e-03*diag([1 3 1]);  
     Kd_gain= 2e-01*diag([1 1 1]);
   
     q_sun_body = q_sun_body_Voulgarakis(sun_vector_eci, q_eci_body);
@@ -68,13 +68,7 @@ function  [torque, T_rw, T_magnetic_effective, V_rw, I_rw, P_thermal_rw, AngVel_
     T_commanded = -sign(q_error(1))*Kp_gain*q_error(2:4) - Kd_gain*w_b_ib;
 
     b_hat = B_body/norm(B_body); 
-    
-    if abs(B_body(3)) > 1e-07
-        T_rw = [0;0;1]*(B_body'*T_commanded)/B_body(3);
-    else 
-        T_rw = [0;0;1]*(B_body'*T_commanded)/(B_body(3)+1e-06);
-    end
-    
+    T_rw = [0;0;1]*(B_body'*T_commanded)/B_body(3);
     T_magnetic = skew(b_hat)'*skew(b_hat) * (T_commanded-T_rw);   
     M = skew(B_body)*T_magnetic/(B_body'*B_body);
 
