@@ -403,11 +403,16 @@ clc;
 %% =============================== Errors and plots =============================================== %%
 
 %% Calculation and plotting of performance error
-x_real_euler_perf = quat2eul(q_ob_data(1:4,1:length(q_ob_data))'); 
+
+x_real_euler_perf = zeros(length(q_ob_data), 3)';
+
+for i=1:length(q_ob_data)-1
+    x_real_euler_perf(:, i) = quat2eul(quatProd(conj(q_desired), q_ob_data(1:4,i))');
+end
+
 x_real_euler_perf = rad2deg(x_real_euler_perf');
 
-APE = x_real_euler_perf';
-
+APE = x_real_euler_perf;
 
 figure();
 for i=1:3
