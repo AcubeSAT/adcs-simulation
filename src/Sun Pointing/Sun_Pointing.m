@@ -5,7 +5,7 @@ clc;
 %% Initialize Parameters Script
 
     Const=constants();
-    Param = setParamsFinal_Nominal_Moustakas_Pappa(Const.I);
+    Param = Sun_Pointing_Parameters(Const.I);
     dt = Param.dt;
     orbits = Param.orbits;
     tf = Param.tf;
@@ -105,8 +105,8 @@ clc;
     bias_data = zeros(3,length(Time));
     gyro_noise_data = zeros(3,length(Time));
     Bbody_data = zeros(3,length(Time));
-    q_sb = [];
-    sun_pointing_error = [];
+    q_sb_data = zeros(4,length(Time));
+    sun_pointing_error = zeros(1,length(Time));
     
 %% Next we initialize the bias estimation by solving Wahba's problem n times. 
 
@@ -160,6 +160,7 @@ clc;
                     Argpm = argpm(1,current_timestep);
                     Mm = mm(1,current_timestep);
                     Sun_pos_orbit = sun_pos_orbit(:,current_timestep);
+                    Sun_pos_eci = sun_pos_eci(:,current_timestep);
                     Mag_field_orbit = mag_field_orbit(:,current_timestep)*10^(-9);
                     
                     %% Propagate the system
@@ -180,6 +181,12 @@ clc;
                         inclm(1,current_timestep),argpm(1,current_timestep),mm(1,current_timestep) );
                     bias_data(:,current_timestep) = real_bias;
                     gyro_noise_data(:,current_timestep) = gyro_noise;
+                    q_sb_data(:,current_timestep) = q_sun_body(Sun_pos_eci,x(1:4))';
+                    R_OB = quat2dcm(q_ob');
+                    sun_orbit_normalized = (Sun_pos_orbit/norm(Sun_pos_orbit));
+                    sun_desired = [1 1 0];
+                    sun_desired = sun_desired/norm(sun_desired);
+                    sun_pointing_error(:,current_timestep) = acos(sun_orbit_normalized'*(R_OB'*sun_desired'));
                 end
                 continue
             end
@@ -269,11 +276,7 @@ clc;
                 
                 torq = T_rw_total + T_dist;
                 x = real_model.stateTransFun(x, stateTransCookieFinalNominal(torq,rw_ang_momentum,[0;0;0])); 
-                  
-                q_sb = [q_sb q_sun_body_Voulgarakis(Sun_pos_eci,x(1:4))'];
-                R_OB = quat2dcm(q_ob');
-                sun_orbit_normalized = (Sun_pos_orbit/norm(Sun_pos_orbit));
-                sun_pointing_error = [sun_pointing_error acos(sun_orbit_normalized'*(R_OB'*[1 0 0]'))];
+
                 
                 %% MEKF predict
                 % Predict the states at next time step, k+1. This updates the State and
@@ -298,7 +301,12 @@ clc;
                 bias_data(:,current_timestep) = real_bias;
                 gyro_noise_data(:,current_timestep) = gyro_noise;
                 q_ob_data(:,current_timestep) = q_ob;
-                
+                q_sb_data(:,current_timestep) = q_sun_body(Sun_pos_eci,x(1:4))';
+                R_OB = quat2dcm(q_ob');
+                sun_orbit_normalized = (Sun_pos_orbit/norm(Sun_pos_orbit));
+                sun_desired = [1 1 0];
+                sun_desired = sun_desired/norm(sun_desired);
+                sun_pointing_error(:,current_timestep) = acos(sun_orbit_normalized'*(R_OB'*sun_desired'));
              end 
 
              for timestep_index=4:10   
@@ -344,7 +352,7 @@ clc;
 
                 [torq, T_rw, T_magnetic_effective, ~, ~, ~, AngVel_rw_rpm_next, AngVel_rw_radps_next,...
                         acceleration_rw_cur, rw_ang_momentum, init_AngVel_dz, init_accel_dz, ~, ~, ~, ...
-                            timeflag_dz,M] = ...
+                            timeflag_dz, M, q_sb] = ...
                                 PD_Sun_Pointing(q_desired ,x_hat(1:4), y_noise(4:6)-mekf.global_state(5:7) , y_noise(1:3)*norm(Mag_field_orbit), ...
                                     Const.mtq_max, Const.lim_dz, AngVel_rw_radps(2,1), AngVel_rw_rpm(2,1), ...
                                         acceleration_rw(1,1), init_AngVel_dz, init_accel_dz, timeflag_dz,Const.rw_max_torque,...
@@ -360,11 +368,6 @@ clc;
                 torq = torq + T_dist;
                 
                 x = real_model.stateTransFun(x, stateTransCookieFinalNominal(torq,rw_ang_momentum,[0;0;0])); 
-                
-                q_sb = [q_sb q_sun_body_Voulgarakis(Sun_pos_eci,x(1:4))'];
-                R_OB = quat2dcm(q_ob');
-                sun_orbit_normalized = (Sun_pos_orbit/norm(Sun_pos_orbit));
-                sun_pointing_error = [sun_pointing_error acos(sun_orbit_normalized'*(R_OB'*[1 0 0]'))];
                 
                 %% MEKF predict
                 gyro = y_noise(4:6);
@@ -389,6 +392,12 @@ clc;
                 x_hat_data(:,current_timestep) = x_hat;
                 Bbody_data(:,current_timestep) = y_real(1:3)*norm(mag_field_orbit(:,current_timestep)*10^(-9));
                 q_ob_data(:,current_timestep) = q_ob;
+                q_sb_data(:,current_timestep) = q_sun_body(Sun_pos_eci,x(1:4))';
+                R_OB = quat2dcm(q_ob');
+                sun_orbit_normalized = (Sun_pos_orbit/norm(Sun_pos_orbit));
+                sun_desired = [1 1 0];
+                sun_desired = sun_desired/norm(sun_desired);
+                sun_pointing_error(:,current_timestep) = acos(sun_orbit_normalized'*(R_OB'*sun_desired'));
                 
              end
         end
@@ -399,7 +408,7 @@ clc;
 %% =============================== Errors and plots =============================================== %%
 
 %% Calculation and plotting of performance error
-x_real_euler_perf = quat2eul(q_sb(1:4,1:length(q_sb))'); 
+x_real_euler_perf = quat2eul(q_sb_data(1:4,1:length(q_sb_data))'); 
 x_real_euler_perf = rad2deg(x_real_euler_perf');
 
 APE = x_real_euler_perf';
@@ -837,7 +846,7 @@ end
  
     
      T_disturbances = tau_rm + tau_ad + tau_sp + tau_g;
-     
+     figure()
      subplot(3,5,1)
      plot(1:length(Time),T_disturbances(1,1:length(Time)))
      ylabel('Torque [Nm]')
@@ -947,3 +956,9 @@ end
 
     figure()
     plot(Bbody_data(3,:))
+    
+    figure()
+    plot(Time(1:length(sun_pointing_error)),rad2deg(sun_pointing_error), 'LineWidth',1.5, 'Color','blue');
+    title('Angle Between +X axis and Sun Vector [deg]', 'interpreter','latex', 'fontsize',17);
+    xlabel('Time [$s$]', 'interpreter','latex', 'fontsize',12);
+    grid on;

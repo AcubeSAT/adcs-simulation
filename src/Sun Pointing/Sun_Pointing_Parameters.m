@@ -3,7 +3,7 @@ function Param = setParamsFinal_Nominal_Moustakas_Pappa(I)
 
 %% ======= Satellite ========
 dt = .1; %Timestep for Orbit Propagator
-orbits=3;
+orbits=1;
 orbitPeriod=5545;
 tf = orbits*orbitPeriod; %Total Simulation Seconds
 %tf =(5545+0.9); %Total Simulation Seconds
