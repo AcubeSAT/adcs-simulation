@@ -118,7 +118,9 @@ clc;
     bias_data = zeros(3,length(Time));
     gyro_noise_data = zeros(3,length(Time));
     Bbody_data = zeros(3,length(Time));
-    
+    bdot_activation_matrix = zeros(2, length(Time));
+    threshold_times = 0; 
+    threshold_exceptions = 0;
     
 %% Next we initialize the bias estimation by solving Wahba's problem n times. 
 
@@ -291,7 +293,6 @@ clc;
                 gyro = y_noise(4:6);
                 mekf.predict(stateTransCookieFinalNominal(torq,rw_ang_momentum,gyro),dt);
                 
-                
                 %% Matrices update
                 x_hat_data(:,current_timestep) = x_hat;
                 tau_ad(:,current_timestep) = ad;
@@ -306,6 +307,16 @@ clc;
                 bias_data(:,current_timestep) = real_bias;
                 gyro_noise_data(:,current_timestep) = gyro_noise;
                 q_ob_data(:,current_timestep) = q_ob;
+                
+                %% Check if the time for Detumbling has come
+                
+                if current_timestep > 1
+                    [trigger_flag, trigger_flag_raw, threshold_times, threshold_exceptions] = ...
+                        trigger_N2D(x_real(5:7, current_timestep), x_real(5:7, current_timestep-1), threshold_times, threshold_exceptions);
+
+                    bdot_activation_matrix(1, current_timestep) = trigger_flag;
+                    bdot_activation_matrix(2, current_timestep) = trigger_flag_raw;
+                end
                 
              end 
 
@@ -357,8 +368,7 @@ clc;
                                     Const.mtq_max, Const.lim_dz, AngVel_rw_radps(2,1), AngVel_rw_rpm(2,1), ...
                                         acceleration_rw(1,1), init_AngVel_dz, init_accel_dz, timeflag_dz,Const.rw_max_torque,...
                                             y_real(1:3)*norm(Mag_field_orbit), cycle_index, Const.known_rm);
-                
-           
+               
                 
                 %% Propagate the system
                 
@@ -393,6 +403,16 @@ clc;
                 x_hat_data(:,current_timestep) = x_hat;
                 Bbody_data(:,current_timestep) = y_real(1:3)*norm(mag_field_orbit(:,current_timestep)*10^(-9));
                 q_ob_data(:,current_timestep) = q_ob;
+                
+                %% Check if the time for Detumbling has come
+                
+                if current_timestep > 1
+                    [trigger_flag, trigger_flag_raw, threshold_times, threshold_exceptions] = ...
+                        trigger_N2D(x_real(5:7, current_timestep), x_real(5:7, current_timestep-1), threshold_times, threshold_exceptions);
+
+                    bdot_activation_matrix(1, current_timestep) = trigger_flag;
+                    bdot_activation_matrix(2, current_timestep) = trigger_flag_raw;
+                end
                 
              end
         end
@@ -958,6 +978,19 @@ end
     plot(Bbody_data(3,:))
 
 
+    %% Plotting Bdot Activation Matrix 
 
+    figure();
+    for i=1:2
+        subplot(2,1,i);
+        hold on;
+        plot(Time(1:length(Time)), bdot_activation_matrix(i, 1:length(Time)), 'LineWidth',1.5, 'Color','blue');
+        if (i==1), title('B-dot Activation', 'interpreter','latex', 'fontsize',17);end
+        if (i==1), ylabel('Data after process', 'interpreter','latex', 'fontsize',14); end
+        if (i==2), ylabel('Raw Data', 'interpreter','latex', 'fontsize',14); end
+        xlabel('Time [$s$]', 'interpreter','latex', 'fontsize',12);
+        hold off;
+        grid on;
+    end
 
 end
