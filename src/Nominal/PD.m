@@ -8,11 +8,11 @@
 %     q_desired              - Desired quaternion
 %     q_orbit_body           - Quaternion that expresses the rotation from
 %                              the orbit frame to the body frame
-%     w_o_io                 - Angular velocity of the ECI frame with
-%                              respect to the orbit frame, expressed in the
+%     w_o_io                 - Angular velocity of the orbit frame with
+%                              respect to the ECI frame, expressed in the
 %                              orbit frame
-%     w_b_ib                 - Angular velocity of the ECI frame with
-%                              respect to the body frame, expressed in the
+%     w_b_ib                 - Angular velocity of the body frame with
+%                              respect to the ECI frame, expressed in the
 %                              body frame
 %     B_body                 - Estimated magnetic field expressed on Body frame
 %     mtq_max                - Maximum dipole provided by each Magnetorquer
