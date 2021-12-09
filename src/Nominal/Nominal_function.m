@@ -10,7 +10,7 @@
 %     Time      - Timesteps [sec]
 % ======================================================================== 
 
-function [APE, Time, eclipse] = Nominal_Simulation(Kp_gain, Kd_gain) 
+function [APE, Time, eclipse] = Nominal_function(Kp_gain, Kd_gain) 
 
 close all;
 clc;
