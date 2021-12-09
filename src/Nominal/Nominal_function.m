@@ -27,16 +27,17 @@ clc;
     x0_hat = Param.x0_hat;
     real_model = Param.real_model;
     model = Param.model;
-    number_of_measurments = Param.number_of_measurments;
+
     albedo = Param.albedo;
     albedo_inaccurate = Param.albedo_inaccurate;
     disturbancesEnabled = Param.disturbancesEnabled;
-    xsat_eci = Param.xsat_eci;
+
     eclipse = Param.eclipse;
     mag_field_eci = Param.mag_field_eci;
     mag_field_orbit = Param.mag_field_orbit;
     sun_pos_eci = Param.sun_pos_eci;
     sun_pos_orbit = Param.sun_pos_orbit;
+    xsat_eci = Param.xsat_eci;
     argpm = Param.argpm;
     nodem = Param.nodem;
     inclm = Param.inclm;
@@ -48,6 +49,7 @@ clc;
     sigma_u = Param.sigma_u;
     sigma_v = Param.sigma_v;
     P0 = Param.P0;
+    number_of_measurements = Param.number_of_measurements;
     use_analytic_jacob = Param.use_analytic_jacob;
 
 
@@ -71,7 +73,7 @@ clc;
     Q_struct = load('idealQ.mat', 'IDEALQ');
     Q_eclipse_load = Q_struct.IDEALQ;
     n_params = length(x0_hat);                                                         % Init number of parameters
-    mekf = MEKF(n_params, number_of_measurments, @model.stateTransFun, @model.msrFun); % Init EKF
+    mekf = MEKF(n_params, number_of_measurements, @model.stateTransFun, @model.msrFun); % Init EKF
     mekf.global_state = x0_hat;                                                        % Init state estimation
     mekf.P = P0;                                                                       % Init Covariance matrix
     mekf.setProcessNoiseCov(Q);                                                        % Q variance matrix

@@ -14,7 +14,7 @@ clc;
     x0_hat = Param.x0_hat;
     real_model = Param.real_model;
     model = Param.model;
-    number_of_measurments = Param.number_of_measurments;
+    number_of_measurements = Param.number_of_measurements;
     albedo = Param.albedo;
     albedo_inaccurate = Param.albedo_inaccurate;
     disturbancesEnabled = Param.disturbancesEnabled;
@@ -58,7 +58,7 @@ clc;
     Q_struct = load('idealQ.mat', 'IDEALQ');
     Q_eclipse_load = Q_struct.IDEALQ;
     n_params = length(x0_hat);                                                         % Init number of parameters
-    mekf = MEKF(n_params, number_of_measurments, @model.stateTransFun, @model.msrFun); % Init EKF
+    mekf = MEKF(n_params, number_of_measurements, @model.stateTransFun, @model.msrFun); % Init EKF
     mekf.global_state = x0_hat;                                                        % Init state estimation
     mekf.P = P0;                                                                       % Init Covariance matrix
     mekf.setProcessNoiseCov(Q);                                                        % Q variance matrix
