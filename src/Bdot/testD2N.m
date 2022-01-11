@@ -110,53 +110,55 @@ end
 
 flag_index_length = index;
 
-%% CASE 4 - Trigger with exceptions on how many consecutive steps can be different
-
-limit = 350;
-exceptions = 10;
-flag_bdot_exceptions = 0;
-
-while (flag_bdot_exceptions == 0) && index < N
-    
-    index = index + 1;
-    
-    matrix_with_real_v = real_v(:,index:index + N - 1);
-    matrix_with_bdot_v = bdot_v(:,index:index + N - 1);
-
-    compare_real_v = matrix_with_real_v < D2N_threshold;
-    compare_bdot_v = matrix_with_bdot_v < D2N_threshold;
-
-    for i = 1:3
-        if (sum(compare_real_v(i,:)) < limit)
-            flag_real_exceptions = 0;
-            break
-        else
-            for j = 1:exceptions:N-exceptions
-                if (sum(compare_real_v(i,j:j+exceptions) == 0))
-                    flag_real_exceptions = 0;
-                    break
-                else
-                    flag_real_exceptions = 1;
-                end
-            end
-        end
-    end
-
-    for i = 1:3
-        if (sum(compare_bdot_v(i,:)) < limit)
-            flag_bdot_exceptions = 0;
-            break
-        else
-            for j = 1:exceptions:N-exceptions
-                if (sum(compare_bdot_v(i,j:j+exceptions) == 0))
-                    flag_bdot_exceptions = 0;
-                    break
-                else
-                    flag_bdot_exceptions = 1;
-                end
-            end
-        end
-    end
-end
-
-flag_index_exceptions = index;
+% %% CASE 4 - Trigger with exceptions on how many consecutive steps can be different
+% 
+% limit = 350;
+% exceptions = 40;
+% flag_bdot_exceptions = 0;
+% 
+% index = 0;
+% 
+% while (flag_bdot_exceptions == 0) && index < (length(bdot_v) - N - 1)
+%     
+%     index = index + 1;
+%     
+%     matrix_with_real_v = real_v(:,index:index + N - 1);
+%     matrix_with_bdot_v = bdot_v(:,index:index + N - 1);
+% 
+%     compare_real_v = matrix_with_real_v < D2N_threshold;
+%     compare_bdot_v = matrix_with_bdot_v < D2N_threshold;
+% 
+%     for i = 1:3
+%         if (sum(compare_real_v(i,:)) < limit)
+%             flag_real_exceptions = 0;
+%             break
+%         else
+%             for j = 1:exceptions:N-exceptions
+%                 if (sum(compare_real_v(i,j:j+exceptions) == 0))
+%                     flag_real_exceptions = 0;
+%                     break
+%                 else
+%                     flag_real_exceptions = 1;
+%                 end
+%             end
+%         end
+%     end
+% 
+%     for i = 1:3
+%         if (sum(compare_bdot_v(i,:)) < limit)
+%             flag_bdot_exceptions = 0;
+%             break
+%         else
+%             for j = 1:exceptions:N-exceptions
+%                 if (sum(compare_bdot_v(i,j:j+exceptions) == 0))
+%                     flag_bdot_exceptions = 0;
+%                     break
+%                 else
+%                     flag_bdot_exceptions = 1;
+%                 end
+%             end
+%         end
+%     end
+% end
+% 
+% flag_index_exceptions = index;
