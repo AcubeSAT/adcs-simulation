@@ -58,7 +58,7 @@ real_model = real_SatelliteModel(dt, I);
 disturbancesEnabled = "total";   % Set which disturbances you want to activate: tau_g, tau_ad, tau_sp, tau_rm, total, zero
 rng(1); % Fix the random number generator for reproducible results
 % Gyro bias std dev
-sigma_u = 7.7570e-04;
+sigma_u = 7.7570e-05;
 % Gyro white noise std dev
 sigma_v = 0.0026;
 
