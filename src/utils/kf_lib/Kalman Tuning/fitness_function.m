@@ -63,7 +63,7 @@ function fitness = fitness_function(x)
     mekf.setMsrFunJacob(@model.msrFunJacob);
 
     torq = zeros(3,1);
-    rw_ang_momentum = zeros(3,1);
+   
     %gyro = [1;1;1];
     accelerometer_ned = [0 0 1]';
     Eclipse = 0;

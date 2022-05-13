@@ -39,6 +39,7 @@ classdef MEKF < handle
         msrFunJacob_ptr % measurement function Jacobian pointer
                
         dtheta % Parameters step size for numerical approximation of transition and measurement function Jacobian
+        local_error_state
     end
 
     methods
@@ -71,6 +72,7 @@ classdef MEKF < handle
             this.stateTransFunJacob_ptr = @this.calcStateTransFunJacob;
             
             this.innov_history = zeros(9,1);
+            this.local_error_state = zeros(6,1);
         end
         
         %% Sets the fading memory coefficient. 
@@ -190,7 +192,7 @@ classdef MEKF < handle
         %  local_error_quaternion while global bias (4-6 elements of state) is updated by adding
         %  bias from the local state.
         
-        function correct(this, z, cookie)
+        function correct(this, 	z, cookie)
 
             if (nargin < 3), cookie=[]; end
                        
@@ -206,12 +208,12 @@ classdef MEKF < handle
             z_new(1:3) = z(1:3);
             z_new(4:6) = z(7:9);
             
-            local_error_state =  Kg * (z_new' - z_hat); 
-            local_error_quaternion = [1 ; 0.5 * local_error_state(1:3)]; 
+            this.local_error_state =  Kg * (z_new' - z_hat); 
+            local_error_quaternion = [1 ; 0.5 * this.local_error_state(1:3)]; 
             
             this.global_state(1:4) = quatProd(this.global_state(1:4),local_error_quaternion); 
             this.global_state(1:4) = this.global_state(1:4)/norm(this.global_state(1:4));
-            this.global_state(5:7) = this.global_state(5:7) + local_error_state(4:6);            
+            this.global_state(5:7) = this.global_state(5:7) + this.local_error_state(4:6);            
             
             N_params = 6;
             I = eye(N_params, N_params);
