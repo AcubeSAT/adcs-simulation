@@ -1,4 +1,4 @@
-function measurement_fault_detection
+
     close all;
     clc;
     
@@ -217,7 +217,17 @@ function measurement_fault_detection
 
         end
     end 
+    
+    
+    
        %% Main continuous loop
+       number_of_iterations = 5; %defining moving average length
+    
+       residual = NaN(number_of_iterations,length(mekf.local_error_state));
+       residual_column_counter = 1;
+       residual_covariance = NaN(number_of_iterations,length(mekf.local_error_state));
+       covariance_diagonal_elements = NaN(length(mekf.local_error_state),1);
+       
         for cycle_index = cycle_index:number_of_cycles
   
              for timestep_index = 1:3
@@ -284,8 +294,58 @@ function measurement_fault_detection
 
                 gyro = y_noise(4:6);
                 mekf.predict(stateTransCookieFinalNominal(torq,rw_ang_momentum,gyro),dt);
+               
+                residual(residual_column_counter,:) = y_noise(1:6) - mekf.H_k*mekf.local_error_state;
+
+                [residual_rows , residual_cols] = size(residual);            
+                           
+                if sum(isnan(residual)) == 0 
+
+                    residual_moving_average = mean(residual,1);
+% %                     calculating covariance diagonal
+% %                     for i = 1:residual_cols
+% %                         residual_row = residual(:,i);
+% %                         row_covariance = cov(residual_row);
+% %                         covariance_diagonal_elements(i) = row_covariance;
+% %                        
+% %                     end
+                    cov_matrix = diag(mekf.H_k*mekf.P*mekf.H_k'+mekf.R);    
+                    mean_threshold = ones(length(residual_moving_average),1)+1;
+                    cov_threshold = ones(length(residual_moving_average),1)+1;
+                    
+                    % if error_state = 0, then no error is detected
+                    % if error_state = 1, then a bias fault is detected
+                    % if error_state = 2, then an accuracy fault is
+                    % detected 
+                    
+                    error_state = 0; 
+                    
+                    for i = 1:length(residual_moving_average)
+                        if residual_moving_average(i) > mean_threshold(i)
+                            error_state = 1;
+                        end
+                        
+                        if cov_matrix(i) > cov_threshold(i)
+                            error_state = 2;
+                        end
+                    end
+                end
                 
-                residual(timestep_index,:) = y_noise(1:6) - mekf.H_k*mekf.local_error_state;
+                
+                if residual_column_counter > 5 && error_state == 0
+                    residual_column_counter = 1;
+                    residual = NaN(number_of_iterations,length(mekf.local_error_state));
+                    
+                elseif error_state == 1
+                    W_sens = mekf.H_k*(-(mekf.A_c-mekf.K*mekf.H_k))';
+                elseif error_state == 2
+                    accuracy_error(diag(mekf.R),cov_threshold);      
+                end
+                residual_column_counter = residual_column_counter+1;
+               
+                
+                
+                
                 %% Matrices update
                 x_hat_data(:,current_timestep) = x_hat;
                 tau_ad(:,current_timestep) = ad;
@@ -410,4 +470,3 @@ function measurement_fault_detection
              end
         end
     
-end
