@@ -64,7 +64,7 @@ function  [torque, T_rw, T_magnetic_effective, V_rw, I_rw, P_thermal_rw, AngVel_
   
     q_sb = q_sun_body(sun_vector_eci, q_eci_body);
 
-    q_error = quatProd(conj(q_desired), q_sb);
+    q_error = quatProd(quatconj(q_desired), q_sb);
     T_commanded = -sign(q_error(1))*Kp_gain*q_error(2:4) - Kd_gain*w_b_ib;
 
     b_hat = B_body/norm(B_body); 
