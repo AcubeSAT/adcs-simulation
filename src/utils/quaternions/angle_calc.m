@@ -1,5 +1,13 @@
+%% Script for calculating the cosine of the angle between 2 vectors
+%
+%  Inputs    :
+%  x         - 1x3 vector
+%  y         - 1x3 vector    
+%
+%  Output    :
+%  output    - cosine of the angle between x and y
+
 function [output] = angle_calc(x, y)
-% This function calculates the cosine of two 1x3 vectors, x and y.
 
 x_mag = sqrt(x(1)^2 + x(2)^2 + x(3)^2);
 y_mag = sqrt(y(1)^2 + y(2)^2 + y(3)^2);

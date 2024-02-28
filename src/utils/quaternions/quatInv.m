@@ -1,9 +1,17 @@
+%% Script for calculating the inverse of a quaternion
+%
+%  Input    :
+%  Q        - quaternion
+%
+%  Output   :
+%  invQ     - inverse of q
+%
+%
+%  Q must have the form Q = [n e] where n is the scalar 
+%  and e the vector part.
+%  Note: Q does not need to be a unit quaternion.
+
 function invQ = quatInv(Q)
-%  quatInv Calculate the inverse of a quaternion.
-%   invQ = quatInv(Q) calculates the quaternion inverse, invQ, of Q. 
-%   Q must have the form Q = [n e] where n is the scalar and e the vector
-%   part.
-%   Note: Q does not need to be a unit quaternion.
 
 invQ = zeros(size(Q));
 
