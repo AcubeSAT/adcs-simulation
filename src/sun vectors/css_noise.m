@@ -28,11 +28,17 @@ function total_sun_vector = css_noise(sun_eci,q_eci_body,xsat_eci,albedo_perc,la
     sun_body = temp(2:4);
     
     %frame_of_css_1 = roty(0); the first frame is the same with the Body!
-    frame_of_css_2 = roty(90);
-    frame_of_css_3 = roty(-90);
-    frame_of_css_4 = roty(180);
-    frame_of_css_5 = rotz(90);
-    frame_of_css_6 = rotz(-90);
+    % frame_of_css_2 = roty(90);
+    % frame_of_css_3 = roty(-90);
+    % frame_of_css_4 = roty(180);
+    % frame_of_css_5 = rotz(90);
+    % frame_of_css_6 = rotz(-90);
+
+    frame_of_css_2 = rot_y(90);
+    frame_of_css_3 = rot_y(-90);
+    frame_of_css_4 = rot_y(180);
+    frame_of_css_5 = rot_z(90);
+    frame_of_css_6 = rot_z(-90);
 
     xsat_eci = xsat_eci/norm(xsat_eci);
     xsat_body = quatProd(quatconj(q_eci_body'),quatProd([0;xsat_eci],q_eci_body));

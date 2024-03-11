@@ -25,11 +25,18 @@ function total_sun_vector = css_compensation(sun_eci,q_eci_body,xsat_eci,albedo_
     sun_body = rotate_vector(q_eci_body,sun_eci);
     
     %frame_of_css_1 = roty(0);
-    frame_of_css_2 = roty(90);
-    frame_of_css_3 = roty(-90);
-    frame_of_css_4 = roty(180);
-    frame_of_css_5 = rotz(90);
-    frame_of_css_6 = rotz(-90);
+    % frame_of_css_2 = roty(90);
+    % frame_of_css_3 = roty(-90);
+    % frame_of_css_4 = roty(180);
+    % frame_of_css_5 = rotz(90);
+    % frame_of_css_6 = rotz(-90);
+
+    
+    frame_of_css_2 = rot_y(90);
+    frame_of_css_3 = rot_y(-90);
+    frame_of_css_4 = rot_y(180);
+    frame_of_css_5 = rot_z(90);
+    frame_of_css_6 = rot_z(-90);
 
     xsat_eci = xsat_eci/norm(xsat_eci);
     xsat_body = rotate_vector(q_eci_body,xsat_eci);
