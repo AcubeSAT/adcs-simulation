@@ -8,8 +8,11 @@
 % Define the root directory
 rootDir = '..';
 
+% Get the filename of the current script file
+scriptFilename = mfilename;
+
 % Define the search phrase
-searchPhrase = 'albedo';
+searchPhrase = 'rw_';
 
 % Recursively search for files in all subdirectories
 files = dir(fullfile(rootDir, '**', '*.m'));
@@ -21,15 +24,20 @@ matchingFiles = {};
 for i = 1:numel(files)
     filePath = fullfile(files(i).folder, files(i).name);
     
-    % Read the contents of the file
-    fid = fopen(filePath, 'r');
-    fileContent = fread(fid, '*char')';
-    fclose(fid);
+    [~, fileName, ~] = fileparts(filePath);
+    if ~strcmp(fileName, scriptFilename)
+        % Read the contents of the file
+        fid = fopen(filePath, 'r');
+        fileContent = fread(fid, '*char')';
+        fclose(fid);
+        
+        % Search for the phrase in the file content
+        if contains(fileContent, searchPhrase)
+            matchingFiles{end+1} = filePath;
+        end
     
-    % Search for the phrase in the file content
-    if contains(fileContent, searchPhrase)
-        matchingFiles{end+1} = filePath;
     end
+
 end
 
 % Display the matching files
