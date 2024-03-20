@@ -9,7 +9,7 @@
 %    sun_pos_eci  - Sun position in ECI frame
 %
 %   Outputs       :
-%    eclipse      - Ecistence (or not) of elcipse in umbral or penumbral conditions
+%    eclipse      - Existence (or not) of elcipse in umbral or penumbral conditions
 %                   0 -> no eclipse , 1 -> penumbral , 2 -> umbral
 %  ----------------------------------------------------------------------------*/
 

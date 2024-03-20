@@ -11,7 +11,8 @@ npts = 2*3600;
 satrec = orbit_init();
 [xsat_ecf, vsat_ecf,xsat_eci,vsat_eci, sat_llh,eclipse, mag_field_ned,mag_field_eci,mag_field_ecef,mag_field_orbit,...
     sun_pos_ned,sun_pos_eci,sun_pos_ecef,sun_pos_orbit,satrec,argpm,nodem,inclm,mm,xnode,xinc] = orbit_sgp4(satrec,dt,npts);
-% [xsat_ecf, vsat_ecf,xsat_eci,vsat_eci, sat_llh,eclipse, mag_field_ned,mag_field_eci,mag_field_ecef,mag_field_orbit, sun_pos_ned,sun_pos_eci,sun_pos_ecef,sun_pos_orbit,satrec,argpm,nodem,inclm,mm,xnode,xinc] = orbit_sgp4_offset(satrec,dt,dt,1);
+% [xsat_ecf, vsat_ecf,xsat_eci,vsat_eci, sat_llh,eclipse, mag_field_ned,mag_field_eci,mag_field_ecef,mag_field_orbit, ...
+    % sun_pos_ned,sun_pos_eci,sun_pos_ecef,sun_pos_orbit,satrec,argpm,nodem,inclm,mm,xnode,xinc] = orbit_sgp4_offset(satrec,dt,dt,1);
 
 % Deg2Rad
 sat_llh(1,:)=sat_llh(1,:)*180/pi;
@@ -22,7 +23,8 @@ t=[0:(npts-1)/dt]*dt;
 %% Plots
 %% Satellite Position in ECI frame
 
-figure('Position',[0 0 640 1080])
+% figure('Position',[0 0 640 1080])
+figure()
 for i=1:3
     subplot(3,1,i);
     hold on;
@@ -35,7 +37,8 @@ end
 
 %% Orbital Parameters
 
-figure('Position',[0 0 640 1080])
+% figure('Position',[0 0 640 1080])
+figure()
 subplot(4,1,1);
 plot(t,argpm(1,:), 'LineWidth',2.0, 'Color','blue');
 ylabel(['$Arg of Perigee$'], 'interpreter','latex', 'fontsize',14);
@@ -55,7 +58,8 @@ xlabel('Time [$s$]', 'interpreter','latex', 'fontsize',12);
 
 %% Satellite Position in Latitude, Longitude, Altitude
 
-figure('Position',[640 0 640 1080]);
+% figure('Position',[640 0 640 1080]);
+figure()
 for i=1:3
     subplot(3,1,i);
     hold on;
@@ -79,7 +83,8 @@ end
 
 %% Magnetic Field in NED frame
 
-figure('Position',[1280 0 640 1080])
+% figure('Position',[1280 0 640 1080])
+figure()
 for i=1:3
     subplot(3,1,i);
     hold on;
@@ -93,7 +98,8 @@ end
 
 %% Sun Position in ECI frame
 
-figure('Position',[0 0 640 1080])
+% figure('Position',[0 0 640 1080])
+figure()
 for i=1:3
     subplot(3,1,i);
     hold on;
@@ -106,7 +112,8 @@ end
 
 %% Eclipse calculation
 
-figure('Position',[0 0 640 360])
+% figure('Position',[0 0 640 360])
+figure()
 for i=1:1
     subplot(1,1,i);
     hold on;
@@ -114,5 +121,5 @@ for i=1:1
 %     legend(['au'], 'interpreter','latex', 'fontsize',15);
     xlabel('Time [$s$]', 'interpreter','latex', 'fontsize',12);
     ylabel(['Eclipse'], 'interpreter','latex', 'fontsize',14);
-    if (i==1), title('Umbral, Penumbral or no Eclipse', 'interpreter','latex', 'fontsize',17);end
+    if (i==1), title('Umbral [2], Penumbral [1] or no Eclipse [0]', 'interpreter','latex', 'fontsize',17);end
 end
