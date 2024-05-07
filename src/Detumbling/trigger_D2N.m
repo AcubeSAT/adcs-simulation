@@ -1,4 +1,4 @@
-function [bdot_activation,nonBdot_activation,threshold_times,threshold_exceptions] = D2N_trigger(threshold_times,threshold_exceptions,w_b_ob,w_b_ob_Bdot,w_b_ob_Bdot_previous,D2N_threshold)
+function [bdot_activation,nonBdot_activation,threshold_times,threshold_exceptions] = trigger_D2N(threshold_times,threshold_exceptions,w_b_ob,w_b_ob_Bdot,w_b_ob_Bdot_previous,D2N_threshold)
         bdot_activation = 0;
         nonBdot_activation = 0;
         total_limit = 520;
