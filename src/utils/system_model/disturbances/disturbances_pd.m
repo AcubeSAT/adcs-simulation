@@ -27,9 +27,7 @@ function [T_dist, rm, returnMessage, tau_ad, tau_rm, tau_sp, tau_g] = disturbanc
 
     %% Gravitational Torque
 
-    nadir = R_BO(:,1);
-
-    tau_g = 3 * Const.w_o^2 * cross(nadir, Const.I * nadir);
+    [tau_g] = gravitational_torque(R_BO, Const.w_o, Const.I);
 
     %% Aerodynamic Drag
 

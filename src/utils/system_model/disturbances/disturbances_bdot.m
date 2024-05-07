@@ -20,9 +20,7 @@ function [T_dist, returnMessage] = disturbances_bdot(R_BO, sun_vector, B_body, s
     
     %% Gravitational Torque
 
-    nadir = R_BO(:,1);
-
-    tau_g = 3 * Const.w_o^2 * cross(nadir, Const.I * nadir);
+    [tau_g] = gravitational_torque(R_BO, Const.w_o, Const.I);
 
     %% Aerodynamic Drag
 
