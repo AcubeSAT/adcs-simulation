@@ -1,7 +1,13 @@
 %% Script for creating albedo matrices
-% Input: Reflectivity data from AlbedoToolbox-1.0/refl_data for a given date.
-% Output: Albedo as a percentage of sun irradiance for the duration defined by running_time
+%
+% Input: 
+% This script requires the AlbedoToolbox-1.0 and the refl_data folder with
+% the reflectivity data for a given date.
+%
+% Output: 
+% Albedo as a percentage of sun irradiance for the duration defined by running_time
 % with timestep dt.
+%
 % Note: NaN values are replaced by the annual average.
 
 reflectivity = load_refl('050403');

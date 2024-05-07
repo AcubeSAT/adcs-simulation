@@ -25,6 +25,11 @@ nominal_activation_matrix = zeros(2, length(Time)); % 1 - Bdot, 2 - nonBdot
 %N2D_threshold = 0.087; % rad/sec 
 D2N_threshold = 0.035; % rad/sec            % Threshold for switching from detumbling to nominal
 
+global R_coils; R_coils=Const.R_coils;
+global N_coils; N_coils=Const.N_coils;
+global A_coils; A_coils=Const.A_coils;
+global mt; mt = Const.mt;
+
 for current_cycle=1:length(Time) %Main loop
 
     
@@ -65,7 +70,7 @@ for current_cycle=1:length(Time) %Main loop
     T_magnetic = cross(M,B_body(:,current_cycle));
         
 %% Calculate V, I, P of MTQ's
-%     [V_mtq, I_mtq, P_thermal_mtq] = mtq_model(M);    
+   [V_mtq, I_mtq, P_thermal_mtq] = mtq_model(M);    
 
 %% Estimation of angular velocity using Bdot
       w_b_ob_Bdot(:,current_cycle) = skew(B_body(:,current_cycle))*(-Bdot_body(:,current_cycle)...

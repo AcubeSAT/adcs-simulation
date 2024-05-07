@@ -42,7 +42,7 @@
 %     I_mtq                  - Amperage applied on MTQs
 %     P_thermal_mtq          - Power consumed from MTQs
 %     timeflag_dz            - Counter which indicates the time present in the deadzone 
-%     q_sb             - Quaternion that expresses the rotation from
+%     q_sb                   - Quaternion that expresses the rotation from
 %                              the sun-pointing frame to the body frame 
 % ======================================================================== %
 

@@ -3,19 +3,19 @@
  %  when in Nominal Mode.
  %  
  %  Inputs: 
- %      velocity_cur -> Current Velocity of the satellite (3-axis)
- %      velocity_old -> Previous Velocity of the satellite (3-axis)
- %      threshold_times -> Counts the times when the threshold has been
- %                          exceeded
- %      threshold_exceptions -> Counts the exceptions, namely the times
+ %      velocity_cur          - Current Velocity of the satellite (3-axis)
+ %      velocity_old          - Previous Velocity of the satellite (3-axis)
+ %      threshold_times       - Counts the times when the threshold has been
+ %                              exceeded
+ %      threshold_exceptions  - Counts the exceptions, namely the times
  %                              when the threshold is not exceeded, while 
- %                               in trigger mode
+ %                              in trigger mode
  %
  %  Outputs:
- %      trigger_flag -> Indicates when the trigger is activated after
- %                      processing
- %      trigger_flag_raw -> Indicates when the trigger is activated without
- %                          processing
+ %      trigger_flag          - Indicates when the trigger is activated after
+ %                              processing
+ %      trigger_flag_raw      - Indicates when the trigger is activated without
+ %                              processing
  %
  %% ======================================================================= %%
  
@@ -24,7 +24,7 @@
         
         total_limit = 20;
         exceptions_limit = 2;
-        N2D_threshold = 0.04; % rad/sec
+        N2D_threshold = 0.08; % rad/sec
         
         trigger_flag = 0;
         trigger_flag_raw = 0;

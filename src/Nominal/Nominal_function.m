@@ -430,6 +430,7 @@ x_real_euler_perf = zeros(length(q_ob_data), 3)';
 
 for i=1:length(q_ob_data)-1
     x_real_euler_perf(:, i) = quat2eul(quatProd(quatconj(q_desired), q_ob_data(1:4,i))');
+    % x_real_euler_perf(:, i) = q2e_ypr(quatProd(quatconj(q_desired), q_ob_data(1:4,i))');
 end
 
 x_real_euler_perf = rad2deg(x_real_euler_perf');

@@ -1,7 +1,7 @@
 %% EKF class
 % Implementation of the discrete Extended Kalman Filter algorithm.
 % - The Jacobian of the state transition and measurement functions can either
-% be provided or approximated numerically.
+%   be provided or approximated numerically.
 % - A fading memory coefficient can be defined.
 % - Enforcement of linear constraints can be imposed on the estimated parameteres.
 %

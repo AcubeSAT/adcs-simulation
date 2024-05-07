@@ -3,6 +3,7 @@
 %   to be applied in order to achieve nadir pointing.
 %
 %   Inputs:
+%     Eclipse                - Existence or not of eclipse
 %     Kp_gain                - Proportional positive scalar gain
 %     Kd_gain                - Derivative positive scalar gain
 %     q_desired              - Desired quaternion
@@ -69,20 +70,20 @@ function  [torque, T_rw, T_magnetic_effective, V_rw, I_rw, P_thermal_rw, AngVel_
         Kd_gain = 20.* Kd_gain;
     end
     
-    q_w_b_io = quatProd(quatconj(q_orbit_body'), quatProd([0;w_o_io], q_orbit_body));
-    w_b_io = q_w_b_io(2:4);
-
-    w_b_ob = w_b_ib - w_b_io; 
+    w_b_io = rotate_vector(q_orbit_body, w_o_io);   % Angular velocity of the body frame w.r.t. the ECI frame, expressed in orbit frame
+    w_b_ob = w_b_ib - w_b_io;                       % Angular velocity of the orbit frame w.r.t. the ECI frame, expressed in body frame
     
-    q_error = quatProd(quatconj(q_desired), q_orbit_body);
-    T_commanded = -sign(q_error(1))*Kp_gain*q_error(2:4) - Kd_gain*w_b_ob;
+    q_error = quatProd(quatconj(q_desired), q_orbit_body);                      % quaternion error
+    T_commanded = -sign(q_error(1))*Kp_gain*q_error(2:4) - Kd_gain*w_b_ob;      % PD control
+
+    %% Torque split
 
     b_hat=B_body/norm(B_body); 
     T_rw = [0;0;1]*(B_body'*T_commanded)/B_body(3);
     T_magnetic = skew(b_hat)'*skew(b_hat) * (T_commanded-T_rw);   
     M = skew(B_body)*T_magnetic/(B_body'*B_body);
     
-    %%  Saturation of the MTQs
+    %%  Desaturation of the MTQs
     
     [T_magnetic, T_rw] = mtq_saturation(T_magnetic, T_rw, T_commanded, B_body, M, mtq_max, known_rm);
 
@@ -90,7 +91,7 @@ function  [torque, T_rw, T_magnetic_effective, V_rw, I_rw, P_thermal_rw, AngVel_
     M = M - known_rm';
     T_magnetic_effective = cross(M,B_body_real);    
 
-    %%  Saturation of the RW
+    %%  Desaturation of the RW
 
     if time > 1 
         [T_magnetic_effective, T_rw] = ...
@@ -145,7 +146,7 @@ function  [torque, T_rw, T_magnetic_effective, V_rw, I_rw, P_thermal_rw, AngVel_
             AngVel_rw_rpm_new = 0;
     end
 
-    %%
+    %% Calculate angular momentum
     rw_ang_momentum = Jw * AngVel_rw_radps_new;
 
     %%  Calculate V, I, P of MTQ's
