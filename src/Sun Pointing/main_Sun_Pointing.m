@@ -1,3 +1,6 @@
+% ======================================================================== 
+%   Main function for Sun Pointing Mode simulation.   
+% ======================================================================== 
 
 close all;
 clc;
@@ -5,7 +8,7 @@ clc;
 %% Initialize Parameters Script
 
     Const=constants();
-    Param = Sun_Pointing_Parameters(Const.I);
+    Param = setParamsFinal_Sun_Pointing(Const.I);
     dt = Param.dt;
     orbits = Param.orbits;
     tf = Param.tf;

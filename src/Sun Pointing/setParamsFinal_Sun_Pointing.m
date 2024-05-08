@@ -1,5 +1,5 @@
 % ======================================================================== 
-%   Main function for Sun-Pointing simulation.
+%   Function for parameters definition in Sun-Pointing simulation.
 %
 %   Inputs
 %     I         - Inertia matrix
@@ -7,7 +7,7 @@
 %     Param     - Struct containing simulation parameters
 % ======================================================================== 
 
-function Param = Sun_Pointing_Parameters(I)
+function Param = setParamsFinal_Sun_Pointing(I)
 
 
 %% ======= Satellite ========
