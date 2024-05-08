@@ -1,5 +1,5 @@
 % ======================================================================== 
-%   Function for parameters definition in Nominal Mode
+%   Function for parameters definition in Nadir Pointing Mode
 %
 %   Inputs
 %     I         - Inertia matrix
@@ -7,7 +7,7 @@
 %     Param     - Struct containing simulation parameters
 % ======================================================================== 
 
-function Param = setParamsFinal_Nominal(I)
+function Param = setParamsFinal_Nadir_Pointing(I)
 
 
 %% ======= Satellite ========

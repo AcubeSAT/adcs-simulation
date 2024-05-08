@@ -1,3 +1,16 @@
+% ======================================================================== 
+%   Function for setting the Q and R matrices used by the MEKF
+%
+%   Inputs
+%     Eclipse           - Existence or not of eclipse
+%     Q_no_eclipse      - Q matrix to set of there is no eclipse
+%     R_no_eclipse      - R matrix to set of there is no eclipse
+%     mekf              - Instance of MEKF class
+%
+%   Outputs
+%     ----
+% ======================================================================== 
+
 function Q_selection(Eclipse,Q_no_eclipse,R_no_eclipse,mekf,Q_eclipse_load)
 
     if (Eclipse)

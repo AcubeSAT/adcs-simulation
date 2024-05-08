@@ -16,7 +16,7 @@
 %       (fitness_function_Nominal.m)
 % =========================================================================%
 
-fit = @fitness_function_Nominal;
+fit = @fitness_function_Nadir_Pointing;
 
 lb = [.1e-5 .1e-3 .1e-3 .1e-5 .1e-3 .1e-3];
 ub = [.9e-3 .9e1 .9e1 .9e-3 .9e1 .9e1];

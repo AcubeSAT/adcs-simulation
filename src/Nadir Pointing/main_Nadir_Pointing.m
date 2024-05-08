@@ -57,4 +57,4 @@ Kd_gain= 1e-04*diag([75 100 75]);
 %Kp_gain = 1e-05*diag([191.501367086860,186.798649551510,138.965724595163]);%[80]
 %Kd_gain = 1e-03*diag([0.612173320368121,56.4550153997157,52.6266508247473]);%[81]
 
-[instant_error_perform, Time, eclipse] = Nominal_function(Kp_gain, Kd_gain);
+[instant_error_perform, Time, eclipse] = Nadir_Pointing_function(Kp_gain, Kd_gain);

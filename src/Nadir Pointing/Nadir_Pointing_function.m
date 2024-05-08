@@ -10,7 +10,7 @@
 %     Time      - Timesteps [sec]
 % ======================================================================== 
 
-function [APE, Time, eclipse] = Nominal_function(Kp_gain, Kd_gain) 
+function [APE, Time, eclipse] = Nadir_Pointing_function(Kp_gain, Kd_gain) 
 
 close all;
 clc;
@@ -18,7 +18,7 @@ clc;
 %% Initialize Parameters Script
 
     Const=constants();
-    Param = setParamsFinal_Nominal(Const.I);
+    Param = setParamsFinal_Nadir_Pointing(Const.I);
     dt = Param.dt;
     orbits = Param.orbits;
     tf = Param.tf;
@@ -366,7 +366,7 @@ clc;
                 [torq, T_rw, T_magnetic_effective, ~, ~, ~, AngVel_rw_rpm_next, AngVel_rw_radps_next,...
                         acceleration_rw_cur, rw_ang_momentum, init_AngVel_dz, init_accel_dz, ~, ~, ~, ...
                             timeflag_dz,M] = ...
-                                PD(Eclipse,Kp_gain, Kd_gain, q_desired ,q_ob_hat, Const.w_o_io, y_noise(4:6)-mekf.global_state(5:7) , y_noise(1:3)*norm(Mag_field_orbit), ...
+                                PD_Nadir_Pointing(Eclipse,Kp_gain, Kd_gain, q_desired ,q_ob_hat, Const.w_o_io, y_noise(4:6)-mekf.global_state(5:7) , y_noise(1:3)*norm(Mag_field_orbit), ...
                                     Const.mtq_max, Const.lim_dz, AngVel_rw_radps(2,1), AngVel_rw_rpm(2,1), ...
                                         acceleration_rw(1,1), init_AngVel_dz, init_accel_dz, timeflag_dz,Const.rw_max_torque,...
                                             y_real(1:3)*norm(Mag_field_orbit), cycle_index, Const.known_rm);
