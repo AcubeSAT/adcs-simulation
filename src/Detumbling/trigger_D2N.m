@@ -1,3 +1,26 @@
+%% ======================================================================= %%
+ %  Function which calculates when Nadir Pointing is ready to be activated,
+ %  when in Detumbling Mode.
+ %  
+ %  Inputs: 
+ %      threshold_times       - Counts the times when the threshold has been
+ %                              exceeded
+ %      threshold_exceptions  - Counts the exceptions, namely the times
+ %                              when the threshold is not exceeded, while 
+ %      w_b_ob                - Angular rate of satellite relative to ECI frame
+ %      w_b_ob_Bdot           - Angular velocity estimation using Bdot  
+ %      w_b_ob_Bdot_previous  - Angular velocity estimation using Bdot at
+ %                              previous timestep
+ %      D2N_threshold         - Threshold angular velocity [rad/sec]                    
+ %
+ %  Outputs:
+ %      bdot_activation       - Indicates when the trigger is activated,
+ %                              based on the estimated angular velocity
+ %      nonBdot_activation    - Indicates when the trigger is
+ %                              activated,based on the real angular velocity
+ %
+ %% ======================================================================= %%
+
 function [bdot_activation,nonBdot_activation,threshold_times,threshold_exceptions] = trigger_D2N(threshold_times,threshold_exceptions,w_b_ob,w_b_ob_Bdot,w_b_ob_Bdot_previous,D2N_threshold)
         bdot_activation = 0;
         nonBdot_activation = 0;

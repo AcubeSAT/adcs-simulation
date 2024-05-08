@@ -1,3 +1,7 @@
+% ======================================================================== 
+%   Script for parameters definition in Detimbling Mode
+% ========================================================================
+
 %% ======= Satellite ========
 cycle_duration = 1;                                 % Timestep for Controller & Orbit Propagator
 dt_model = .001;                                  % Timestep for Model
