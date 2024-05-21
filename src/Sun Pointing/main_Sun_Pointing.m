@@ -224,7 +224,7 @@ clc;
     end
         %% Main continuous loop
         for cycle_index = cycle_index:number_of_cycles
-  
+             cycle_index
              for timestep_index = 1:3
                  
                 current_timestep = (cycle_index-1)*N_Timesteps+timestep_index + 1;
@@ -413,7 +413,7 @@ clc;
 %% =============================== Errors and plots =============================================== %%
 
 %% Calculation and plotting of performance error
-% x_real_euler_perf = quat2eul(q_sb_data(1:4,1:length(q_sb_data))'); 
+% x_real_euler_perf = quat2eul(q_sb_data(1:4,1:length(q_sb_data))');
 % x_real_euler_perf = rad2deg(x_real_euler_perf');
 % 
 % APE = x_real_euler_perf';
@@ -722,6 +722,21 @@ end
 %      ylabel('Angular Velocity [rpm]', 'interpreter','latex', 'fontsize',14); 
 %      xlabel('Time [s]', 'interpreter','latex', 'fontsize',12); 
 %      grid on;
+
+%% RW budget
+      figure()
+      subplot(2,1,1);
+      plot(Time, rw_ang_vel_rpm(1,1:length(Time)),'LineWidth',1.5, 'Color','blue');
+      title('Angular velocity of RW', 'interpreter','latex', 'fontsize',17);
+      ylabel('Angular Velocity [rpm]', 'interpreter','latex', 'fontsize',14);
+      xlabel('Time [s]', 'interpreter','latex', 'fontsize',12);
+      grid on;
+      subplot(2,1,2);
+      plot(1:length(Time),tau_rw(1, 1:length(Time)))
+      title('Reaction Wheel Torque-z', 'interpreter','latex', 'fontsize',17)
+      ylabel('Torque [Nm]', 'interpreter','latex', 'fontsize',14)
+      xlabel('Time [s]', 'interpreter','latex', 'fontsize',12)
+      grid on;
  
  %%  Plotting the Disturbances
  
