@@ -178,5 +178,30 @@ end
     title('Magnetic Dipole-z');
     xlabel('Time [s]');
     ylabel({'Magnetic'; 'Dipole [Am^2]'});
+
+    %% Plotting Nominal Activation Matrix 
+
+    figure();
+    for i=1:2
+        subplot(2,1,i);
+        hold on;
+        plot(Time(1:length(Time)), nominal_activation_matrix(i, 1:length(Time)), 'LineWidth',1.5, 'Color','blue');
+        if (i==1), title('Nominal Activation', 'interpreter','latex', 'fontsize',17);end
+        if (i==1), ylabel('Data after process', 'interpreter','latex', 'fontsize',14); end
+        if (i==2), ylabel('Raw Data', 'interpreter','latex', 'fontsize',14); end
+        xlabel('Time [$s$]', 'interpreter','latex', 'fontsize',12);
+        hold off;
+        grid on;
+    end
+
+    %% Plotting eclipse
+
+    figure()
+    plot(1:length(eclipse),eclipse, 'LineWidth',2.0, 'Color','blue');
+    title('Eclipse', 'interpreter','latex', 'fontsize',17)
+    xlabel('Time [$s$]', 'interpreter','latex', 'fontsize',12);
+    ylabel('Eclipse', 'interpreter','latex', 'fontsize',14);
+    grid on;
+    if (i==1), title('Umbral, Penumbral or no Eclipse', 'interpreter','latex', 'fontsize',17);end
     
 
