@@ -23,7 +23,7 @@ function [T_mtq_effective, T_rw] = rw_saturation(T_magnetic_effective, T_rw, acc
     global A;
     global Jw;
     
-    AngVel_rw_lim = 10000;
+    AngVel_rw_lim = 15000;
     T_mtq_effective = T_magnetic_effective;
 
     if abs(AngVel_rw) > AngVel_rw_lim && abs(T_rw(3))> 0

@@ -54,7 +54,9 @@ function Const = constants()
 
     global orbits;
 
-    m = 4;                                  
+    m = 4;          % worst case mass
+    % m = 3.44;       % good mass
+    
     lx = 0.1;
     ly = 0.1;                              
     lz = 0.3405;                          
@@ -74,6 +76,7 @@ function Const = constants()
     b_friction = 9.5e-9;            
     c_friction = 1.9e-7;            
     Jw = 1.9e-6;                    
+    %Jw = 2.07e-6;                    
     A = 0.12;                       
     lim_dz = 300;                   
 
@@ -95,16 +98,19 @@ function Const = constants()
 
 %% THIS INERTIA MAKES ME HAPPY
 %     
-%     PMI = diag([0.03552528444 0.03572444349 0.00626757327]);        
-%     PAI = [0.98, 0.2, -0.02; -0.20, 0.98, 0.00 ; 0.02, 0.01, 1.00]; 
-%     Cm =  [0.00121 0.00057 0.00188]';                               
+     %PMI = diag([0.03552528444 0.03572444349 0.00626757327]);
+     %PAI = [0.98, 0.2, -0.02; -0.20, 0.98, 0.00 ; 0.02, 0.01, 1.00];
+     %Cm =  [0.00121 0.00057 0.00188]';
 %% New inertias
     PAI = [-1, 0.01, -0.04; 0.01, 1, 0.00 ; -0.04, 0.00, 1.00]; 
-%     PMI = diag([0.03634454760 0.033658224482 0.00626274895]); %good inertia
-    PMI = diag([0.04127073921 0.041018997570 0.00690030456]); %worst case inertia
-    Cm =  [0.00415 0.00116 0.0016]';
-    
 
+    %PMI = diag([0.03634454760 0.03658224482 0.00626274895]);  %good inertia
+    PMI = diag([0.04127073921 0.041018997570 0.00690030456]);  %worst case inertia
+
+    Cm =  [0.00415 0.00116 0.0016]';
+
+
+    
     for j=1:3
         PAI(:,j) = PAI(:,j)/norm(PAI(:,j));
     end
