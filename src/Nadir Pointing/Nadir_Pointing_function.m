@@ -728,6 +728,22 @@ end
 %      ylabel('Angular Velocity [rpm]', 'interpreter','latex', 'fontsize',14); 
 %      xlabel('Time [s]', 'interpreter','latex', 'fontsize',12); 
 %      grid on;
+
+%% RW budget
+      figure()
+      subplot(2,1,1);
+      plot(Time, rw_ang_vel_rpm(1,1:length(Time)),'LineWidth',1.5, 'Color','blue'); 
+      title('Angular velocity of RW', 'interpreter','latex', 'fontsize',17); 
+      ylabel('Angular Velocity [rpm]', 'interpreter','latex', 'fontsize',14); 
+      xlabel('Time [s]', 'interpreter','latex', 'fontsize',12); 
+      grid on;
+      subplot(2,1,2);
+      plot(1:length(Time),tau_rw(1, 1:length(Time)))
+      title('Reaction Wheel Torque-z', 'interpreter','latex', 'fontsize',17)
+      ylabel('Torque [Nm]', 'interpreter','latex', 'fontsize',14)
+      xlabel('Time [s]', 'interpreter','latex', 'fontsize',12)
+      grid on;
+
  
  %%  Plotting the Disturbances
  

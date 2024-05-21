@@ -13,7 +13,7 @@ function Param = setParamsFinal_Nadir_Pointing(I)
 %% ======= Satellite ========
 
 dt = .1; %Timestep for Orbit Propagator
-orbits=1;
+orbits=10;
 orbitPeriod=5545;
 tf = orbits*orbitPeriod; %Total Simulation Seconds
 q_desired = [ 1 0 0 0 ] ; %Desired quaternion
@@ -22,6 +22,7 @@ q_desired = [ 1 0 0 0 ] ; %Desired quaternion
 
 [satrec, ~] = orbit_init();
 [~,~,xsat_eci,~,~,eclipse,~,mag_field_eci,~,mag_field_orbit,~,sun_pos_eci,~,sun_pos_orbit,~,argpm,nodem,inclm,mm,~,~] = orbit_sgp4(satrec,dt,tf+dt);
+%[~,~,xsat_eci,~,~,eclipse,~,mag_field_eci,~,mag_field_orbit,~,sun_pos_eci,~,sun_pos_orbit,~,argpm,nodem,inclm,mm,~,~] = orbit_sgp4_offset(satrec,dt,tf+dt,1000);
 
 %% ======================= Testing Initial Quaternions =============================
 %Q0 = [0.5; -0.5; 0.5; 0.5]; 
