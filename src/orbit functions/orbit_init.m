@@ -29,7 +29,8 @@ x = rand;
 % end
 
 %% Set TLE manually
-infilename = "SSO-500-6PM.TLE";
+%infilename = "SSO-500-6PM.TLE";
+infilename = "SS0-500-11PM-new.TLE";
 
 %% Aks the user to provide TLE file
 %infilename = input('input elset filename: ','s');
