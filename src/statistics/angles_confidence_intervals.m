@@ -75,7 +75,7 @@ end
 % Calculate if azimuth and elevation angles are less than or equal to 20 degrees
 x = abs(angles(:,1)) <= 20; % azimuth
 y = abs(angles(:,2)) <= 20; % elevation
-z = zeros(1,length(angles(:,1))); % both azimuth & elevation 
+z = zeros(1,length(angles(:,1))); % both azimuth & elevation
 
 total1 = 0;
 total2 = 0;

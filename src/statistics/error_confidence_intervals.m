@@ -9,7 +9,8 @@
 % ======================================================================== %
 
 %% Exclude periods of eclipse
-offset = 5000;
+%offset = 5000;
+offset = 0;
 timestamps= [];
 e =1;
 
@@ -72,11 +73,11 @@ hold on;
 plot(50*eclipse, 'LineWidth',1.5, 'Color','green')
 hold on
 yline(20, 'LineWidth',1.5, 'Color','red')
-ylabel('X-axis', 'interpreter','latex', 'fontsize',14)
+ylabel('Z-axis', 'interpreter','latex', 'fontsize',14)
 subplot(3,1,2)
-plot(final_error(1,:))
+plot(final_error(2,:))
 hold on;
-plot(50*eclipse, 'LineWidth',1.5, 'Color','green')
+plot(25*eclipse, 'LineWidth',1.5, 'Color','green')
 hold on
 yline(20, 'LineWidth',1.5, 'Color','red')
 ylabel('Y-axis', 'interpreter','latex', 'fontsize',14)
@@ -86,4 +87,4 @@ hold on;
 plot(50*eclipse, 'LineWidth',1.5, 'Color','green')
 hold on
 yline(20, 'LineWidth',1.5, 'Color','red')
-ylabel('Z-axis', 'interpreter','latex', 'fontsize',14)
+ylabel('X-axis', 'interpreter','latex', 'fontsize',14)
