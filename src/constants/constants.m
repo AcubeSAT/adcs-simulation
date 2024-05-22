@@ -54,8 +54,8 @@ function Const = constants()
 
     global orbits;
 
-    m = 4;          % worst case mass
-    % m = 3.44;       % good mass
+    m = 3.44;   % mass mentioned in STR's CDR
+    %m = 4;      % mass mentioned in ADCS' CDR
     
     lx = 0.1;
     ly = 0.1;                              
@@ -87,28 +87,32 @@ function Const = constants()
     Iy = (m / 12) * (lx^2 + lz^2);  
     Iz = (m / 12) * (lx^2 + ly^2); 
 
-%% Current Inertia
-%     PMI = diag([0.03868845951 0.03899129965 0.00696263029]); %Principal Moments of Inertia
-%     PAI = [-0.89 0.46 0; 0.46 0.89 -0.01; 0 0.01 1]; %Principal Axes of Inertia
-%     Cm =  [0.03228 -0.02314 0.08244]'; % Center of mass
+%% Old Inertia
+    % PMI = diag([0.03868845951 0.03899129965 0.00696263029]); %Principal Moments of Inertia
+    % PAI = [-0.89 0.46 0; 0.46 0.89 -0.01; 0 0.01 1]; %Principal Axes of Inertia
+    % Cm =  [0.03228 -0.02314 0.08244]'; % Center of mass
 %% Modified Inertia
-%     PMI = diag([0.03928052501	0.03948290041	0.00720041142]); %Principal Moments of Inertia
-%     PAI = [-1 0.07 -0.01; 0.07 1 -0.02; -0.01 0.02 1]; %Principal Axes of Inertia
-%     Cm = [0.03111 -0.02099 0.08135]';  % Center of mass
+    % PMI = diag([0.03928052501	0.03948290041	0.00720041142]); %Principal Moments of Inertia
+    % PAI = [-1 0.07 -0.01; 0.07 1 -0.02; -0.01 0.02 1]; %Principal Axes of Inertia
+    % Cm = [0.03111 -0.02099 0.08135]';  % Center of mass
 
-%% THIS INERTIA MAKES ME HAPPY
-%     
-     %PMI = diag([0.03552528444 0.03572444349 0.00626757327]);
-     %PAI = [0.98, 0.2, -0.02; -0.20, 0.98, 0.00 ; 0.02, 0.01, 1.00];
-     %Cm =  [0.00121 0.00057 0.00188]';
-%% New inertias
+%% THIS INERTIA MAKES ADCS HAPPY
+    % PMI = diag([0.03552528444 0.03572444349 0.00626757327]);
+    % PAI = [0.98, 0.2, -0.02; -0.20, 0.98, 0.00 ; 0.02, 0.01, 1.00];
+    % Cm =  [0.00121 0.00057 0.00188]';
+
+%% CDR inertias
     PAI = [-1, 0.01, -0.04; 0.01, 1, 0.00 ; -0.04, 0.00, 1.00]; 
 
-    %PMI = diag([0.03634454760 0.03658224482 0.00626274895]);  %good inertia
-    PMI = diag([0.04127073921 0.041018997570 0.00690030456]);  %worst case inertia
+    % PMI mentioned in Structural's CDR
+    % good case for STR , worst case for ADCS
+    % PMI = diag([0.03634454760 0.03658224482 0.00626274895]);
+
+    % PMI mentioned in ADCS' CDR
+    % worst case for STR , good case for ADCS
+    PMI = diag([0.04127073921 0.041018997570 0.00690030456]);
 
     Cm =  [0.00415 0.00116 0.0016]';
-
 
     
     for j=1:3
