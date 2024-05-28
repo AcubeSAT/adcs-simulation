@@ -14,39 +14,42 @@
 %  ----------------------------------------------------------------------------*/
 
 
-function [satrec, x]=orbit_init()
-%% Get tle
-%% Random TLE selection
-x = rand;
-% if x >= 0 && x <= 0.25
-%     infilename = "SSO-500-6PM.TLE";
-% elseif x > 0.25 && x <= 0.5
-%     infilename = "SSO-500-8PM.TLE";
-% elseif x > 0.5 && x <= 0.75
-%     infilename = "SSO-500-9PM.TLE";    
-% else
-%     infilename = "SSO-500-11PM.TLE"; 
-% end
+function [satrec, x] = orbit_init()
 
-%% Set TLE manually
-%infilename = "SSO-500-6PM.TLE";
-infilename = "SS0-500-11PM-new.TLE";
+    %% Get tle
 
-%% Aks the user to provide TLE file
-%infilename = input('input elset filename: ','s');
+    %% Random TLE selection
+    x = rand;
+    % if x >= 0 && x <= 0.25
+    %     infilename = "SSO-500-6PM.TLE";
+    % elseif x > 0.25 && x <= 0.5
+    %     infilename = "SSO-500-8PM.TLE";
+    % elseif x > 0.5 && x <= 0.75
+    %     infilename = "SSO-500-9PM.TLE";
+    % else
+    %     infilename = "SSO-500-11PM.TLE";
+    % end
 
-%% Open TLE
-infile = fopen(infilename, 'r');
-if (infile == -1)
-        fprintf(1,'Failed to open file: %s\n', infilename);
+    %% Set TLE manually
+    %infilename = "SSO-500-6PM.TLE";
+    infilename = "SS0-500-11PM-new.TLE";
+
+    %% Aks the user to provide TLE file
+    %infilename = input('input elset filename: ','s');
+
+    %% Open TLE
+    infile = fopen(infilename, 'r');
+    if (infile == -1)
+        fprintf(1, 'Failed to open file: %s\n', infilename);
         return;
-end
-longstr1 = fgets(infile, 130);
-while ( (longstr1(1) == '#') && (feof(infile) == 0) )
+    end
     longstr1 = fgets(infile, 130);
-end       
-longstr2 = fgets(infile, 130);
+    while ((longstr1(1) == '#') && (feof(infile) == 0))
+        longstr1 = fgets(infile, 130);
+    end
+    longstr2 = fgets(infile, 130);
 
-%% Store tle values in satrec class and initialize orbit propagator
-satrec = twoline2rvMOD(longstr1,longstr2);
+    %% Store tle values in satrec class and initialize orbit propagator
+    satrec = twoline2rvMOD(longstr1, longstr2);
+
 end

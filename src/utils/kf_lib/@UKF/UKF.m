@@ -187,8 +187,8 @@ classdef UKF < handle
         
         
         %% Sets the covariance matrix of the measurement noise.
-        %% Note that if the continuous time process noise is Q_c the discrete
-        %% one is 'Q = Q_c*Ts' where Ts is the sampling period.
+        %  Note that if the continuous time process noise is Q_c the discrete
+        %  one is 'Q = Q_c*Ts' where Ts is the sampling period.
         %  @param[in] R: Measurement noise covariance matrix.
         function setMeasureNoiseCov(this, R)
             

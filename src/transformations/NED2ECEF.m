@@ -13,18 +13,18 @@
 %   ref_vector_ecef - Vector in ECEF frame
 %
 %
-%  Based on AOCS_DDJF 
+%  Based on AOCS_DDJF
 %  ----------------------------------------------------------------------------*/
 
-function ref_vector_ecef = NED2ECEF(ref_vec_ned,lat,long)
+function ref_vector_ecef = NED2ECEF(ref_vec_ned, lat, long)
 
-% % Construct rotation matrix
-c1=[-sin(lat)*cos(long) ;-sin(lat)*sin(long) ;cos(lat)];
-c2=[-sin(long)          ;cos(long)            ;0];
-c3=[-cos(lat)*cos(long) ;-cos(lat)*sin(long)  ;-sin(lat)];
-R = [c1,c2,c3];
+    % % Construct rotation matrix
+    c1 = [-sin(lat) * cos(long); -sin(lat) * sin(long); cos(lat)];
+    c2 = [-sin(long); cos(long); 0];
+    c3 = [-cos(lat) * cos(long); -cos(lat) * sin(long); -sin(lat)];
+    R = [c1, c2, c3];
 
-% Rotate vector
-ref_vector_ecef = R*ref_vec_ned;
+    % Rotate vector
+    ref_vector_ecef = R * ref_vec_ned;
 
 end
