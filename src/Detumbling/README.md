@@ -5,7 +5,7 @@ The detumbling simulation consists of three files:
 - `setParamsFinal_Detumbling`
 - `trigger_D2N`
 
-The main executable file is `main_Detumbling`. In this file, there is an option to choose which diagrams will be plotted.
+The main executable file is `main_Detumbling`. In this file, there is an option to choose which diagrams will be plotted. Also, the angular velocity threshold for changing modes `D2N_threshold` is set in this file. 
 
 The important parameters of the detumbling simulation are set in `setParamsFinal_Detumbling`. Some of these parameters are:
 - `orbits`: Number of orbits that the simulation will run

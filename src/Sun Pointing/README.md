@@ -7,15 +7,15 @@ The Sun Pointing simulation consists of three files:
 
 The main executable file is `main_Sun_Pointing`. In this file, there is the option to choose which diagrams will be plotted.
 
-Most of important parameters of the Sun Pointing simulation are set in `setParamsFinal_Sun_Pointing`. Some of these parameters are:
+The important parameters of the Sun Pointing simulation are set in `setParamsFinal_Sun_Pointing`. Some of these parameters are:
 - `orbits`: Number of orbits that the simulation will run
 - `Q0`: The initial quaternion
 - `vRot0`: The initial angular velocity
 - `DisturbancesEnabled`: Which disturbances will be activated
 - `init_bias`: Bias initialization
-- `base_albedo`: albedo depending on orbit 
+- `base_albedo`: Albedo depending on orbit 
 - `sigma_u` & `sigma_v`: Bias standard deviation & White noise standard deviation 
-- `R`, `R_hat` & `Q`: variance matrices for Kalman filter
+- `R`, `R_hat` & `Q`: Variance matrices for Kalman filter
 
 Parameters and constants that concern the satellite in general are set in `src/constants/constants`.
 
@@ -33,3 +33,4 @@ The sun pointing simulation has the following dependencies:
 - Sun vector functions in `src/sun vectors`
 - Function for solving Wahba's problem in `src/wahba`
 - Mathematical functions in `src/utils/quaternions`, `src/utils/rotations`, and `src/transformations`
+
