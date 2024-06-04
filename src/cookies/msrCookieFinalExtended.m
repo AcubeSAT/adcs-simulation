@@ -2,7 +2,7 @@
 %
 %                              procedure msrCookieFinalExtended
 %
-%  this procedure is a struct storing all required variables 
+%  this procedure is a struct storing all required variables
 %  used for MEKF correct function.
 %
 %   inputs        :
@@ -18,8 +18,8 @@
 %     cookie      - struct including all input variables
 %  ----------------------------------------------------------------------------*/
 
-function cookie = msrCookieFinalExtended(magn_ref,sun_ref,eclipse,gyro,xsat_eci,albedo,lambda)
+function cookie = msrCookieFinalExtended(magn_ref, sun_ref, eclipse, gyro, xsat_eci, albedo, lambda)
 
-    cookie = struct('magn_ref',magn_ref,'sun_ref', sun_ref,'eclipse',eclipse,'gyro',gyro,'xsat_eci',xsat_eci,'albedo',albedo,'lambda',lambda);
+    cookie = struct('magn_ref', magn_ref, 'sun_ref', sun_ref, 'eclipse', eclipse, 'gyro', gyro, 'xsat_eci', xsat_eci, 'albedo', albedo, 'lambda', lambda);
+
 end
-

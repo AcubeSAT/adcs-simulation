@@ -3,7 +3,7 @@
 %                              procedure msrCookieFinal
 %
 %  this procedure is a struct storing all required variables for the
-%  real satellite model. The satellite model is used to simulate the 
+%  real satellite model. The satellite model is used to simulate the
 %  real attitude at any point during orbit.
 %
 %   inputs        :
@@ -17,8 +17,8 @@
 %  ----------------------------------------------------------------------------*/
 
 
-function cookie = msrCookieFinal(magn_ref,sun_ref,eclipse,gyro)
+function cookie = msrCookieFinal(magn_ref, sun_ref, eclipse, gyro)
 
-    cookie = struct('magn_ref',magn_ref,'sun_ref', sun_ref,'eclipse',eclipse,'gyro',gyro);
+    cookie = struct('magn_ref', magn_ref, 'sun_ref', sun_ref, 'eclipse', eclipse, 'gyro', gyro);
+
 end
-

@@ -1,7 +1,7 @@
 % ======================================================================== %
 %     Class that implements the real groundtruth space environment used for the Bdot
 %     Simulation
-% 
+%
 %     Properties:
 %         dt                 - Simulation time step
 %         I                  - Inertia
@@ -15,16 +15,15 @@
 classdef real_SatelliteModel_Bdot
 
     methods (Access = public)
-        
+
         %% Constructor.
         % @param[in] dt: sampling time.
         function this = real_SatelliteModel_Bdot(dt, I)
-            
+
             this.dt = dt;
             this.I = I;
-            
-        end
 
+        end
 
         %% State transition function.
         % @param[in] x: state at time k.
@@ -34,22 +33,21 @@ classdef real_SatelliteModel_Bdot
         function x_next = stateTransFun(this, x, cookie)
 
             this.torq = cookie.torq;
-            this.rw_ang_momentum=cookie.rw_ang_momentum;
+            this.rw_ang_momentum = cookie.rw_ang_momentum;
             Q = x(1:4);
             vRot = x(5:7);
-            
+
             I_inv = eye(3) / this.I;
-            rw_ang_momentum_vector = [0;0;this.rw_ang_momentum];
-            dydt = I_inv*(this.torq + cross(this.I*vRot + rw_ang_momentum_vector ,vRot)); 
+            rw_ang_momentum_vector = [0; 0; this.rw_ang_momentum];
+            dydt = I_inv * (this.torq + cross(this.I*vRot+rw_ang_momentum_vector, vRot));
 
             dvRot = dydt;
-            vRot_next = vRot + dvRot*this.dt;
+            vRot_next = vRot + dvRot * this.dt;
 
-            Q_next = quatProd(Q,quatExp(vRot*this.dt));
+            Q_next = quatProd(Q, quatExp(vRot*this.dt));
             x_next = [Q_next; vRot_next];
 
         end
-
 
         %% Measurement function.
         % @param[in] x: state at time k.
@@ -61,22 +59,21 @@ classdef real_SatelliteModel_Bdot
             this.magn_ref = cookie.magn_ref;
             this.sun_ref = cookie.sun_ref;
             this.eclipse = cookie.eclipse;
-            
-            Q = x(1:4); 
-            vRot = x(5:7); 
 
-            y = zeros(6,1);
-            
+            Q = x(1:4);
+            vRot = x(5:7);
+
+            y = zeros(6, 1);
+
             y(4:6) = vRot;
-            
-            this.magn_ref=this.magn_ref/norm(this.magn_ref);
-            y1 = quatProd( quatInv(Q), quatProd([0; this.magn_ref], Q) );
-            
+
+            this.magn_ref = this.magn_ref / norm(this.magn_ref);
+            y1 = quatProd(quatInv(Q), quatProd([0; this.magn_ref], Q));
+
             y(1:3) = y1(2:4);
-            y(1:3) = y(1:3)/norm(y(1:3));
+            y(1:3) = y(1:3) / norm(y(1:3));
 
         end
-
 
         %% Measurement function Jacobian.
         % @param[in] x: state at time k
@@ -84,11 +81,10 @@ classdef real_SatelliteModel_Bdot
         % @param[out] H: measurement function Jacobian.
         %
         function H = msrFunJacob(this, x, cookie)
-            
-            error('[SatelliteModel::msrFunJacob]: Not implemented!');
-            
-        end
 
+            error('[SatelliteModel::msrFunJacob]: Not implemented!');
+
+        end
 
         %% State transition function Jacobian.
         % @param[in] x: state at time k
@@ -96,24 +92,24 @@ classdef real_SatelliteModel_Bdot
         % @param[out] F: state transition function Jacobian.
         %
         function F = stateTransFunJacob(this, x, cookie)
-            
+
             error('[SatelliteModel::msrFunJacob]: Not implemented!');
-            
+
         end
 
- 
+
     end
 
     properties (Access = protected)
-        
-        dt 
+
+        dt
         I
         magn_ref
         torq
         sun_ref
         eclipse
         rw_ang_momentum
-        
+
     end
-    
+
 end
