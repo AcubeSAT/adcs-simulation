@@ -38,9 +38,28 @@ classdef SatelliteModel
             bias = x(5:7);
             Q = x(1:4);
             vRot = this.gyro - bias;
-                                
-            Q_next = quatProd( Q, quatExp(vRot*this.dt));
+            
+            
+            % -------- Runge Kutta 4th Order  -----------------------------
+            vRot_quat = [0 vRot(1) vRot(2) vRot(3)];
+
+            k1_q = 0.5 * quatProd(Q,vRot_quat);
+            k2_q = 0.5 * quatProd(Q + 0.5 * this.dt * k1_q, vRot_quat);
+            k3_q = 0.5 * quatProd(Q + 0.5 * this.dt * k2_q, vRot_quat);
+            k4_q = 0.5 * quatProd(Q + this.dt * k3_q, vRot_quat);
+
+            q_new = Q + (this.dt / 6.0) * (k1_q + 2 * k2_q + 2 * k3_q + k4_q);
+            Q_next = q_new / norm(q_new);
+
             x_next = [Q_next; bias];
+            % -------------------------------------------------------------
+
+           
+
+            % ------- Euler integration method ----------------------------
+            % Q_next = quatProd( Q, quatExp(vRot*this.dt));
+            % x_next = [Q_next; bias];
+            % -------------------------------------------------------------
 
         end
 
