@@ -130,11 +130,13 @@ function Const = constants()
     v_satellite = sqrt(G * M / Radius); 
     w_o_io = [0 w_o 0]';
 
-    known_rm = [0.048 0.051 0.047];
+    %known_rm = [0.048 0.051 0.047];
+    known_rm = [0.01 0.01 0.01];
 
     orbitPeriod = (2 * pi) / (w_o);      
     n = orbitPeriod * orbits;     
     mtq_max = [0.2, 0.2, 0.2];
+
     rw_max_torque = 1e-4;
 
 %%  Passing the values of the parameters in a struct.
