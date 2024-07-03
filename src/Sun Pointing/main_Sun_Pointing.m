@@ -189,7 +189,7 @@ clc;
                     q_sb_data(:,current_timestep) = q_sun_body(Sun_pos_eci,x(1:4))';
                     R_OB = quat2dcm(q_ob');
                     sun_orbit_normalized = (Sun_pos_orbit/norm(Sun_pos_orbit));
-                    sun_desired = [1 1 0];
+                    sun_desired = [-1 1 0];
                     sun_desired = sun_desired/norm(sun_desired);
                     sun_pointing_error(:,current_timestep) = acos(sun_orbit_normalized'*(R_OB'*sun_desired'));
                 end
@@ -224,7 +224,7 @@ clc;
     end
         %% Main continuous loop
         for cycle_index = cycle_index:number_of_cycles
-             cycle_index
+             %cycle_index
              for timestep_index = 1:3
                  
                 current_timestep = (cycle_index-1)*N_Timesteps+timestep_index + 1;
@@ -309,7 +309,7 @@ clc;
                 q_sb_data(:,current_timestep) = q_sun_body(Sun_pos_eci,x(1:4))';
                 R_OB = quat2dcm(q_ob');
                 sun_orbit_normalized = (Sun_pos_orbit/norm(Sun_pos_orbit));
-                sun_desired = [1 1 0];
+                sun_desired = [-1 1 0];
                 sun_desired = sun_desired/norm(sun_desired);
                 sun_pointing_error(:,current_timestep) = acos(sun_orbit_normalized'*(R_OB'*sun_desired'));
              end 
@@ -400,7 +400,7 @@ clc;
                 q_sb_data(:,current_timestep) = q_sun_body(Sun_pos_eci,x(1:4))';
                 R_OB = quat2dcm(q_ob');
                 sun_orbit_normalized = (Sun_pos_orbit/norm(Sun_pos_orbit));
-                sun_desired = [1 1 0];
+                sun_desired = [-1 1 0];
                 sun_desired = sun_desired/norm(sun_desired);
                 sun_pointing_error(:,current_timestep) = acos(sun_orbit_normalized'*(R_OB'*sun_desired'));
                 
