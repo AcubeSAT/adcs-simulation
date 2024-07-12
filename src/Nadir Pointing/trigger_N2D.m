@@ -19,9 +19,9 @@
 %
 
 %% ======================================================================= %%
-Const=constants();
+
 function [trigger_flag, trigger_flag_raw, threshold_times, threshold_exceptions] = ...
-        trigger_N2D(velocity_cur, velocity_old, threshold_times, threshold_exceptions,Const.N2D_threshold)
+        trigger_N2D(velocity_cur, velocity_old, threshold_times, threshold_exceptions,N2D_threshold)
 
     total_limit = 20;
     exceptions_limit = 2;
