@@ -87,7 +87,8 @@ function Const = constants()
     Iy = (m / 12) * (lx^2 + lz^2);
     Iz = (m / 12) * (lx^2 + ly^2);
 
-    N2D_threshold = 0.08; % rad/sec
+    N2D_threshold = 0.08; % rad/sec                     %Threshold for switching from nominal to detumbling
+    D2N_threshold = 0.035; % rad/sec                    % Threshold for switching from detumbling to nominal
 
     %% Old Inertia
     % PMI = diag([0.03868845951 0.03899129965 0.00696263029]); %Principal Moments of Inertia
@@ -171,4 +172,5 @@ function Const = constants()
     Const.Cm = Cm;
     Const.known_rm = known_rm;
     Const.N2D_threshold= N2D_threshold;
+    Const.D2N_threshold= D2N_threshold;
 end

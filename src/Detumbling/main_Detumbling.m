@@ -22,8 +22,7 @@ w_b_ob_Bdot = zeros(3, length(Time));               % Angular velocity estimatio
 threshold_times = 0;
 threshold_exceptions = 0;
 nominal_activation_matrix = zeros(2, length(Time)); % 1 - Bdot, 2 - nonBdot
-%N2D_threshold = 0.087; % rad/sec
-D2N_threshold = 0.035; % rad/sec                    % Threshold for switching from detumbling to nominal
+
 
 global R_coils; R_coils = Const.R_coils;
 global N_coils; N_coils = Const.N_coils;
@@ -77,7 +76,7 @@ for current_cycle = 1:length(Time) %Main loop
 
     %% Calculate when Nominal is ready to be activated
     if current_cycle > 1
-        [bdot_activation, nonBdot_activation, threshold_times, threshold_exceptions] = trigger_D2N(threshold_times, threshold_exceptions, w_b_ob(:, current_cycle), w_b_ob_Bdot(:, current_cycle), w_b_ob_Bdot(:, current_cycle-1), D2N_threshold,total_limit,exceptions_limit);
+        [bdot_activation, nonBdot_activation, threshold_times, threshold_exceptions] = trigger_D2N(threshold_times, threshold_exceptions, w_b_ob(:, current_cycle), w_b_ob_Bdot(:, current_cycle), w_b_ob_Bdot(:, current_cycle-1),Const.D2N_threshold,total_limit,exceptions_limit);
         nominal_activation_matrix(1, current_cycle) = bdot_activation;
         nominal_activation_matrix(2, current_cycle) = nonBdot_activation;
     end
