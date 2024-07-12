@@ -87,6 +87,8 @@ function Const = constants()
     Iy = (m / 12) * (lx^2 + lz^2);
     Iz = (m / 12) * (lx^2 + ly^2);
 
+    N2D_threshold = 0.08; % rad/sec
+
     %% Old Inertia
     % PMI = diag([0.03868845951 0.03899129965 0.00696263029]); %Principal Moments of Inertia
     % PAI = [-0.89 0.46 0; 0.46 0.89 -0.01; 0 0.01 1]; %Principal Axes of Inertia
@@ -168,5 +170,5 @@ function Const = constants()
     Const.p = p_500;
     Const.Cm = Cm;
     Const.known_rm = known_rm;
-
+    Const.N2D_threshold= N2D_threshold;
 end
