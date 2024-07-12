@@ -77,7 +77,7 @@ for current_cycle = 1:length(Time) %Main loop
 
     %% Calculate when Nominal is ready to be activated
     if current_cycle > 1
-        [bdot_activation, nonBdot_activation, threshold_times, threshold_exceptions] = trigger_D2N(threshold_times, threshold_exceptions, w_b_ob(:, current_cycle), w_b_ob_Bdot(:, current_cycle), w_b_ob_Bdot(:, current_cycle-1), D2N_threshold);
+        [bdot_activation, nonBdot_activation, threshold_times, threshold_exceptions] = trigger_D2N(threshold_times, threshold_exceptions, w_b_ob(:, current_cycle), w_b_ob_Bdot(:, current_cycle), w_b_ob_Bdot(:, current_cycle-1), D2N_threshold,total_limit,exceptions_limit);
         nominal_activation_matrix(1, current_cycle) = bdot_activation;
         nominal_activation_matrix(2, current_cycle) = nonBdot_activation;
     end

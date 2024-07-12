@@ -29,3 +29,9 @@ satrec = orbit_init();
 n_msr = 3; % Measurements length
 R_coeff = [9e-16; 9e-16; 9e-16];
 R = R_coeff .* eye(n_msr, n_msr); % Variance of the measurement noise v[k]
+
+
+%% Parameters for threshold limits
+
+  total_limit = 520;
+  exceptions_limit = 30;
