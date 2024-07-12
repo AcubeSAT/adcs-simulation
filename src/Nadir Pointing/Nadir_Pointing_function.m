@@ -51,6 +51,8 @@ function [APE, Time, eclipse] = Nadir_Pointing_function(Kp_gain, Kd_gain)
     P0 = Param.P0;
     number_of_measurements = Param.number_of_measurements;
     use_analytic_jacob = Param.use_analytic_jacob;
+    total_limit = Param.total_limit;
+    exceptions_limit= Param.exceptions_limit;
 
 
     %% Initialize Global Parameters
@@ -329,7 +331,7 @@ function [APE, Time, eclipse] = Nadir_Pointing_function(Kp_gain, Kd_gain)
 
             if current_timestep > 1
                 [trigger_flag, trigger_flag_raw, threshold_times, threshold_exceptions] = ...
-                    trigger_N2D(x_real(5:7, current_timestep), x_real(5:7, current_timestep-1), threshold_times, threshold_exceptions,Const.N2D_threshold);
+                    trigger_N2D(x_real(5:7, current_timestep), x_real(5:7, current_timestep-1), threshold_times, threshold_exceptions,Const.N2D_threshold,total_limit,exceptions_limit);
 
                 bdot_activation_matrix(1, current_timestep) = trigger_flag;
                 bdot_activation_matrix(2, current_timestep) = trigger_flag_raw;
@@ -428,7 +430,7 @@ function [APE, Time, eclipse] = Nadir_Pointing_function(Kp_gain, Kd_gain)
 
             if current_timestep > 1
                 [trigger_flag, trigger_flag_raw, threshold_times, threshold_exceptions] = ...
-                    trigger_N2D(x_real(5:7, current_timestep), x_real(5:7, current_timestep-1), threshold_times, threshold_exceptions,Const.N2D_threshold);
+                    trigger_N2D(x_real(5:7, current_timestep), x_real(5:7, current_timestep-1), threshold_times, threshold_exceptions,Const.N2D_threshold,total_limit,exceptions_limit);
 
                 bdot_activation_matrix(1, current_timestep) = trigger_flag;
                 bdot_activation_matrix(2, current_timestep) = trigger_flag_raw;
