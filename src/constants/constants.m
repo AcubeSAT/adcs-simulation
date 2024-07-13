@@ -47,6 +47,8 @@
 %       n             - Total simulation time
 %       mtq_max       - Maximum magnetic dipole of magnetorquers
 %       rw_max_torque - Maximum torque of the Reaction Wheel
+%       N2D_threshold - Threshold for switching from nominal to detumbling
+%       D2N_threshold - Threshold for switching from detumbling to nominal
 
 % ======================================================================== %%
 
