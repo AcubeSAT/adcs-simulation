@@ -113,38 +113,38 @@ function  [torque, T_rw, T_magnetic_effective, V_rw, I_rw, P_thermal_rw, AngVel_
     end
 
     %%  Deadzone, are you here?
-    if abs(AngVel_rw_rpm_cur) <= lim_dz && abs(T_rw(3)) > 9e-7
-        if timeflag_dz == 0
-            init_AngVel_dz = AngVel_rw_rpm_cur;
-            init_accel_dz = acceleration_rw_cur;
-        end
-        [V_rw, I_rw, P_thermal_rw, AngVel_rw_rpm_new, acceleration_rw_cur, T_rw(3), timeflag_dz, init_accel_dz] = ...
-            rw_deadzone(AngVel_rw_rpm_cur, timeflag_dz, init_accel_dz, init_AngVel_dz);
-        AngVel_rw_radps_new = pi/30 * AngVel_rw_rpm_new;
-
-        T_magnetic = skew(b_hat)'*skew(b_hat) * (T_commanded - T_rw);   
-        M = skew(B_body)*T_magnetic/(B_body'*B_body);
-        M = mtq_scaling(M, mtq_max);
-        T_magnetic_effective = cross(M,B_body);
-    else
-       if timeflag_dz ~= 0
-           timeflag_dz = 0;
-           flag = 1;
-       end
-    end 
-
-    if timeflag_dz == 0 && flag == 1
-        [V_rw, I_rw, P_thermal_rw, AngVel_rw_radps_new, acceleration_rw_cur] = ...
-                                                rw_model(T_rw(3), AngVel_rw_radps_cur);
-        AngVel_rw_rpm_new = 30/pi * AngVel_rw_radps_new;
-        flag = 0;
-    end
+    % if abs(AngVel_rw_rpm_cur) <= lim_dz && abs(T_rw(3)) > 9e-7
+    %     if timeflag_dz == 0
+    %         init_AngVel_dz = AngVel_rw_rpm_cur;
+    %         init_accel_dz = acceleration_rw_cur;
+    %     end
+    %     [V_rw, I_rw, P_thermal_rw, AngVel_rw_rpm_new, acceleration_rw_cur, T_rw(3), timeflag_dz, init_accel_dz] = ...
+    %         rw_deadzone(AngVel_rw_rpm_cur, timeflag_dz, init_accel_dz, init_AngVel_dz);
+    %     AngVel_rw_radps_new = pi/30 * AngVel_rw_rpm_new;
+    % 
+    %     T_magnetic = skew(b_hat)'*skew(b_hat) * (T_commanded - T_rw);   
+    %     M = skew(B_body)*T_magnetic/(B_body'*B_body);
+    %     M = mtq_scaling(M, mtq_max);
+    %     T_magnetic_effective = cross(M,B_body);
+    % else
+    %    if timeflag_dz ~= 0
+    %        timeflag_dz = 0;
+    %        flag = 1;
+    %    end
+    % end 
+    % 
+    % if timeflag_dz == 0 && flag == 1
+    %     [V_rw, I_rw, P_thermal_rw, AngVel_rw_radps_new, acceleration_rw_cur] = ...
+    %                                             rw_model(T_rw(3), AngVel_rw_radps_cur);
+    %     AngVel_rw_rpm_new = 30/pi * AngVel_rw_radps_new;
+    %     flag = 0;
+    % end
 
     %% If the angular velocity is too small, it's actually 0
 
-    if abs(AngVel_rw_rpm_new) < 0.5
-            AngVel_rw_rpm_new = 0;
-    end
+    % if abs(AngVel_rw_rpm_new) < 0.5
+    %         AngVel_rw_rpm_new = 0;
+    % end
 
     %% Calculate angular momentum
     rw_ang_momentum = Jw * AngVel_rw_radps_new;
