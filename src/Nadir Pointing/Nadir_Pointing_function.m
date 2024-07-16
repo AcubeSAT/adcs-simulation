@@ -53,6 +53,7 @@ function [APE, Time, eclipse] = Nadir_Pointing_function(Kp_gain, Kd_gain)
     use_analytic_jacob = Param.use_analytic_jacob;
     total_limit = Param.total_limit;
     exceptions_limit= Param.exceptions_limit;
+    N_Timesteps= Param.N_Timesteps;
 
 
     %% Initialize Global Parameters
@@ -98,7 +99,6 @@ function [APE, Time, eclipse] = Nadir_Pointing_function(Kp_gain, Kd_gain)
     x = x0(1:7);
     x_real(:,1) = x0(1:7);
     t = 0;
-    N_Timesteps = 10;                           % Number of timesteps per cycle
     number_of_cycles = floor(length(Time)/N_Timesteps);  % Number of cycles
     timeflag_dz = 0;
     init_AngVel_dz = 0;

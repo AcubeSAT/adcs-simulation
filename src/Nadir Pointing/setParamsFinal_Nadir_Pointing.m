@@ -16,6 +16,7 @@ function Param = setParamsFinal_Nadir_Pointing(I)
     orbitPeriod = 5545;
     tf = orbits * orbitPeriod;  %Total Simulation Seconds
     q_desired = [1, 0, 0, 0];   %Desired quaternion
+    N_Timesteps = 10;           % Number of timesteps per cycle
 
     %% ======= Orbit Propagation ========
 
@@ -139,6 +140,7 @@ function Param = setParamsFinal_Nadir_Pointing(I)
     Param.xsat_eci = xsat_eci;
     Param.total_limit= total_limit;
     Param.exceptions_limit= exceptions_limit;
+    Param.N_Timesteps= N_Timesteps;
 
 
 end

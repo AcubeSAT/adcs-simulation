@@ -39,6 +39,7 @@ sigma_u = Param.sigma_u;
 sigma_v = Param.sigma_v;
 P0 = Param.P0;
 use_analytic_jacob = Param.use_analytic_jacob;
+N_Timesteps= Param.N_Timesteps;
 
 %% Initialize Global Parameters
 
@@ -81,7 +82,6 @@ q_ob_data = zeros(4, length(Time));
 x = x0(1:7);
 x_real(:, 1) = x0(1:7);
 t = 0;
-N_Timesteps = 10;                                   % Number of timesteps per cycle
 number_of_cycles = floor(length(Time)/N_Timesteps); % Number of cycles
 timeflag_dz = 0;
 init_AngVel_dz = 0;
