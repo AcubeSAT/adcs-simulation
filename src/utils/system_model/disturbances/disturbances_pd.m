@@ -35,7 +35,7 @@ function [T_dist, rm, returnMessage, tau_ad, tau_rm, tau_sp, tau_g] = disturbanc
 
     %% Solar Pressure
 
-    [tau_sp, Area, cosines] = solar_pressure(R_OB, sun_vector, Const.Cm);
+    [tau_sp, Area, cosines] = solar_pressure(R_OB, sun_vector, Const.Cm,Const.reflectance_factor);
 
     %% Residual Magnetic Moment
 

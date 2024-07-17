@@ -47,6 +47,7 @@
 %       n             - Total simulation time
 %       mtq_max       - Maximum magnetic dipole of magnetorquers
 %       rw_max_torque - Maximum torque of the Reaction Wheel
+%       reflectance_factor - Reflectance factor of the spacecraft surface materials
 %       N2D_threshold - Threshold for switching from nominal to detumbling
 %       D2N_threshold - Threshold for switching from detumbling to nominal
 %
@@ -108,6 +109,8 @@ function Const = constants()
     const4_accel=200;
 
      AngVel_rw_lim = 15000;
+
+     reflectance_factor=0.6;
 
 
     %% Old Inertia
@@ -198,4 +201,5 @@ function Const = constants()
     Const.const3_accel= const3_accel;
     Const.const4_accel= const4_accel;
     Const.AngVel_rw_lim= AngVel_rw_lim;
+    Const.reflectance_factor=reflectance_factor;
 end

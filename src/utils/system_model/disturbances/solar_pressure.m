@@ -14,11 +14,11 @@
 %
 % ======================================================================== %
 
-function [tau_sp, Area, cosines] = solar_pressure(R_OB, sun_vector, Cm)
+function [tau_sp, Area, cosines] = solar_pressure(R_OB, sun_vector, Cm,reflectance_factor)
 
     Fs = 1367; % Solar Constant [W/m^2]
     c = 3e8; % Speed of light [m/s]
-    reflectance_factor = 0.6;
+    
 
     y_0 = -R_OB * sun_vector; % Sun vector in body frame
     y_0 = y_0 / norm(y_0);

@@ -34,7 +34,7 @@ function [T_dist, returnMessage] = disturbances_bdot(R_BO, sun_vector, B_body, s
 
     %% Solar Pressure
 
-    [tau_sp, ~, ~] = solar_pressure(R_OB, sun_vector, Const.Cm);
+    [tau_sp, ~, ~] = solar_pressure(R_OB, sun_vector, Const.Cm,Const.reflectance_factor);
 
     %% Total Torques
 
