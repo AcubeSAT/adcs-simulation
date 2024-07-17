@@ -49,6 +49,13 @@
 %       rw_max_torque - Maximum torque of the Reaction Wheel
 %       N2D_threshold - Threshold for switching from nominal to detumbling
 %       D2N_threshold - Threshold for switching from detumbling to nominal
+%
+%
+%       Reaction Wheel deadzone behavior thresholds (in rpm/sec)
+%       const1_accel  - Threshold for Case 1
+%       const2_accel  - Threshold for Case 2 
+%       const3_accel  - Threshold for Case 3
+%       const4_accel  - Threshold for Case 4
 
 % ======================================================================== %%
 
@@ -89,8 +96,14 @@ function Const = constants()
     Iy = (m / 12) * (lx^2 + lz^2);
     Iz = (m / 12) * (lx^2 + ly^2);
 
-    N2D_threshold = 0.08; % rad/sec                     %Threshold for switching from nominal to detumbling
-    D2N_threshold = 0.035; % rad/sec                    % Threshold for switching from detumbling to nominal
+    N2D_threshold = 0.08; % rad/sec                    
+    D2N_threshold = 0.035; % rad/sec  
+
+    const1_accel=25;
+    const2_accel=50;
+    const3_accel=100;
+    const4_accel=200;
+
 
     %% Old Inertia
     % PMI = diag([0.03868845951 0.03899129965 0.00696263029]); %Principal Moments of Inertia
@@ -175,4 +188,8 @@ function Const = constants()
     Const.known_rm = known_rm;
     Const.N2D_threshold= N2D_threshold;
     Const.D2N_threshold= D2N_threshold;
+    Const.const1_accel= const1_accel;
+    Const.const2_accel= const2_accel;
+    Const.const3_accel= const3_accel;
+    Const.const4_accel= const4_accel;
 end

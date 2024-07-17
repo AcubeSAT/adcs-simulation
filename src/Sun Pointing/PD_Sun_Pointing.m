@@ -51,7 +51,7 @@ function [torque, T_rw, T_magnetic_effective, V_rw, I_rw, P_thermal_rw, AngVel_r
         timeflag_dz, M, q_sb] = ...
         PD_Sun_Pointing(q_desired, q_eci_body, w_b_ib, B_body, mtq_max, ...
         lim_dz, AngVel_rw_radps_cur, AngVel_rw_rpm_cur, acceleration_rw_old, init_AngVel_dz, ...
-        init_accel_dz, timeflag_dz, rw_max_torque, B_body_real, time, sun_vector_eci, known_rm)
+        init_accel_dz, timeflag_dz, rw_max_torque, B_body_real, time, sun_vector_eci, known_rm,const1_accel,const2_accel,const3_accel,const4_accel)
 
     global T_rw_data;
     global T_magnetic_data;
@@ -108,7 +108,7 @@ function [torque, T_rw, T_magnetic_effective, V_rw, I_rw, P_thermal_rw, AngVel_r
             init_accel_dz = acceleration_rw_cur;
         end
         [V_rw, I_rw, P_thermal_rw, AngVel_rw_rpm_new, acceleration_rw_cur, T_rw(3), timeflag_dz, init_accel_dz] = ...
-            rw_deadzone(AngVel_rw_rpm_cur, timeflag_dz, init_accel_dz, init_AngVel_dz);
+            rw_deadzone(AngVel_rw_rpm_cur, timeflag_dz, init_accel_dz, init_AngVel_dz,const1_accel,const2_accel,const3_accel,const4_accel);
         AngVel_rw_radps_new = pi / 30 * AngVel_rw_rpm_new;
 
         T_magnetic = skew(b_hat)' * skew(b_hat) * (T_commanded - T_rw);
