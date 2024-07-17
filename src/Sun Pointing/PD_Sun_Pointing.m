@@ -51,7 +51,7 @@ function [torque, T_rw, T_magnetic_effective, V_rw, I_rw, P_thermal_rw, AngVel_r
         timeflag_dz, M, q_sb] = ...
         PD_Sun_Pointing(q_desired, q_eci_body, w_b_ib, B_body, mtq_max, ...
         lim_dz, AngVel_rw_radps_cur, AngVel_rw_rpm_cur, acceleration_rw_old, init_AngVel_dz, ...
-        init_accel_dz, timeflag_dz, rw_max_torque, B_body_real, time, sun_vector_eci, known_rm,const1_accel,const2_accel,const3_accel,const4_accel)
+        init_accel_dz, timeflag_dz, rw_max_torque, B_body_real, time, sun_vector_eci, known_rm,const1_accel,const2_accel,const3_accel,const4_accel,AngVel_rw_lim)
 
     global T_rw_data;
     global T_magnetic_data;
@@ -84,7 +84,7 @@ function [torque, T_rw, T_magnetic_effective, V_rw, I_rw, P_thermal_rw, AngVel_r
 
     if time > 1
         [T_magnetic_effective, T_rw] = ...
-            rw_saturation(T_magnetic_effective, T_rw, acceleration_rw_old, AngVel_rw_rpm_cur, B_body);
+            rw_saturation(T_magnetic_effective, T_rw, acceleration_rw_old, AngVel_rw_rpm_cur, B_body,mtq_max,AngVel_rw_lim);
 
         if T_rw(3) > Max_RW_torq
             T_rw(3) = Max_RW_torq;

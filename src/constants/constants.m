@@ -56,6 +56,9 @@
 %       const2_accel  - Threshold for Case 2 
 %       const3_accel  - Threshold for Case 3
 %       const4_accel  - Threshold for Case 4
+%
+%       AngVel_rw_lim - Angular velocity limit for RW desaturation
+
 
 % ======================================================================== %%
 
@@ -103,6 +106,8 @@ function Const = constants()
     const2_accel=50;
     const3_accel=100;
     const4_accel=200;
+
+     AngVel_rw_lim = 15000;
 
 
     %% Old Inertia
@@ -192,4 +197,5 @@ function Const = constants()
     Const.const2_accel= const2_accel;
     Const.const3_accel= const3_accel;
     Const.const4_accel= const4_accel;
+    Const.AngVel_rw_lim= AngVel_rw_lim;
 end
