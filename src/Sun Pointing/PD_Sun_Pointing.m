@@ -23,7 +23,7 @@
 %     time                   - Current timestep
 %     sun_vector_eci         - Unit vector from satellite to sun expressed in ECI frame
 %     known_rm               - Estimated constant residual magnetic dipole
-%     Reaction wheel deadzone behavior thresholds (in rpm/sec).
+%     Reaction wheel deadzone behavior thresholds (in rpm/sec):
 %     const1_accel           - Threshold for Case 1
 %     const2_accel           - Threshold for Case 2
 %     const3_accel           - Threshold for Case 3

@@ -6,6 +6,7 @@
 %     R_OB          - Transformation matrix from orbit to body frame
 %     sun_vector    - Unit vector from satellite to sun expressed in orbit frame
 %     Cm            - Center of mass
+%     reflectance_factor - Reflectance factor of the spacecraft surface materials
 %
 %   Ouputs:
 %     tau_ad        - Solar pressure torque
