@@ -23,7 +23,13 @@
 %     time                   - Current timestep
 %     sun_vector_eci         - Unit vector from satellite to sun expressed in ECI frame
 %     known_rm               - Estimated constant residual magnetic dipole
-%
+%     Reaction wheel deadzone behavior thresholds (in rpm/sec).
+%     const1_accel           - Threshold for Case 1
+%     const2_accel           - Threshold for Case 2
+%     const3_accel           - Threshold for Case 3
+%     const4_accel           - Threshold for Case 4
+%     AngVel_rw_lim          - Angular velocity limit for RW desaturation
+%     sun_desired            - Desired sun vector
 %
 %   Outputs:
 %     torque                 - Total applied torque
@@ -51,7 +57,7 @@ function [torque, T_rw, T_magnetic_effective, V_rw, I_rw, P_thermal_rw, AngVel_r
         timeflag_dz, M, q_sb] = ...
         PD_Sun_Pointing(q_desired, q_eci_body, w_b_ib, B_body, mtq_max, ...
         lim_dz, AngVel_rw_radps_cur, AngVel_rw_rpm_cur, acceleration_rw_old, init_AngVel_dz, ...
-        init_accel_dz, timeflag_dz, rw_max_torque, B_body_real, time, sun_vector_eci, known_rm,const1_accel,const2_accel,const3_accel,const4_accel,AngVel_rw_lim)
+        init_accel_dz, timeflag_dz, rw_max_torque, B_body_real, time, sun_vector_eci, known_rm,const1_accel,const2_accel,const3_accel,const4_accel,AngVel_rw_lim,sun_desired)
 
     global T_rw_data;
     global T_magnetic_data;
@@ -62,7 +68,7 @@ function [torque, T_rw, T_magnetic_effective, V_rw, I_rw, P_thermal_rw, AngVel_r
     Kp_gain = 8e-03 * diag([1, 3, 1]);
     Kd_gain = 2e-01 * diag([1, 1, 1]);
 
-    q_sb = q_sun_body(sun_vector_eci, q_eci_body);
+    q_sb = q_sun_body(sun_vector_eci, q_eci_body,sun_desired);
 
     q_error = quatProd(quatconj(q_desired), q_sb);
     T_commanded = -sign(q_error(1)) * Kp_gain * q_error(2:4) - Kd_gain * w_b_ib;
