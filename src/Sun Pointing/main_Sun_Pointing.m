@@ -182,7 +182,7 @@ for cycle_index = 1:bias_wahba_loops
                     inclm(1, current_timestep), argpm(1, current_timestep), mm(1, current_timestep));
                 bias_data(:, current_timestep) = real_bias;
                 gyro_noise_data(:, current_timestep) = gyro_noise;
-                q_sb_data(:, current_timestep) = q_sun_body(Sun_pos_eci, x(1:4),sun_desired)';
+                q_sb_data(:, current_timestep) = q_sun_body(Sun_pos_eci, x(1:4),Const.sun_desired)';
                 R_OB = quat2dcm(q_ob');
                 sun_orbit_normalized = (Sun_pos_orbit / norm(Sun_pos_orbit));
                 Const.sun_desired = Const.sun_desired / norm(Const.sun_desired);
@@ -297,7 +297,7 @@ for cycle_index = cycle_index:number_of_cycles
         bias_data(:, current_timestep) = real_bias;
         gyro_noise_data(:, current_timestep) = gyro_noise;
         q_ob_data(:, current_timestep) = q_ob;
-        q_sb_data(:, current_timestep) = q_sun_body(Sun_pos_eci, x(1:4),sun_desired)';
+        q_sb_data(:, current_timestep) = q_sun_body(Sun_pos_eci, x(1:4),Const.sun_desired)';
         R_OB = quat2dcm(q_ob');
         sun_orbit_normalized = (Sun_pos_orbit / norm(Sun_pos_orbit));
         Const.sun_desired = Const.sun_desired / norm(Const.sun_desired);
@@ -379,12 +379,11 @@ for cycle_index = cycle_index:number_of_cycles
         x_hat_data(:, current_timestep) = x_hat;
         Bbody_data(:, current_timestep) = y_real(1:3) * norm(mag_field_orbit(:, current_timestep)*10^(-9));
         q_ob_data(:, current_timestep) = q_ob;
-        q_sb_data(:, current_timestep) = q_sun_body(Sun_pos_eci, x(1:4))';
+        q_sb_data(:, current_timestep) = q_sun_body(Sun_pos_eci, x(1:4),Const.sun_desired)';
         R_OB = quat2dcm(q_ob');
         sun_orbit_normalized = (Sun_pos_orbit / norm(Sun_pos_orbit));
-        sun_desired = [1, 1, 0];
-        sun_desired = sun_desired / norm(sun_desired);
-        sun_pointing_error(:, current_timestep) = acos(sun_orbit_normalized'*(R_OB' * sun_desired'));
+        Const.sun_desired = Const.sun_desired / norm(Const.sun_desired);
+        sun_pointing_error(:, current_timestep) = acos(sun_orbit_normalized'*(R_OB' * Const.sun_desired'));
 
     end
 end
