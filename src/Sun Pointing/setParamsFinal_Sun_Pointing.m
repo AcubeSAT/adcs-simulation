@@ -14,8 +14,9 @@ function Param = setParamsFinal_Sun_Pointing(I)
     dt = .1; %Timestep for Orbit Propagator
     orbits = 3;
     orbitPeriod = 5545;
-    tf = orbits * orbitPeriod; %Total Simulation Seconds
+    tf = orbits * orbitPeriod;  %Total Simulation Seconds
     q_desired = [1, 0, 0, 0];   %Desired quaternion
+    N_Timesteps = 10;           % Number of timesteps per cycle
 
     %% ======= Orbit Propagation ========
 
@@ -132,5 +133,5 @@ function Param = setParamsFinal_Sun_Pointing(I)
     Param.number_of_measurements = number_of_measurements;
     Param.use_analytic_jacob = use_analytic_jacob;
     Param.xsat_eci = xsat_eci;
-
+    Param.N_Timesteps= N_Timesteps;
 end

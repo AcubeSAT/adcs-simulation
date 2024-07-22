@@ -6,6 +6,7 @@
 %     R_OB          - Transformation matrix from orbit to body frame
 %     sun_vector    - Unit vector from satellite to sun expressed in orbit frame
 %     Cm            - Center of mass
+%     reflectance_factor - Reflectance factor of the spacecraft surface materials
 %
 %   Ouputs:
 %     tau_ad        - Solar pressure torque
@@ -14,11 +15,11 @@
 %
 % ======================================================================== %
 
-function [tau_sp, Area, cosines] = solar_pressure(R_OB, sun_vector, Cm)
+function [tau_sp, Area, cosines] = solar_pressure(R_OB, sun_vector, Cm,reflectance_factor)
 
     Fs = 1367; % Solar Constant [W/m^2]
     c = 3e8; % Speed of light [m/s]
-    reflectance_factor = 0.6;
+    
 
     y_0 = -R_OB * sun_vector; % Sun vector in body frame
     y_0 = y_0 / norm(y_0);

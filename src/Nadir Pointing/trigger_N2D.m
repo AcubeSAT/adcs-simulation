@@ -10,6 +10,13 @@
 %      threshold_exceptions  - Counts the exceptions, namely the times
 %                              when the threshold is not exceeded, while
 %                              in trigger mode
+%      N2D_threshold         - Threshold for switching from nominal to detumbling
+%       total_limit          - The total number of times the estimated angular
+%                              velocity must be below the threshold before
+%                              activation.
+%      exceptions_limit      - The number of allowable exceptions where the
+%                              estimated angular velocity exceeds the threshold
+%                              but is still counted towards the total limit.
 %
 %  Outputs:
 %      trigger_flag          - Indicates when the trigger is activated after
@@ -21,11 +28,10 @@
 %% ======================================================================= %%
 
 function [trigger_flag, trigger_flag_raw, threshold_times, threshold_exceptions] = ...
-        trigger_N2D(velocity_cur, velocity_old, threshold_times, threshold_exceptions)
+        trigger_N2D(velocity_cur, velocity_old, threshold_times, threshold_exceptions,N2D_threshold,total_limit,exceptions_limit)
 
-    total_limit = 20;
-    exceptions_limit = 2;
-    N2D_threshold = 0.08; % rad/sec
+    
+    
 
     trigger_flag = 0;
     trigger_flag_raw = 0;

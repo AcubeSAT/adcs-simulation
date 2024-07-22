@@ -47,6 +47,20 @@
 %       n             - Total simulation time
 %       mtq_max       - Maximum magnetic dipole of magnetorquers
 %       rw_max_torque - Maximum torque of the Reaction Wheel
+%       reflectance_factor - Reflectance factor of the spacecraft surface materials
+%       N2D_threshold - Threshold for switching from nominal to detumbling
+%       D2N_threshold - Threshold for switching from detumbling to nominal
+%
+%
+%       Reaction Wheel deadzone behavior thresholds (in rpm/sec)
+%       const1_accel  - Threshold for Case 1
+%       const2_accel  - Threshold for Case 2 
+%       const3_accel  - Threshold for Case 3
+%       const4_accel  - Threshold for Case 4
+%
+%       AngVel_rw_lim - Angular velocity limit for RW desaturation
+%       sun_desired   -Desired sun vector
+
 
 % ======================================================================== %%
 
@@ -86,6 +100,10 @@ function Const = constants()
     Ix = (m / 12) * (ly^2 + lz^2);
     Iy = (m / 12) * (lx^2 + lz^2);
     Iz = (m / 12) * (lx^2 + ly^2);
+  
+
+     
+
 
     %% Old Inertia
     % PMI = diag([0.03868845951 0.03899129965 0.00696263029]); %Principal Moments of Inertia
@@ -137,6 +155,15 @@ function Const = constants()
     n = orbitPeriod * orbits;
     mtq_max = [0.2, 0.2, 0.2];
     rw_max_torque = 1e-4;
+    reflectance_factor=0.6;
+    N2D_threshold = 0.08; % rad/sec                    
+    D2N_threshold = 0.035; % rad/sec  
+    const1_accel=25;
+    const2_accel=50;
+    const3_accel=100;
+    const4_accel=200;
+    AngVel_rw_lim = 15000;
+    sun_desired=[-1,1,0];
 
     %%  Passing the values of the parameters in a struct.
 
@@ -168,5 +195,14 @@ function Const = constants()
     Const.p = p_500;
     Const.Cm = Cm;
     Const.known_rm = known_rm;
-
+    Const.reflectance_factor=reflectance_factor;
+    Const.N2D_threshold= N2D_threshold;
+    Const.D2N_threshold= D2N_threshold;
+    Const.const1_accel= const1_accel;
+    Const.const2_accel= const2_accel;
+    Const.const3_accel= const3_accel;
+    Const.const4_accel= const4_accel;
+    Const.AngVel_rw_lim= AngVel_rw_lim;
+    Const.sun_desired= sun_desired;
+    
 end

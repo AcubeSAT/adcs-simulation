@@ -51,6 +51,9 @@ function [APE, Time, eclipse] = Nadir_Pointing_function(Kp_gain, Kd_gain)
     P0 = Param.P0;
     number_of_measurements = Param.number_of_measurements;
     use_analytic_jacob = Param.use_analytic_jacob;
+    total_limit = Param.total_limit;
+    exceptions_limit= Param.exceptions_limit;
+    N_Timesteps= Param.N_Timesteps;
 
 
     %% Initialize Global Parameters
@@ -96,7 +99,6 @@ function [APE, Time, eclipse] = Nadir_Pointing_function(Kp_gain, Kd_gain)
     x = x0(1:7);
     x_real(:,1) = x0(1:7);
     t = 0;
-    N_Timesteps = 10;                           % Number of timesteps per cycle
     number_of_cycles = floor(length(Time)/N_Timesteps);  % Number of cycles
     timeflag_dz = 0;
     init_AngVel_dz = 0;
@@ -329,7 +331,7 @@ function [APE, Time, eclipse] = Nadir_Pointing_function(Kp_gain, Kd_gain)
 
             if current_timestep > 1
                 [trigger_flag, trigger_flag_raw, threshold_times, threshold_exceptions] = ...
-                    trigger_N2D(x_real(5:7, current_timestep), x_real(5:7, current_timestep-1), threshold_times, threshold_exceptions);
+                    trigger_N2D(x_real(5:7, current_timestep), x_real(5:7, current_timestep-1), threshold_times, threshold_exceptions,Const.N2D_threshold,total_limit,exceptions_limit);
 
                 bdot_activation_matrix(1, current_timestep) = trigger_flag;
                 bdot_activation_matrix(2, current_timestep) = trigger_flag_raw;
@@ -385,7 +387,7 @@ function [APE, Time, eclipse] = Nadir_Pointing_function(Kp_gain, Kd_gain)
                 PD_Nadir_Pointing(Eclipse,Kp_gain, Kd_gain, q_desired ,q_ob_hat, Const.w_o_io, y_noise(4:6)-mekf.global_state(5:7) , y_noise(1:3)*norm(Mag_field_orbit), ...
                 Const.mtq_max, Const.lim_dz, AngVel_rw_radps(2,1), AngVel_rw_rpm(2,1), ...
                 acceleration_rw(1,1), init_AngVel_dz, init_accel_dz, timeflag_dz,Const.rw_max_torque,...
-                y_real(1:3)*norm(Mag_field_orbit), cycle_index, Const.known_rm);
+                y_real(1:3)*norm(Mag_field_orbit), cycle_index, Const.known_rm,Const.const1_accel,Const.const2_accel,Const.const3_accel,Const.const4_accel,Const.AngVel_rw_lim);
 
 
             %% Propagate the system
@@ -428,7 +430,7 @@ function [APE, Time, eclipse] = Nadir_Pointing_function(Kp_gain, Kd_gain)
 
             if current_timestep > 1
                 [trigger_flag, trigger_flag_raw, threshold_times, threshold_exceptions] = ...
-                    trigger_N2D(x_real(5:7, current_timestep), x_real(5:7, current_timestep-1), threshold_times, threshold_exceptions);
+                    trigger_N2D(x_real(5:7, current_timestep), x_real(5:7, current_timestep-1), threshold_times, threshold_exceptions,Const.N2D_threshold,total_limit,exceptions_limit);
 
                 bdot_activation_matrix(1, current_timestep) = trigger_flag;
                 bdot_activation_matrix(2, current_timestep) = trigger_flag_raw;

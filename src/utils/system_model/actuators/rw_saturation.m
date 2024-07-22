@@ -15,7 +15,7 @@
 %
 % =========================================================================%
 
-function [T_mtq_effective, T_rw] = rw_saturation(T_magnetic_effective, T_rw, accel_rw, AngVel_rw, B_body, mtq_max)
+function [T_mtq_effective, T_rw] = rw_saturation(T_magnetic_effective, T_rw, accel_rw, AngVel_rw, B_body, mtq_max,AngVel_rw_lim)
 
     % The angular velocity of the Reaction Wheel is given by a sensor
     % placed on the RW.
@@ -23,7 +23,7 @@ function [T_mtq_effective, T_rw] = rw_saturation(T_magnetic_effective, T_rw, acc
     global A;
     global Jw;
 
-    AngVel_rw_lim = 15000;
+   
     T_mtq_effective = T_magnetic_effective;
 
     if abs(AngVel_rw) > AngVel_rw_lim && abs(T_rw(3)) > 0

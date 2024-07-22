@@ -13,6 +13,14 @@
 %                              previous timestep
 %      D2N_threshold         - Threshold angular velocity [rad/sec]
 %
+%       total_limit           - The total number of times the estimated angular
+%                              velocity must be below the threshold before
+%                              activation.
+%      exceptions_limit      - The number of allowable exceptions where the
+%                              estimated angular velocity exceeds the threshold
+%                              but is still counted towards the total limit.
+%
+%
 %  Outputs:
 %      bdot_activation       - Indicates when the trigger is activated,
 %                              based on the estimated angular velocity
@@ -22,11 +30,10 @@
 
 %% ======================================================================= %%
 
-function [bdot_activation, nonBdot_activation, threshold_times, threshold_exceptions] = trigger_D2N(threshold_times, threshold_exceptions, w_b_ob, w_b_ob_Bdot, w_b_ob_Bdot_previous, D2N_threshold)
+function [bdot_activation, nonBdot_activation, threshold_times, threshold_exceptions] = trigger_D2N(threshold_times, threshold_exceptions, w_b_ob, w_b_ob_Bdot, w_b_ob_Bdot_previous, D2N_threshold,total_limit,exceptions_limit)
     bdot_activation = 0;
     nonBdot_activation = 0;
-    total_limit = 520;
-    exceptions_limit = 30;
+    
 
     if abs(w_b_ob_Bdot(1)) < D2N_threshold ...
             && abs(w_b_ob_Bdot(2)) < D2N_threshold ...

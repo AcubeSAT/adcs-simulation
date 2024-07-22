@@ -18,7 +18,7 @@
 % =========================================================================%
 
 function [V_rw, I_rw, P_thermal_rw, AngVel_rw_new, accel_rw, T_rw_new, timeflag_dz, init_accel_dz] = ...
-        rw_deadzone(AngVel_rw, timeflag_dz, init_accel_dz, initAngVel_dz)
+        rw_deadzone(AngVel_rw, timeflag_dz, init_accel_dz, initAngVel_dz,const1_accel,const2_accel,const3_accel,const4_accel)
 
     %   The changes of the acceleration above happen inside a timeperiod of
     %   500 * 2 / 100 = 11sec if abs(accel) == 25.
