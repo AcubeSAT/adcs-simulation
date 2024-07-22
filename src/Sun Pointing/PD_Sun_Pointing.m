@@ -84,7 +84,7 @@ function  [torque, T_rw, T_magnetic_effective, V_rw, I_rw, P_thermal_rw, AngVel_
    
     if time > 1 
         [T_magnetic_effective, T_rw] = ...
-            rw_saturation(T_magnetic_effective, T_rw, acceleration_rw_old, AngVel_rw_rpm_cur, B_body);
+            rw_saturation(T_magnetic_effective, T_rw, acceleration_rw_old, AngVel_rw_rpm_cur, B_body,mtq_max);
 
         if T_rw(3) > Max_RW_torq
             T_rw(3) = Max_RW_torq;
