@@ -54,8 +54,8 @@ function Const = constants()
 
     global orbits;
 
-    m = 3.44;   % mass mentioned in STR's CDR
-    %m = 4;      % mass mentioned in ADCS' CDR
+    %m = 3.44;   % mass mentioned in STR's CDR
+    m = 4;      % mass mentioned in ADCS' CDR
     
     lx = 0.1;
     ly = 0.1;                              
@@ -75,8 +75,8 @@ function Const = constants()
     Kv = 1/Km;                     
     b_friction = 9.5e-9;            
     c_friction = 1.9e-7;            
-    Jw = 1.9e-6;                    
-    %Jw = 2.07e-6;                    
+    %Jw = 1.9e-6;                    
+    Jw = 2.0785e-6;                    
     A = 0.12;                       
     lim_dz = 300;                   
 
