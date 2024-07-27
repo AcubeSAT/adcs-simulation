@@ -68,9 +68,9 @@ function Const = constants()
 
     global orbits;
 
-    m = 3.44; % mass mentioned in STR's CDR
-    %m = 4;      % mass mentioned in ADCS' CDR
-
+    %m = 3.44;   % mass mentioned in STR's CDR
+    m = 4;      % mass mentioned in ADCS' CDR
+    
     lx = 0.1;
     ly = 0.1;
     lz = 0.3405;
@@ -82,9 +82,17 @@ function Const = constants()
     W_up_limit = [0.2273, 0.2273, 0.8017];
     I_up_limit = [0.0455, 0.0455, 0.1566];
 
-    Km = 20e-5;
-    Rb = 10;
-    Ai = 1;
+    Km = 20e-5;                     
+    Rb = 10;                        
+    Ai = 1;                        
+                                    
+    Kv = 1/Km;                     
+    b_friction = 9.5e-9;            
+    c_friction = 1.9e-7;            
+    %Jw = 1.9e-6;                    
+    Jw = 2.0785e-6;                    
+    A = 0.12;                       
+    lim_dz = 300;                   
 
     Kv = 1 / Km;
     b_friction = 9.5e-9;
@@ -149,11 +157,13 @@ function Const = constants()
     v_satellite = sqrt(G*M/Radius);
     w_o_io = [0, w_o, 0]';
 
-    known_rm = [0.048, 0.051, 0.047];
+    %known_rm = [0.048 0.051 0.047];
+    known_rm = [0.01 0.01 0.01];
 
     orbitPeriod = (2 * pi) / (w_o);
     n = orbitPeriod * orbits;
     mtq_max = [0.2, 0.2, 0.2];
+
     rw_max_torque = 1e-4;
     reflectance_factor=0.6;
     N2D_threshold = 0.08; % rad/sec                    

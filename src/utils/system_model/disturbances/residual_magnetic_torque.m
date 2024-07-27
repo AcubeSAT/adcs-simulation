@@ -14,12 +14,13 @@
 
 function [tau_rm, rm] = residual_magnetic_torque(Area, cosines, B_body)
 
-    mean_rm_base = [0.05, 0.05, 0.05]';
-    maximum_area = [0.034, 0.034, 0.01];
-
-    sign_vector = sign(-cosines);
-
-    rm = mean_rm_base + (0.005 * (Area ./ maximum_area) .* sign_vector)' + 0.0005 * rand(3, 1);
-
+    % mean_rm_base = [0.05 0.05 0.05]'; 
+    mean_rm_base = [0.01 0.01 0.01]';
+    maximum_area = [0.034 0.034 0.01];
+    
+    sign_vector = sign(-cosines); 
+    
+    rm = mean_rm_base + (0.005*(Area./maximum_area).*sign_vector)' + 0.0005*rand(3,1);
+    
     tau_rm = cross(rm, B_body);
 end

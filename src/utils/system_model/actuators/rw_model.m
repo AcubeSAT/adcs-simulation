@@ -33,10 +33,12 @@ function [V_rw, I_rw, P_thermal_rw, AngVel_rw_new, acceleration, T_rw_total] = r
     % global Kv;
 
     %% V, I, W Calculation
-
-    T_rw_total = T_rw_desired - b_friction * AngVel_rw - c_friction * sign(AngVel_rw);
-    acceleration = (T_rw_total) / Jw; %In rad/sec^2
-
+    
+    T_rw_total = T_rw_desired; 
+    friction =  - b_friction * AngVel_rw - c_friction * sign(AngVel_rw);
+    acceleration = (T_rw_total + friction*0.0125) / Jw; %In rad/sec^2
+    %acceleration = (T_rw_total)/Jw;      %In rad/sec^2
+    
     I_rw = T_rw_desired / Km + AngVel_rw / (Kv * Rb);
 
     % % If T_friction is considered = 0, may be omitted
