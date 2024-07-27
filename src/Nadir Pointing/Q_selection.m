@@ -1,4 +1,4 @@
-% ======================================================================== 
+% ========================================================================
 %   Function for setting the Q and R matrices used by the MEKF
 %
 %   Inputs
@@ -9,9 +9,9 @@
 %
 %   Outputs
 %     ----
-% ======================================================================== 
+% ========================================================================
 
-function Q_selection(Eclipse,Q_no_eclipse,R_no_eclipse,mekf,Q_eclipse_load)
+function Q_selection(Eclipse, Q_no_eclipse, R_no_eclipse, mekf, Q_eclipse_load)
 
     if (Eclipse)
         % Variances
@@ -27,5 +27,3 @@ function Q_selection(Eclipse,Q_no_eclipse,R_no_eclipse,mekf,Q_eclipse_load)
         mekf.setProcessNoiseCov(Q_no_eclipse); %Q variance matrix
         mekf.setMeasureNoiseCov(R_no_eclipse); %R variance matrix
     end
-
-

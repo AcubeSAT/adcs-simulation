@@ -1,15 +1,15 @@
 % ======================================================================== %
 %   This function calculates the residual magnetic torque
-% 
+%
 %   Inputs:
 %     Area       - Satellite's area projected to the sun
 %     cosines    - Cosine of angle between body frame axes and orbit frame z-axis
 %     B_body     - Magnetic field expressed in body frame
-% 
+%
 %   Ouputs:
 %     tau_rm     - Residual magnetic torque
 %     rm         - Residual magnetic moment
-% 
+%
 % ======================================================================== %
 
 function [tau_rm, rm] = residual_magnetic_torque(Area, cosines, B_body)
@@ -24,4 +24,3 @@ function [tau_rm, rm] = residual_magnetic_torque(Area, cosines, B_body)
     
     tau_rm = cross(rm, B_body);
 end
-

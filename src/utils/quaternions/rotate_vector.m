@@ -12,12 +12,11 @@
 
 function [rotated_vector] = rotate_vector(quaternion, vector)
 
-% quaternion_norm = sqrt(quaternion' * quaternion);
-% quaternion = quaternion / quaternion_norm;
+    % quaternion_norm = sqrt(quaternion' * quaternion);
+    % quaternion = quaternion / quaternion_norm;
 
-temp = quatProd( quatconj(quaternion'), quatProd([0; vector], quaternion) );
+    temp = quatProd(quatconj(quaternion'), quatProd([0; vector], quaternion));
 
-rotated_vector = temp(2:4);
+    rotated_vector = temp(2:4);
 
 end
-

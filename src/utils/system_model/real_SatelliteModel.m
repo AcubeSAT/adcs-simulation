@@ -1,6 +1,6 @@
 % ======================================================================== %
 %     Class that implements the real groundtruth space environment
-% 
+%
 %     Properties:
 %         dt                 - Simulation time step
 %         I                  - Inertia
@@ -14,16 +14,15 @@
 classdef real_SatelliteModel
 
     methods (Access = public)
-        
+
         %% Constructor.
         % @param[in] dt: sampling time.
         function this = real_SatelliteModel(dt, I)
-            
+
             this.dt = dt;
             this.I = I;
-            
-        end
 
+        end
 
         %% State transition function.
         % @param[in] x: state at time k.
@@ -91,7 +90,6 @@ classdef real_SatelliteModel
 
         end
 
-
         %% Measurement function.
         % @param[in] x: state at time k.
         % @param[in] cookie: optional arguments.
@@ -102,31 +100,30 @@ classdef real_SatelliteModel
             this.magn_ref = cookie.magn_ref;
             this.sun_ref = cookie.sun_ref;
             this.eclipse = cookie.eclipse;
-            
-            Q = x(1:4); 
-            vRot = x(5:7); 
 
-            y = zeros(6,1); 
+            Q = x(1:4);
+            vRot = x(5:7);
+
+            y = zeros(6, 1);
             y(4:6) = vRot;
-            
-            this.magn_ref=this.magn_ref/norm(this.magn_ref);
-            
-            y(1:3) = rotate_vector(Q,this.magn_ref);
-            
-            y(1:3) = y(1:3)/norm(y(1:3));
-    
-            this.sun_ref = this.sun_ref/norm(this.sun_ref);
+
+            this.magn_ref = this.magn_ref / norm(this.magn_ref);
+
+            y(1:3) = rotate_vector(Q, this.magn_ref);
+
+            y(1:3) = y(1:3) / norm(y(1:3));
+
+            this.sun_ref = this.sun_ref / norm(this.sun_ref);
 
             if this.eclipse == 0
-                y(7:9) = rotate_vector(Q,this.sun_ref);
-       
-                y(7:9) = y(7:9)/norm(y(7:9));
+                y(7:9) = rotate_vector(Q, this.sun_ref);
+
+                y(7:9) = y(7:9) / norm(y(7:9));
             else
-                y(7:9) = zeros(3,1);
+                y(7:9) = zeros(3, 1);
             end
 
         end
-
 
         %% Measurement function Jacobian.
         % @param[in] x: state at time k
@@ -134,11 +131,10 @@ classdef real_SatelliteModel
         % @param[out] H: measurement function Jacobian.
         %
         function H = msrFunJacob(this, x, cookie)
-            
-            error('[SatelliteModel::msrFunJacob]: Not implemented!');
-            
-        end
 
+            error('[SatelliteModel::msrFunJacob]: Not implemented!');
+
+        end
 
         %% State transition function Jacobian.
         % @param[in] x: state at time k
@@ -146,16 +142,16 @@ classdef real_SatelliteModel
         % @param[out] F: state transition function Jacobian.
         %
         function F = stateTransFunJacob(this, x, cookie)
-            
+
             error('[SatelliteModel::msrFunJacob]: Not implemented!');
-            
+
         end
 
- 
+
     end
 
     properties (Access = protected)
-        
+
         dt
         I
         magn_ref
@@ -164,5 +160,5 @@ classdef real_SatelliteModel
         eclipse
         rw_ang_momentum
     end
-    
+
 end
