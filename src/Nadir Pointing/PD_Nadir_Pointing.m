@@ -125,7 +125,7 @@ function [torque, T_rw, T_magnetic_effective, V_rw, I_rw, P_thermal_rw, AngVel_r
     %         init_accel_dz = acceleration_rw_cur;
     %     end
     %     [V_rw, I_rw, P_thermal_rw, AngVel_rw_rpm_new, acceleration_rw_cur, T_rw(3), timeflag_dz, init_accel_dz] = ...
-    %         rw_deadzone(AngVel_rw_rpm_cur, timeflag_dz, init_accel_dz, init_AngVel_dz);
+    %         rw_deadzone(AngVel_rw_rpm_cur, timeflag_dz, init_accel_dz, init_AngVel_dz,const1_accel,const2_accel,const3_accel,const4_accel);
     %     AngVel_rw_radps_new = pi/30 * AngVel_rw_rpm_new;
     % 
     %     T_magnetic = skew(b_hat)'*skew(b_hat) * (T_commanded - T_rw);   

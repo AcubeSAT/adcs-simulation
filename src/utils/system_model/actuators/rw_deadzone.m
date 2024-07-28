@@ -34,10 +34,6 @@ function [V_rw, I_rw, P_thermal_rw, AngVel_rw_new, accel_rw, T_rw_new, timeflag_
     global b_friction;
     global Max_RW_torq;
 
-    const1_accel = 25;
-    const2_accel = 50;
-    const3_accel = 100;
-    const4_accel = 200;
     case1 = 0;
     case2 = 0;
     case3 = 0;

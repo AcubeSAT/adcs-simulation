@@ -268,48 +268,11 @@ function [APE, Time, eclipse] = Nadir_Pointing_function(Kp_gain, Kd_gain)
 
             y_real = real_model.msrFun(x,msrCookieFinal(Mag_field_eci,Sun_pos_eci,Eclipse,[0;0;0]));
 
-                %% PD function
-                % Choose x_hat for determination, x for ground truth 
+            y_noise = y_real + sqrt(R)*randn(size(y_real));
+            [gyro_noise,real_bias] = gyro_noise_func(real_bias,dt,sigma_u,sigma_v);
 
-                q_ob_hat = quat_EB2OB(x_hat(1:4),Nodem,Inclm,Argpm,Mm);
-                % q_ob_hat = quat_EB2OB(x(1:4),Nodem,Inclm,Argpm,Mm);
-                acceleration_rw(1,1) = acceleration_rw(2,1);
-                acceleration_rw(2,1) = acceleration_rw(3,1);
-                AngVel_rw_radps(1,1) = AngVel_rw_radps(2,1);
-                AngVel_rw_radps(2,1) = AngVel_rw_radps(3,1);
-                AngVel_rw_rpm(1,1) = AngVel_rw_rpm(2,1);
-                AngVel_rw_rpm(2,1) = AngVel_rw_rpm(3,1);
-
-                
-                % Choose first PD for determination, second PD for ground truth
-
-                [torq, T_rw, T_magnetic_effective, ~, ~, ~, AngVel_rw_rpm_next, AngVel_rw_radps_next,...
-                            acceleration_rw_cur, rw_ang_momentum, init_AngVel_dz, init_accel_dz, ~, ~, ~, ...
-                            timeflag_dz,M] = ...
-                            PD_Nadir_Pointing(Eclipse,Kp_gain, Kd_gain, q_desired ,q_ob_hat, Const.w_o_io, y_noise(4:6)-mekf.global_state(5:7) , y_noise(1:3)*norm(Mag_field_orbit), ...
-                            Const.mtq_max, Const.lim_dz, AngVel_rw_radps(2,1), AngVel_rw_rpm(2,1), ...
-                            acceleration_rw(1,1), init_AngVel_dz, init_accel_dz, timeflag_dz,Const.rw_max_torque,...
-                            y_real(1:3)*norm(Mag_field_orbit), cycle_index, Const.known_rm);
-                
-                 % [torq, T_rw, T_magnetic_effective, ~, ~, ~, AngVel_rw_rpm_next, AngVel_rw_radps_next,...
-                 %            acceleration_rw_cur, rw_ang_momentum, init_AngVel_dz, init_accel_dz, ~, ~, ~, ...
-                 %            timeflag_dz,M] = ...
-                 %            PD_Nadir_Pointing(Eclipse,Kp_gain, Kd_gain, q_desired ,q_ob_hat, Const.w_o_io, x(5:7) , y_real(1:3)*norm(Mag_field_orbit), ...
-                 %            Const.mtq_max, Const.lim_dz, AngVel_rw_radps(2,1), AngVel_rw_rpm(2,1), ...
-                 %            acceleration_rw(1,1), init_AngVel_dz, init_accel_dz, timeflag_dz,Const.rw_max_torque,...
-                 %            y_real(1:3)*norm(Mag_field_orbit), cycle_index, Const.known_rm);
-
-               
-                
-                %% Propagate the system
-                
-                q_ob = quat_EB2OB(x(1:4),Nodem,Inclm,Argpm,Mm);
-                [T_dist, ~,~,ad,r,sp,g] = disturbances_pd(q_ob,Sun_pos_orbit, Mag_field_orbit, disturbancesEnabled);
-                
-                torq = torq + T_dist;
-                
-                x = real_model.stateTransFun(x, stateTransCookieFinalNominal(torq,rw_ang_momentum,[0;0;0])); 
-                
+            y_noise(4:6) = y_real(4:6) + gyro_noise;
+    
 
             y_noise(7:9) = css_noise(Sun_pos_eci,x(1:4),Xsat_eci,Albedo,lambda);
 
@@ -409,24 +372,37 @@ function [APE, Time, eclipse] = Nadir_Pointing_function(Kp_gain, Kd_gain)
 
 
 
-            %% PD function
-
-            q_ob_hat = quat_EB2OB(x_hat(1:4),Nodem,Inclm,Argpm,Mm);
-            acceleration_rw(1,1) = acceleration_rw(2,1);
-            acceleration_rw(2,1) = acceleration_rw(3,1);
-            AngVel_rw_radps(1,1) = AngVel_rw_radps(2,1);
-            AngVel_rw_radps(2,1) = AngVel_rw_radps(3,1);
-            AngVel_rw_rpm(1,1) = AngVel_rw_rpm(2,1);
-            AngVel_rw_rpm(2,1) = AngVel_rw_rpm(3,1);
-
-            [torq, T_rw, T_magnetic_effective, ~, ~, ~, AngVel_rw_rpm_next, AngVel_rw_radps_next,...
-                acceleration_rw_cur, rw_ang_momentum, init_AngVel_dz, init_accel_dz, ~, ~, ~, ...
-                timeflag_dz,M] = ...
-                PD_Nadir_Pointing(Eclipse,Kp_gain, Kd_gain, q_desired ,q_ob_hat, Const.w_o_io, y_noise(4:6)-mekf.global_state(5:7) , y_noise(1:3)*norm(Mag_field_orbit), ...
-                Const.mtq_max, Const.lim_dz, AngVel_rw_radps(2,1), AngVel_rw_rpm(2,1), ...
-                acceleration_rw(1,1), init_AngVel_dz, init_accel_dz, timeflag_dz,Const.rw_max_torque,...
-                y_real(1:3)*norm(Mag_field_orbit), cycle_index, Const.known_rm,Const.const1_accel,Const.const2_accel,Const.const3_accel,Const.const4_accel,Const.AngVel_rw_lim);
-
+           %% PD function
+           % Choose x_hat for determination, x for ground truth 
+    
+           q_ob_hat = quat_EB2OB(x_hat(1:4),Nodem,Inclm,Argpm,Mm);
+           % q_ob_hat = quat_EB2OB(x(1:4),Nodem,Inclm,Argpm,Mm);
+           acceleration_rw(1,1) = acceleration_rw(2,1);
+           acceleration_rw(2,1) = acceleration_rw(3,1);
+           AngVel_rw_radps(1,1) = AngVel_rw_radps(2,1);
+           AngVel_rw_radps(2,1) = AngVel_rw_radps(3,1);
+           AngVel_rw_rpm(1,1) = AngVel_rw_rpm(2,1);
+           AngVel_rw_rpm(2,1) = AngVel_rw_rpm(3,1);
+    
+            
+           % Choose first PD for determination, second PD for ground truth
+    
+           [torq, T_rw, T_magnetic_effective, ~, ~, ~, AngVel_rw_rpm_next, AngVel_rw_radps_next,...
+                        acceleration_rw_cur, rw_ang_momentum, init_AngVel_dz, init_accel_dz, ~, ~, ~, ...
+                        timeflag_dz,M] = ...
+                        PD_Nadir_Pointing(Eclipse,Kp_gain, Kd_gain, q_desired ,q_ob_hat, Const.w_o_io, y_noise(4:6)-mekf.global_state(5:7) , y_noise(1:3)*norm(Mag_field_orbit), ...
+                        Const.mtq_max, Const.lim_dz, AngVel_rw_radps(2,1), AngVel_rw_rpm(2,1), ...
+                        acceleration_rw(1,1), init_AngVel_dz, init_accel_dz, timeflag_dz,Const.rw_max_torque,...
+                        y_real(1:3)*norm(Mag_field_orbit), cycle_index, Const.known_rm,Const.const1_accel,Const.const2_accel,Const.const3_accel,Const.const4_accel,Const.AngVel_rw_lim);
+            
+           % [torq, T_rw, T_magnetic_effective, ~, ~, ~, AngVel_rw_rpm_next, AngVel_rw_radps_next,...
+           %              acceleration_rw_cur, rw_ang_momentum, init_AngVel_dz, init_accel_dz, ~, ~, ~, ...
+           %              timeflag_dz,M] = ...
+           %              PD_Nadir_Pointing(Eclipse,Kp_gain, Kd_gain, q_desired ,q_ob_hat, Const.w_o_io, x(5:7) , y_real(1:3)*norm(Mag_field_orbit), ...
+           %              Const.mtq_max, Const.lim_dz, AngVel_rw_radps(2,1), AngVel_rw_rpm(2,1), ...
+           %              acceleration_rw(1,1), init_AngVel_dz, init_accel_dz, timeflag_dz,Const.rw_max_torque,...
+           %              y_real(1:3)*norm(Mag_field_orbit), cycle_index, Const.known_rm,Const.const1_accel,Const.const2_accel,Const.const3_accel,Const.const4_accel,Const.AngVel_rw_lim);
+           % 
 
             %% Propagate the system
 
