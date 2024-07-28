@@ -102,6 +102,9 @@ classdef real_SatelliteModel_Bdot
             this.sun_ref = cookie.sun_ref;
             this.eclipse = cookie.eclipse;
 
+            Q = x(1:4);
+            vRot = x(5:7);
+
             y = zeros(6,1);
             y(4:6) = vRot;
             

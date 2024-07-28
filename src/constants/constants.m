@@ -94,23 +94,12 @@ function Const = constants()
     A = 0.12;                       
     lim_dz = 300;                   
 
-    Kv = 1 / Km;
-    b_friction = 9.5e-9;
-    c_friction = 1.9e-7;
-    Jw = 1.9e-6;
-    %Jw = 2.07e-6;
-    A = 0.12;
-    lim_dz = 300;
-
     p_400 = 7.55e-12;
     p_500 = 1.80e-12;
 
     Ix = (m / 12) * (ly^2 + lz^2);
     Iy = (m / 12) * (lx^2 + lz^2);
     Iz = (m / 12) * (lx^2 + ly^2);
-  
-
-     
 
 
     %% Old Inertia

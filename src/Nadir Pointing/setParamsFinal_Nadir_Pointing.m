@@ -21,8 +21,8 @@ function Param = setParamsFinal_Nadir_Pointing(I)
     %% ======= Orbit Propagation ========
 
     [satrec, ~] = orbit_init();
-    [~, ~, xsat_eci, ~, ~, eclipse, ~, mag_field_eci, ~, mag_field_orbit, ~, sun_pos_eci, ~, sun_pos_orbit, ~, argpm, nodem, inclm, mm, ~, ~] = orbit_sgp4(satrec, dt, tf+dt);
-    %[~,~,xsat_eci,~,~,eclipse,~,mag_field_eci,~,mag_field_orbit,~,sun_pos_eci,~,sun_pos_orbit,~,argpm,nodem,inclm,mm,~,~] = orbit_sgp4_offset(satrec,dt,tf+dt,1000);
+    %[~, ~, xsat_eci, ~, ~, eclipse, ~, mag_field_eci, ~, mag_field_orbit, ~, sun_pos_eci, ~, sun_pos_orbit, ~, argpm, nodem, inclm, mm, ~, ~] = orbit_sgp4(satrec, dt, tf+dt);
+    [~,~,xsat_eci,~,~,eclipse,~,mag_field_eci,~,mag_field_orbit,~,sun_pos_eci,~,sun_pos_orbit,~,argpm,nodem,inclm,mm,~,~] = orbit_sgp4_offset(satrec,dt,tf+dt,1000);
 
     %% ======================= Testing Initial Quaternions =============================
     %Q0 = [0.5; -0.5; 0.5; 0.5];
@@ -102,8 +102,8 @@ function Param = setParamsFinal_Nadir_Pointing(I)
 
 
     %% Parameters for threshold limits
-       total_limit = 20;
-       exceptions_limit = 2;
+   total_limit = 20;
+   exceptions_limit = 2;
 
     %%  Passing the values of the parameters in a struct.
 
