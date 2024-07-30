@@ -64,6 +64,13 @@ function [torque, T_rw, T_magnetic_effective, V_rw, I_rw, P_thermal_rw, AngVel_r
         PD_Nadir_Pointing(Eclipse, Kp_gain, Kd_gain, q_desired, q_orbit_body, w_o_io, w_b_ib, B_body, mtq_max, ...
         lim_dz, AngVel_rw_radps_cur, AngVel_rw_rpm_cur, acceleration_rw_old, init_AngVel_dz, ...
         init_accel_dz, timeflag_dz, rw_max_torque, B_body_real, time, known_rm,const1_accel,const2_accel,const3_accel,const4_accel,AngVel_rw_lim)
+%function [torque, T_rw, T_magnetic_effective, V_rw, I_rw, P_thermal_rw, AngVel_rw_rpm_new, AngVel_rw_radps_new, ...
+%        acceleration_rw_cur, rw_ang_momentum, init_AngVel_dz, init_accel_dz, V_mtq, I_mtq, P_thermal_mtq, ...
+%        timeflag_dz, M] = ...
+%        PD_Nadir_Pointing(Eclipse, Kp_gain, Kd_gain, q_desired, q_orbit_body,q_eci_body, w_o_io, w_b_ib, B_body, mtq_max, ...
+%        lim_dz, AngVel_rw_radps_cur, AngVel_rw_rpm_cur, acceleration_rw_old, init_AngVel_dz, ...
+%        init_accel_dz, timeflag_dz, rw_max_torque, B_body_real, time, known_rm,const1_accel,const2_accel,const3_accel,const4_accel,AngVel_rw_lim,xsat_eci)
+
 
     global T_rw_data;
     global T_magnetic_data;
@@ -78,9 +85,82 @@ function [torque, T_rw, T_magnetic_effective, V_rw, I_rw, P_thermal_rw, AngVel_r
 
     w_b_io = rotate_vector(q_orbit_body, w_o_io); % Angular velocity of the body frame w.r.t. the ECI frame, expressed in orbit frame
     w_b_ob = w_b_ib - w_b_io; % Angular velocity of the orbit frame w.r.t. the ECI frame, expressed in body frame
+    %%remove secondary pointing target 
+ nadir_desired=[1; 0; 0 ];
+    
+            function q_nb=q_nadir_body(q_orbit_body,nadir_desired)
+    
+    q_nb = zeros(4, 1);
+    
+    
+    nadir_desired = nadir_desired / norm(nadir_desired);
+    
+    nadir_body=rotate_vector(q_orbit_body,nadir_desired);
+    
+    if dot(nadir_body, nadir_desired) > 0.999999
+    
+    q_nb(1) = 1;
+    
+    q_nb(2:4) = [0; 0; 0];
+    
+    elseif dot(nadir_body, nadir_desired) < -0.999999
+    
+    q_nb(1) = 0.2;
+    
+    q_nb(2:4) = [-0.4; -0.4; -0.8];
+    
+    else
+    
+    a = cross(nadir_body, nadir_desired);
+    
+    q_nb(2:4) = a;
+    
+    q_nb(1) = 1 + dot(nadir_body, nadir_desired);
+    
+    q_nb = q_nb / norm(q_nb);
 
-    q_error = quatProd(quatconj(q_desired), q_orbit_body); % quaternion error
+end
+
+end
+    q_nb = q_nadir_body(q_orbit_body,nadir_desired)  ;  
+    q_error = quatProd(quatconj(q_desired), q_nb); % quaternion error
     T_commanded = -sign(q_error(1)) * Kp_gain * q_error(2:4) - Kd_gain * w_b_ob; % PD control
+
+
+
+
+%%xsat_eci method
+%     function q_nb=q_nadir_body(xsat_eci,q_eci_body,nadir_desired)
+%
+%  xsat_eci=xsat_eci/norm(xsat_eci);
+%  q_nb = quatProd(quatconj(q_eci_body'), quatProd([0; xsat_eci]', q_eci_body'));
+%
+%  nadir_body = q_nb(2:4);
+%
+%  nadir_desired = nadir_desired / norm(nadir_desired);
+%
+%   if dot(nadir_body, nadir_desired) > 0.999999
+%    q_nb(1) = 1;
+%    q_nb(2:4) = [0; 0; 0];
+%
+%    elseif dot(nadir_body, nadir_desired) < -0.999999
+%    q_nb(1) = 0.2;
+%    q_nb(2:4) = [-0.4; -0.4; -0.8];
+%    else
+%    a = cross(nadir_body, nadir_desired);
+%    q_nb(2:4) = a;
+%    q_nb(1) = 1 + dot(nadir_body, nadir_desired);
+%    q_nb = q_nb / norm(q_nb);
+%  end
+%
+% end
+%    q_nb = q_nadir_body(xsat_eci,q_eci_body,nadir_desired);  
+%    q_error = quatProd(quatconj(q_desired), q_nb); % quaternion error
+%    T_commanded = -sign(q_error(1)) * Kp_gain * q_error(2:4) - Kd_gain * w_b_ob; % PD control
+
+
+
+
 
     %% Torque split
 
