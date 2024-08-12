@@ -39,6 +39,8 @@ sigma_u = Param.sigma_u;
 sigma_v = Param.sigma_v;
 P0 = Param.P0;
 use_analytic_jacob = Param.use_analytic_jacob;
+total_limit = Param.total_limit;
+exceptions_limit= Param.exceptions_limit;
 N_Timesteps= Param.N_Timesteps;
 
 %% Initialize Global Parameters
@@ -109,6 +111,9 @@ Bbody_data = zeros(3, length(Time));
 q_sb_data = zeros(4, length(Time));
 sun_pointing_error = zeros(1, length(Time));
 sun_angle = zeros(3, length(Time));
+bdot_activation_matrix = zeros(2, length(Time));
+threshold_times = 0;
+threshold_exceptions = 0;
 
 %% Next we initialize the bias estimation by solving Wahba's problem n times.
 
@@ -305,6 +310,16 @@ for cycle_index = cycle_index:number_of_cycles
         Const.sun_desired = Const.sun_desired / norm(Const.sun_desired);
         sun_pointing_error(:, current_timestep) = acos(sun_orbit_normalized'*(R_OB' * Const.sun_desired'));
         sun_angle(:, current_timestep) = acos(sun_orbit_normalized'*(R_OB')); 
+
+         %% Check if the time for Detumbling has come
+
+            if current_timestep > 1
+                [trigger_flag, trigger_flag_raw, threshold_times, threshold_exceptions] = ...
+                    trigger_N2D(x_real(5:7, current_timestep), x_real(5:7, current_timestep-1), threshold_times, threshold_exceptions,Const.N2D_threshold,total_limit,exceptions_limit);
+
+                bdot_activation_matrix(1, current_timestep) = trigger_flag;
+                bdot_activation_matrix(2, current_timestep) = trigger_flag_raw;
+            end
     end
 
     for timestep_index = 4:10
@@ -389,6 +404,15 @@ for cycle_index = cycle_index:number_of_cycles
         sun_pointing_error(:, current_timestep) = acos(sun_orbit_normalized'*(R_OB' * Const.sun_desired'));
         sun_angle(:, current_timestep) = acos(sun_orbit_normalized'*(R_OB')); 
 
+        %% Check if the time for Detumbling has come
+
+            if current_timestep > 1
+                [trigger_flag, trigger_flag_raw, threshold_times, threshold_exceptions] = ...
+                    trigger_N2D(x_real(5:7, current_timestep), x_real(5:7, current_timestep-1), threshold_times, threshold_exceptions,Const.N2D_threshold,total_limit,exceptions_limit);
+
+                bdot_activation_matrix(1, current_timestep) = trigger_flag;
+                bdot_activation_matrix(2, current_timestep) = trigger_flag_raw;
+            end
     end
 end
 
@@ -948,7 +972,6 @@ title('Angle Error between actual and desired vector [deg]', 'interpreter', 'lat
 xlabel('Time [$s$]', 'interpreter', 'latex', 'fontsize', 12);
 grid on;
 
-
 figure()
 subplot(3, 1, 1)
 plot(Time(1:length(sun_angle(1,:))), rad2deg(sun_angle(1,:)), 'LineWidth', 1.5, 'Color', 'blue');
@@ -963,3 +986,19 @@ plot(Time(1:length(sun_angle(3,:))), rad2deg(sun_angle(3,:)), 'LineWidth', 1.5, 
 title('Angle Between +Z axis and Sun Vector [deg]', 'interpreter', 'latex', 'fontsize', 17);
 xlabel('Time [$s$]', 'interpreter', 'latex', 'fontsize', 12);
 grid on;
+
+
+%% Plotting Bdot Activation Matrix
+
+    figure();
+    for i=1:2
+        subplot(2,1,i);
+        hold on;
+        plot(Time(1:length(Time)), bdot_activation_matrix(i, 1:length(Time)), 'LineWidth',1.5, 'Color','blue');
+        if (i==1), title('B-dot Activation', 'interpreter','latex', 'fontsize',17);end
+        if (i==1), ylabel('Data after process', 'interpreter','latex', 'fontsize',14); end
+        if (i==2), ylabel('Raw Data', 'interpreter','latex', 'fontsize',14); end
+        xlabel('Time [$s$]', 'interpreter','latex', 'fontsize',12);
+        hold off;
+        grid on;
+    end
