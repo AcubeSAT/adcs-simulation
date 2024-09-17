@@ -1029,6 +1029,7 @@ function [APE, Time, eclipse] = Nadir_Pointing_function(Kp_gain, Kd_gain)
 
     figure()
     plot(Bbody_data(3,:))
+    title('Magnetic field in Z axis', 'interpreter', 'latex', 'fontsize', 17);
 
     %% Plotting Bdot Activation Matrix
 

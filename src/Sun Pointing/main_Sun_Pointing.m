@@ -108,6 +108,7 @@ gyro_noise_data = zeros(3, length(Time));
 Bbody_data = zeros(3, length(Time));
 q_sb_data = zeros(4, length(Time));
 sun_pointing_error = zeros(1, length(Time));
+sun_angle = zeros(3, length(Time));
 
 %% Next we initialize the bias estimation by solving Wahba's problem n times.
 
@@ -187,6 +188,7 @@ for cycle_index = 1:bias_wahba_loops
                 sun_orbit_normalized = (Sun_pos_orbit / norm(Sun_pos_orbit));
                 Const.sun_desired = Const.sun_desired / norm(Const.sun_desired);
                 sun_pointing_error(:, current_timestep) = acos(sun_orbit_normalized'*(R_OB' * Const.sun_desired'));
+                sun_angle(:, current_timestep) = acos(R_OB*sun_orbit_normalized); 
             end
             continue
         end
@@ -302,6 +304,7 @@ for cycle_index = cycle_index:number_of_cycles
         sun_orbit_normalized = (Sun_pos_orbit / norm(Sun_pos_orbit));
         Const.sun_desired = Const.sun_desired / norm(Const.sun_desired);
         sun_pointing_error(:, current_timestep) = acos(sun_orbit_normalized'*(R_OB' * Const.sun_desired'));
+        sun_angle(:, current_timestep) = acos(sun_orbit_normalized'*(R_OB')); 
     end
 
     for timestep_index = 4:10
@@ -384,6 +387,7 @@ for cycle_index = cycle_index:number_of_cycles
         sun_orbit_normalized = (Sun_pos_orbit / norm(Sun_pos_orbit));
         Const.sun_desired = Const.sun_desired / norm(Const.sun_desired);
         sun_pointing_error(:, current_timestep) = acos(sun_orbit_normalized'*(R_OB' * Const.sun_desired'));
+        sun_angle(:, current_timestep) = acos(sun_orbit_normalized'*(R_OB')); 
 
     end
 end
@@ -391,29 +395,17 @@ end
 %% =============================== Errors and plots =============================================== %%
 
 %% Calculation and plotting of performance error
-% x_real_euler_perf = quat2eul(q_sb_data(1:4,1:length(q_sb_data))');
-% x_real_euler_perf = rad2deg(x_real_euler_perf');
-%
-% APE = x_real_euler_perf';
-% instant_error_perform = APE;
-
-x_real_euler_perf = zeros(length(q_ob_data), 3)';
-
-for i = 1:length(q_ob_data) - 1
-    x_real_euler_perf(:, i) = quat2eul(quatProd(quatconj(q_desired), q_ob_data(1:4, i))');
-    % x_real_euler_perf(:, i) = q2e_ypr(quatProd(quatconj(q_desired), q_ob_data(1:4,i))');
-end
-
+x_real_euler_perf = quat2eul(q_sb_data(1:4,1:length(q_sb_data))');
 x_real_euler_perf = rad2deg(x_real_euler_perf');
 
-APE = x_real_euler_perf;
+APE = x_real_euler_perf';
 instant_error_perform = APE;
 
 figure();
 for i = 1:3
     subplot(3, 1, i);
     hold on;
-    plot(Time(1:length(APE)), APE(1:length(APE), i), 'LineWidth', 1.5, 'Color', 'blue');
+    plot(Time(1:length(APE)), abs(APE(1:length(APE), i)), 'LineWidth', 1.5, 'Color', 'blue');
     if (i == 1), title('Absolute Performance Errors', 'interpreter', 'latex', 'fontsize', 17); end
     if (i == 1), ylabel('Z-axis [deg]', 'interpreter', 'latex', 'fontsize', 14); end
     if (i == 2), ylabel('Y-axis [deg]', 'interpreter', 'latex', 'fontsize', 14); end
@@ -422,6 +414,7 @@ for i = 1:3
     hold off;
     grid on;
 end
+
 
 %% Calulation and plotting of knowledge error
 x_hat_euler_know = zeros(length(x_hat_data), 6);
@@ -947,9 +940,26 @@ grid on;
 
 figure()
 plot(Bbody_data(3, :))
+title('Magnetic field in Z axis', 'interpreter', 'latex', 'fontsize', 17);
 
 figure()
 plot(Time(1:length(sun_pointing_error)), rad2deg(sun_pointing_error), 'LineWidth', 1.5, 'Color', 'blue');
+title('Angle Error between actual and desired vector [deg]', 'interpreter', 'latex', 'fontsize', 17);
+xlabel('Time [$s$]', 'interpreter', 'latex', 'fontsize', 12);
+grid on;
+
+
+figure()
+subplot(3, 1, 1)
+plot(Time(1:length(sun_angle(1,:))), rad2deg(sun_angle(1,:)), 'LineWidth', 1.5, 'Color', 'blue');
 title('Angle Between +X axis and Sun Vector [deg]', 'interpreter', 'latex', 'fontsize', 17);
+xlabel('Time [$s$]', 'interpreter', 'latex', 'fontsize', 12);
+subplot(3, 1, 2)
+plot(Time(1:length(sun_angle(2,:))), rad2deg(sun_angle(2,:)), 'LineWidth', 1.5, 'Color', 'blue');
+title('Angle Between +Y axis and Sun Vector [deg]', 'interpreter', 'latex', 'fontsize', 17);
+xlabel('Time [$s$]', 'interpreter', 'latex', 'fontsize', 12);
+subplot(3, 1, 3)
+plot(Time(1:length(sun_angle(3,:))), rad2deg(sun_angle(3,:)), 'LineWidth', 1.5, 'Color', 'blue');
+title('Angle Between +Z axis and Sun Vector [deg]', 'interpreter', 'latex', 'fontsize', 17);
 xlabel('Time [$s$]', 'interpreter', 'latex', 'fontsize', 12);
 grid on;
