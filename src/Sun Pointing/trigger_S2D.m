@@ -88,8 +88,11 @@ end
 %         trigger_S2D(velocity_cur, velocity_old, threshold_times, threshold_exceptions,N2D_threshold,total_limit,exceptions_limit)
 % 
 % 
-% 
-%     second_threshold_times=0;
+%     persistent second_threshold_times; % Use persistent to maintain the count across function calls
+%
+%     if isempty(second_threshold_times)
+%     second_threshold_times = 0;
+%     end
 %     trigger_flag = 0;
 %     trigger_flag_raw = 0;
 %     margin =0.13;
