@@ -83,15 +83,14 @@ end
 
 %solution 1 
 
-
 % function [trigger_flag, trigger_flag_raw, threshold_times, threshold_exceptions] = ...
 %         trigger_S2D(velocity_cur, velocity_old, threshold_times, threshold_exceptions,N2D_threshold,total_limit,exceptions_limit)
 % 
 % 
-%     persistent second_threshold_times; % Use persistent to maintain the count across function calls
-%
+% persistent second_threshold_times; % Use persistent to maintain the count across function calls
+% 
 %     if isempty(second_threshold_times)
-%     second_threshold_times = 0;
+%         second_threshold_times = 0;
 %     end
 %     trigger_flag = 0;
 %     trigger_flag_raw = 0;
@@ -125,38 +124,24 @@ end
 %       end 
 %    if threshold_times >= total_limit 
 % 
-%        if abs(velocity_cur(1)) > margin ...
+%         if abs(velocity_cur(1)) > margin ...
 %             || abs(velocity_cur(2)) > margin ...
 %             || abs(velocity_cur(3)) > margin
-%         if  second_threshold_times == 0
-%             second_threshold_times = 1;
+%             second_threshold_times = second_threshold_times + 1;
+% 
+%         elseif (abs(velocity_old(1)) <= margin ... 
+%                 && abs(velocity_old(2)) <= margin...
+%                 && abs(velocity_old(3)) <= margin) ...
+%                 second_threshold_times = 0;
 %         end
-%         if second_threshold_times >= 1
-%             if abs(velocity_old(1)) > margin...
-%                     || abs(velocity_old(2)) >margin...
-%                     || abs(velocity_old(3)) > margin
-%                 second_threshold_times = second_threshold_times + 1;
-%             elseif (abs(velocity_old(1)) <= margin ...
-%                     && abs(velocity_old(2)) <= margin ...
-%                     && abs(velocity_old(3)) <= margin) ...
-%                     && threshold_exceptions < exceptions_limit
-%                 second_threshold_times = second_threshold_times + 1;
-%                 threshold_exceptions = threshold_exceptions + 1;
-%             elseif (abs(velocity_old(1)) <= margin ... 
-%                     && abs(velocity_old(2)) <= margin...
-%                     && abs(velocity_old(3)) <= margin) ...
-%                     && threshold_exceptions >= exceptions_limit
-%                 second_threshold_times=0;
-%                 threshold_exceptions = 0;
-%             end
 %         end
 % 
-%        end
+% 
 %        if second_threshold_times >= 10
 %             trigger_flag = 1;
 %        end
-%    end
 % 
+%          disp(second_threshold_times);
 %     if abs(velocity_cur(1)) > N2D_threshold ...
 %             || abs(velocity_cur(2)) > N2D_threshold ...
 %             || abs(velocity_cur(3)) > N2D_threshold
