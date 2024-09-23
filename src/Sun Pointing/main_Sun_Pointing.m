@@ -315,7 +315,7 @@ for cycle_index = cycle_index:number_of_cycles
 
             if current_timestep > 1
                 [trigger_flag, trigger_flag_raw, threshold_times, threshold_exceptions] = ...
-                    trigger_N2D(x_real(5:7, current_timestep), x_real(5:7, current_timestep-1), threshold_times, threshold_exceptions,Const.N2D_threshold,total_limit,exceptions_limit);
+                    trigger_S2D(x_real(5:7, current_timestep), x_real(5:7, current_timestep-1), threshold_times, threshold_exceptions,Const.S2D_threshold,total_limit,exceptions_limit);
 
                 bdot_activation_matrix(1, current_timestep) = trigger_flag;
                 bdot_activation_matrix(2, current_timestep) = trigger_flag_raw;
@@ -408,7 +408,7 @@ for cycle_index = cycle_index:number_of_cycles
 
             if current_timestep > 1
                 [trigger_flag, trigger_flag_raw, threshold_times, threshold_exceptions] = ...
-                    trigger_N2D(x_real(5:7, current_timestep), x_real(5:7, current_timestep-1), threshold_times, threshold_exceptions,Const.N2D_threshold,total_limit,exceptions_limit);
+                    trigger_S2D(x_real(5:7, current_timestep), x_real(5:7, current_timestep-1), threshold_times, threshold_exceptions,Const.S2D_threshold,total_limit,exceptions_limit);
 
                 bdot_activation_matrix(1, current_timestep) = trigger_flag;
                 bdot_activation_matrix(2, current_timestep) = trigger_flag_raw;
