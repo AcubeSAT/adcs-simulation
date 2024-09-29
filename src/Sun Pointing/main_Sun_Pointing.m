@@ -114,6 +114,7 @@ sun_angle = zeros(3, length(Time));
 bdot_activation_matrix = zeros(2, length(Time));
 threshold_times = 0;
 threshold_exceptions = 0;
+estimated_velocity = zeros(3, length(Time));
 
 %% Next we initialize the bias estimation by solving Wahba's problem n times.
 
@@ -310,6 +311,7 @@ for cycle_index = cycle_index:number_of_cycles
         Const.sun_desired = Const.sun_desired / norm(Const.sun_desired);
         sun_pointing_error(:, current_timestep) = acos(sun_orbit_normalized'*(R_OB' * Const.sun_desired'));
         sun_angle(:, current_timestep) = acos(sun_orbit_normalized'*(R_OB')); 
+        estimated_velocity(:, current_timestep) = gyro - x_hat(5:7);
 
          %% Check if the time for Detumbling has come
 
@@ -403,6 +405,7 @@ for cycle_index = cycle_index:number_of_cycles
         Const.sun_desired = Const.sun_desired / norm(Const.sun_desired);
         sun_pointing_error(:, current_timestep) = acos(sun_orbit_normalized'*(R_OB' * Const.sun_desired'));
         sun_angle(:, current_timestep) = acos(sun_orbit_normalized'*(R_OB')); 
+        estimated_velocity(:, current_timestep) = gyro - x_hat(5:7);
 
         %% Check if the time for Detumbling has come
 
@@ -559,6 +562,34 @@ for i = 1:3
     ylabel(['$\omega_', num2str(i), '$', '[rad/sec]'], 'interpreter', 'latex', 'fontsize', 14);
     if (i == 1), legend('Angular Velocity'); end
     if (i == 1), title('Angular Velocities', 'interpreter', 'latex', 'fontsize', 17); end
+    grid on;
+end
+
+figure();
+for i = 1:3
+    subplot(3, 1, i);
+    plot(Time(1:end-1), estimated_velocity(i, 1:length(Time)-1), 'LineWidth', 2.0, 'Color', 'blue');
+    xlabel('Time [s]', 'interpreter', 'latex', 'fontsize', 12);
+    if (i == 1), ylabel('$\omega_1$ [rad/sec]', 'interpreter', 'latex', 'fontsize', 14); end
+    if (i == 2), ylabel('$\omega_2$ [rad/sec]', 'interpreter', 'latex', 'fontsize', 14); end
+    if (i == 3), ylabel('$\omega_3$ [rad/sec]', 'interpreter', 'latex', 'fontsize', 14); end
+    ylabel(['$\omega_', num2str(i), '$', '[rad/sec]'], 'interpreter', 'latex', 'fontsize', 14);
+    if (i == 1), legend('Estimated Angular Velocity'); end
+    if (i == 1), title('Estimated Angular Velocities', 'interpreter', 'latex', 'fontsize', 17); end
+    grid on;
+end
+
+figure();
+for i = 1:3
+    subplot(3, 1, i);
+    plot(Time(1:end-1), x_real(4+i, 1:length(Time)-1) - estimated_velocity(i, 1:length(Time)-1), 'LineWidth', 2.0, 'Color', 'blue');
+    xlabel('Time [s]', 'interpreter', 'latex', 'fontsize', 12);
+    if (i == 1), ylabel('$\omega_1$ [rad/sec]', 'interpreter', 'latex', 'fontsize', 14); end
+    if (i == 2), ylabel('$\omega_2$ [rad/sec]', 'interpreter', 'latex', 'fontsize', 14); end
+    if (i == 3), ylabel('$\omega_3$ [rad/sec]', 'interpreter', 'latex', 'fontsize', 14); end
+    ylabel(['$\omega_', num2str(i), '$', '[rad/sec]'], 'interpreter', 'latex', 'fontsize', 14);
+    if (i == 1), legend('Estimation Error'); end
+    if (i == 1), title('Estimation error for angular velocity $\omega_{true} - \omega_{est}$', 'interpreter', 'latex', 'fontsize', 17); end
     grid on;
 end
 
