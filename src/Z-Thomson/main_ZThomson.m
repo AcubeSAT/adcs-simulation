@@ -63,8 +63,8 @@ for current_cycle = 1:length(Time) %Main loop
 
     %% Torque Calculation
      %% Z-Thomson using 3 mtqs
-      %M(1,1) = -Kd*(w_b_ob_Bdot(3,current_cycle)-0.1)/norm(w_b_ob_Bdot(3,current_cycle)-0.1)*sign(Bdot_body(2,current_cycle));
-      %M(2,1)= -Kd*(w_b_ob_Bdot(3,current_cycle)-0.1)/norm(w_b_ob_Bdot(3,current_cycle)-0.1)*sign(Bdot_body(1,current_cycle));
+      %M(1,1) = -Kp*(w_b_ob_Bdot(3,current_cycle)-0.1)/norm(w_b_ob_Bdot(3,current_cycle)-0.1)*sign(Bdot_body(2,current_cycle));
+      %M(2,1)= -Kp*(w_b_ob_Bdot(3,current_cycle)-0.1)/norm(w_b_ob_Bdot(3,current_cycle)-0.1)*sign(Bdot_body(1,current_cycle));
       %M(3,1) = -Kp * Bdot_body(3, current_cycle) / norm(B_body(3, current_cycle));
       %M = mtq_scaling(M, Const.mtq_max); % MTQ scaling
       %Mag(:, current_cycle) = M;
@@ -72,7 +72,7 @@ for current_cycle = 1:length(Time) %Main loop
 
 
      %% Z-Thomson using 2 mtqs
-      M(1,1) = -Kd*(w_b_ob_Bdot(3,current_cycle)-0.1)/norm(w_b_ob_Bdot(3,current_cycle)-0.1)*sign(Bdot_body(2,current_cycle));
+      M(1,1) = -Kp*(w_b_ob_Bdot(3,current_cycle)-0.1)/norm(w_b_ob_Bdot(3,current_cycle)-0.1)*sign(Bdot_body(2,current_cycle));
       M(2,1)= 0;
       M(3,1) = -Kp * Bdot_body(3, current_cycle) / norm(B_body(3, current_cycle));
       M = mtq_scaling(M, Const.mtq_max); % MTQ scaling
