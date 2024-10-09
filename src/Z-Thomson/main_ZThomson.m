@@ -62,10 +62,23 @@ for current_cycle = 1:length(Time) %Main loop
     Bdot_body(3, current_cycle) = (Bz2 - Bz) / 0.1;
 
     %% Torque Calculation
-    M = -Kp .* Bdot_body(:, current_cycle) ./ norm(B_body(:, current_cycle)); % Calculate dipole moment to produce
-    M = mtq_scaling(M, Const.mtq_max); % MTQ scaling
-    Mag(:, current_cycle) = M;
-    T_magnetic = cross(M, B_body(:, current_cycle));
+     %% Z-Thomson using 3 mtqs
+      %M(1,1) = -Kd*(w_b_ob_Bdot(3,current_cycle)-0.1)/norm(w_b_ob_Bdot(3,current_cycle)-0.1)*sign(Bdot_body(2,current_cycle));
+      %M(2,1)= -Kd*(w_b_ob_Bdot(3,current_cycle)-0.1)/norm(w_b_ob_Bdot(3,current_cycle)-0.1)*sign(Bdot_body(1,current_cycle));
+      %M(3,1) = -Kp * Bdot_body(3, current_cycle) / norm(B_body(3, current_cycle));
+      %M = mtq_scaling(M, Const.mtq_max); % MTQ scaling
+      %Mag(:, current_cycle) = M;
+      %T_magnetic = cross(M, B_body(:, current_cycle));
+
+
+     %% Z-Thomson using 2 mtqs
+      M(1,1) = -Kd*(w_b_ob_Bdot(3,current_cycle)-0.1)/norm(w_b_ob_Bdot(3,current_cycle)-0.1)*sign(Bdot_body(2,current_cycle));
+      M(2,1)= 0;
+      M(3,1) = -Kp * Bdot_body(3, current_cycle) / norm(B_body(3, current_cycle));
+      M = mtq_scaling(M, Const.mtq_max); % MTQ scaling
+      Mag(:, current_cycle) = M;
+      T_magnetic = cross(M, B_body(:, current_cycle));
+
 
     %% Calculate V, I, P of MTQ's
     [V_mtq, I_mtq, P_thermal_mtq] = mtq_model(M);
