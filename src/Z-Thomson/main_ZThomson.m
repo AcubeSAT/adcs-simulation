@@ -16,6 +16,8 @@ t = 0;
 B_body = zeros(3, length(Time));                    % Earth magnetic field satellite in body frame
 w_b_ob = zeros(3, length(Time));                    % Angular velocity from orbit to body frame expressed in body frame
 Bdot_body = zeros(3, length(Time));                 % Bdot estimation in body frane
+Bdot_body_z = zeros(1, length(Time));
+Bdot_body_new = zeros(3, length(Time)); 
 w_b_ob_magn = zeros(1, length(Time));               % Angular velocity magnitude
 Mag = zeros(3, length(Time));                       % Commanded magnetic dipole moment
 w_b_ob_Bdot = zeros(3, length(Time));               % Angular velocity estimation using Bdot
@@ -56,35 +58,58 @@ for current_cycle = 1:length(Time) %Main loop
     B_body_2 = B_body_2 + sqrt(R) * randn(size(B_body(:, current_cycle))); % Second measurment from magnetometer
 
     %% Bdot calculation
+    Bx=acos(B_body(1,current_cycle)/norm(B_body(:,current_cycle)));
+    Bx2=acos(B_body_2(1)/norm(B_body_2));
+
+    By=acos(B_body(2,current_cycle)/norm(B_body(:,current_cycle)));
+    By2=acos(B_body_2(2)/norm(B_body_2));
+    
     Bz=acos(B_body(3,current_cycle)/norm(B_body(:,current_cycle)));
     Bz2=acos(B_body_2(3)/norm(B_body_2));
-    Bdot_body(1:2, current_cycle) = (B_body_2(1:2) - B_body(1:2, current_cycle)) / 0.1;
-    Bdot_body(3, current_cycle) = (Bz2 - Bz) / 0.1;
+
+    Bdot_body(:, current_cycle) = (B_body_2 - B_body(:, current_cycle)) / 0.1;
+    Bdot_body_new(:, current_cycle) = ([Bx2;By2;Bz2] - [Bx;By;Bz]) / 0.1;
+    Bdot_body_z(current_cycle) = (Bz2 - Bz) / 0.1;
+
+    %Bdot_body(1:2, current_cycle) = (B_body_2(1:2) - B_body(1:2, current_cycle)) / 0.1;
+    %Bdot_body(3, current_cycle) = (Bz2 - Bz) / 0.1;
 
     %% Torque Calculation
      %% Z-Thomson using 3 mtqs
-      %M(1,1) = -Kp*(w_b_ob_Bdot(3,current_cycle)-0.1)/norm(w_b_ob_Bdot(3,current_cycle)-0.1)*sign(Bdot_body(2,current_cycle));
-      %M(2,1)= -Kp*(w_b_ob_Bdot(3,current_cycle)-0.1)/norm(w_b_ob_Bdot(3,current_cycle)-0.1)*sign(Bdot_body(1,current_cycle));
-      %M(3,1) = -Kp * Bdot_body(3, current_cycle) / norm(B_body(3, current_cycle));
+      %M(1,1) = -Kd*(w_b_ob_Bdot(3,current_cycle)-0.1)/norm(w_b_ob_Bdot(3,current_cycle)-0.1)*sign(Bdot_body(2,current_cycle));
+      %M(2,1)= -Kd*(w_b_ob_Bdot(3,current_cycle)-0.1)/norm(w_b_ob_Bdot(3,current_cycle)-0.1)*sign(Bdot_body(1,current_cycle));
+      %M(3,1) = -Kd * Bdot_body(3, current_cycle) / norm(B_body(3, current_cycle));
       %M = mtq_scaling(M, Const.mtq_max); % MTQ scaling
       %Mag(:, current_cycle) = M;
       %T_magnetic = cross(M, B_body(:, current_cycle));
-
-
+    
+    
      %% Z-Thomson using 2 mtqs
-      M(1,1) = -Kp*(w_b_ob_Bdot(3,current_cycle)-0.1)/norm(w_b_ob_Bdot(3,current_cycle)-0.1)*sign(Bdot_body(2,current_cycle));
-      M(2,1)= 0;
-      M(3,1) = -Kp * Bdot_body(3, current_cycle) / norm(B_body(3, current_cycle));
+      % M(1,1) = -Kd*(w_b_ob_Bdot(3,current_cycle)-0.1)/norm(w_b_ob_Bdot(3,current_cycle)-0.1)*sign(Bdot_body(2,current_cycle));
+      % M(2,1)= 0;
+      % M(3,1) = -Kd * Bdot_body(3, current_cycle) / norm(B_body(3, current_cycle));
+      % M = mtq_scaling(M, Const.mtq_max); % MTQ scaling
+      % Mag(:, current_cycle) = M;
+      % T_magnetic = cross(M, B_body(:, current_cycle));
+    
+    
+      %% Z Thomson New attempt
+      %M(1,1) = Ks * (w_b_ob(3,current_cycle) - 0.05) * sign(B_body(2,current_cycle));
+      M(1,1) = 0;
+      M(2,1) = Ks * (w_b_ob(3,current_cycle) - 0.05) * sign(B_body(1,current_cycle));
+      
+      %M(3,1) = -Kd * Bdot_body(3,current_cycle) / norm(B_body(:,current_cycle)); % the old way
+      %M(3,1) = -Kd * Bdot_body_new(3,current_cycle) / norm(B_body(:,current_cycle));  % the new new way 
+      M(3,1) = Kd * Bdot_body_z(current_cycle);    % the new way
       M = mtq_scaling(M, Const.mtq_max); % MTQ scaling
       Mag(:, current_cycle) = M;
       T_magnetic = cross(M, B_body(:, current_cycle));
-
 
     %% Calculate V, I, P of MTQ's
     [V_mtq, I_mtq, P_thermal_mtq] = mtq_model(M);
 
     %% Estimation of angular velocity using Bdot
-    w_b_ob_Bdot(:, current_cycle) = skew(B_body(:, current_cycle)) * (-Bdot_body(:, current_cycle) ...
+    w_b_ob_Bdot(:, current_cycle) = skew(B_body(:, current_cycle)) * (-Bdot_body_new(:, current_cycle) ...
         -B_body(:, current_cycle)) / (B_body(:, current_cycle)' * B_body(:, current_cycle));
 
 
@@ -196,10 +221,10 @@ ylabel({'Magnetic'; 'Dipole [Am^2]'});
 
 
 % Plotting eclipse
-figure()
-plot(1:length(eclipse), eclipse, 'LineWidth', 2.0, 'Color', 'blue');
-title('Eclipse', 'interpreter', 'latex', 'fontsize', 17)
-xlabel('Time [$s$]', 'interpreter', 'latex', 'fontsize', 12);
-ylabel('Eclipse', 'interpreter', 'latex', 'fontsize', 14);
-grid on;
-if (i == 1), title('Umbral, Penumbral or no Eclipse', 'interpreter', 'latex', 'fontsize', 17); end
+% figure()
+% plot(1:length(eclipse), eclipse, 'LineWidth', 2.0, 'Color', 'blue');
+% title('Eclipse', 'interpreter', 'latex', 'fontsize', 17)
+% xlabel('Time [$s$]', 'interpreter', 'latex', 'fontsize', 12);
+% ylabel('Eclipse', 'interpreter', 'latex', 'fontsize', 14);
+% grid on;
+% if (i == 1), title('Umbral, Penumbral or no Eclipse', 'interpreter', 'latex', 'fontsize', 17); end
