@@ -105,6 +105,16 @@ for current_cycle = 1:length(Time) %Main loop
       Mag(:, current_cycle) = M;
       T_magnetic = cross(M, B_body(:, current_cycle));
 
+
+       %% Angle between Z-Axis of b.f. and Z-Axis of o.f.
+        z_ob= R_OB(:,3); % Extract the third column of R_OB(z-axis of orbit in body frame)
+        z_body=[0; 0; 1]; % z-axis of the body frame
+        cos_theta=dot(z_ob,z_body)/(norm(z_ob)*norm(z_body)); % Calculate cosine of the angle
+        theta=acos(cos_theta); % compute angle in radians
+        theta_deg=rad2deg(theta); %Convert to degrees
+        theta_deg_arr(current_cycle) = theta_deg;
+
+
     %% Calculate V, I, P of MTQ's
     [V_mtq, I_mtq, P_thermal_mtq] = mtq_model(M);
 
@@ -228,3 +238,12 @@ ylabel({'Magnetic'; 'Dipole [Am^2]'});
 % ylabel('Eclipse', 'interpreter', 'latex', 'fontsize', 14);
 % grid on;
 % if (i == 1), title('Umbral, Penumbral or no Eclipse', 'interpreter', 'latex', 'fontsize', 17); end
+
+
+% Plotting the Angle between Z-Axis of b.f. and Z-Axis of o.f.
+figure()
+plot(1:plotter_step:length(Time), theta_deg_arr(1:plotter_step:end));
+title('Angle between Z-Axis of b.f. and Z-Axis of o.f.', 'interpreter', 'latex', 'fontsize', 17);
+xlabel('Time [$s$]', 'interpreter', 'latex', 'fontsize', 12);
+ylabel('Angle [degrees]', 'interpreter', 'latex', 'fontsize', 14);
+grid on
