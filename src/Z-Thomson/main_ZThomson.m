@@ -21,7 +21,7 @@ Bdot_body_new = zeros(3, length(Time));
 w_b_ob_magn = zeros(1, length(Time));               % Angular velocity magnitude
 Mag = zeros(3, length(Time));                       % Commanded magnetic dipole moment
 w_b_ob_Bdot = zeros(3, length(Time));               % Angular velocity estimation using Bdot
-
+theta_deg_arr= zeros(1,length(Time));
 
 global R_coils; R_coils = Const.R_coils;
 global N_coils; N_coils = Const.N_coils;
