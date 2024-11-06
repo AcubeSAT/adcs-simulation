@@ -5,12 +5,12 @@
 %% ======= Satellite ========
 cycle_duration = 1;                                         % Timestep for Controller & Orbit Propagator
 dt_model = .001;                                            % Timestep for Model
-orbits = 1;
+orbits = 2;
 orbitPeriod = 5545;
 Total_simulation_time = orbits * orbitPeriod;               % Total Simulation Seconds
 Q0 = [0.3757; 0.5983; -0.2364; -0.6671];                    % Initial Quaternion in ECI frame
 Q0 = Q0 / norm(Q0);                                         % Normalised Quaternion
-vRot0 = [0.04 ; 0.04 ; 0.04];                          % Initial Angular Velocities from Body to ECI frame expressed in Body.
+vRot0 = [0.05 ; 0.05 ; 0.05];                          % Initial Angular Velocities from Body to ECI frame expressed in Body.
 x0 = [Q0; vRot0];
 real_model = real_SatelliteModel_Bdot(dt_model, Const.I);   % Initialize Satellite Model Class
 
@@ -19,8 +19,8 @@ setDisturbances = "total";  % Set which disturbances you want to activate: tau_g
 rng(1);                     % Fix the random number generator for reproducible results
 plotter_step = 10;
 %Kd = 10^5 * 4*pi / orbitPeriod * (1 + sin(inclm(1))) * Const.I(3,3);
-Kd = 30;
-Ks = 30;
+Kd = 150;
+Ks = 150;
 
 %% ======= Orbit Propagation ========
 satrec = orbit_init();
