@@ -15,13 +15,17 @@ x = x0;
 t = 0;
 B_body = zeros(3, length(Time));                    % Earth magnetic field satellite in body frame
 w_b_ob = zeros(3, length(Time));                    % Angular velocity from orbit to body frame expressed in body frame
+w_b_ib = zeros(3,length(Time));
+w_o_ob =zeros(3,length(Time));
 Bdot_body = zeros(3, length(Time));                 % Bdot estimation in body frane
 Bdot_body_z = zeros(1, length(Time));
 Bdot_body_new = zeros(3, length(Time)); 
 w_b_ob_magn = zeros(1, length(Time));               % Angular velocity magnitude
 Mag = zeros(3, length(Time));                       % Commanded magnetic dipole moment
 w_b_ob_Bdot = zeros(3, length(Time));               % Angular velocity estimation using Bdot
-theta_deg_arr= zeros(1,length(Time));
+theta_deg_arr_x= zeros(1,length(Time));
+theta_deg_arr_y= zeros(1,length(Time));
+theta_deg_arr_z= zeros(1,length(Time));
 
 global R_coils; R_coils = Const.R_coils;
 global N_coils; N_coils = Const.N_coils;
@@ -41,6 +45,8 @@ for current_cycle = 1:length(Time) %Main loop
     w_b_io = R_OB(:, 3) * Const.w_o;
     w_b_ob(:, current_cycle) = x(5:7) - w_b_io; % Calculating angular rate of satellite relative to ECI frame
     w_b_ob_magn(current_cycle) = norm(w_b_ob(:, current_cycle));
+    w_b_ib(:,current_cycle)=  w_b_ob(:, current_cycle) + w_b_io;
+    w_o_ob(:,current_cycle)= R_BO*w_b_ob(:,current_cycle);
 
     %% First timestep - Orbit propagation
     [T_disturbances, ~] = disturbances_bdot(R_BO, sun_pos_orbit(:, current_cycle), B_body(:, current_cycle), setDisturbances); % Calculation of external torques
@@ -93,27 +99,56 @@ for current_cycle = 1:length(Time) %Main loop
       % T_magnetic = cross(M, B_body(:, current_cycle));
     
     
-      %% Z Thomson New attempt
-      %M(1,1) = Ks * (w_b_ob(3,current_cycle) - 0.05) * sign(B_body(2,current_cycle));
-      M(1,1) = 0;
-      M(2,1) = Ks * (w_b_ob(3,current_cycle) - 0.05) * sign(B_body(1,current_cycle));
+ 
+   
       
-      %M(3,1) = -Kd * Bdot_body(3,current_cycle) / norm(B_body(:,current_cycle)); % the old way
-      %M(3,1) = -Kd * Bdot_body_new(3,current_cycle) / norm(B_body(:,current_cycle));  % the new new way 
-      M(3,1) = Kd * Bdot_body_z(current_cycle);    % the new way
-      M = mtq_scaling(M, Const.mtq_max); % MTQ scaling
-      Mag(:, current_cycle) = M;
-      T_magnetic = cross(M, B_body(:, current_cycle));
+      % %% Z Thomson New attempt
+      % 
+      % M(1,1) = -Ks * (w_b_oo(3,current_cycle) - 0.05) * sign(B_body(2,current_cycle));
+      % %M(1,1) = 0;
+      % %M(2,1) = Ks * (w_b_oo(3,current_cycle) - 0.05) * sign(B_body(1,current_cycle));
+      % M(2,1) = 0;
+      % %M(3,1) = -Kd * Bdot_body(3,current_cycle) / norm(B_body(:,current_cycle)); % the old way
+      % M(3,1) = Kd * Bdot_body_z(current_cycle);  % the new new way 
+      % 
+      % M = mtq_scaling(M, Const.mtq_max); % MTQ scaling
+      % Mag(:, current_cycle) = M;
+      % T_magnetic = cross(M, B_body(:, current_cycle));
+        
+       %% Z Thomson based on lappas's paper
+
+         M(3,1)= Kd * Bdot_body_z(current_cycle);
+         if (abs(B_body(2,current_cycle))>abs(B_body(1,current_cycle)))
+         M(1,1)= Ks*(w_b_ib(3,current_cycle)-0.05)*sign(Bdot_body(2,current_cycle));
+         M(2,1)= 0;
+         elseif (abs(B_body(2,current_cycle))<abs(B_body(1,current_cycle)))
+          M(1,1)= 0;
+          M(2,1)=-Ks*(w_b_ib(3,current_cycle)-0.05)*sign(Bdot_body(1,current_cycle));
+         end    
 
 
-       %% Angle between Z-Axis of b.f. and Z-Axis of o.f.
-        z_ob= R_OB(:,3); % Extract the third column of R_OB(z-axis of orbit in body frame)
+         M = mtq_scaling(M, Const.mtq_max); % MTQ scaling
+         Mag(:, current_cycle) = M;
+         T_magnetic = cross(M, B_body(:, current_cycle));
+
+        %% Angle between Z-Axis of b.f. and Z-Axis of o.f.
+        x_ob=R_OB(:,1); 
+        y_ob=R_OB(:,2);
+        z_ob=R_OB(:,3); % Extract the third column of R_OB(z-axis of orbit in body frame)
         z_body=[0; 0; 1]; % z-axis of the body frame
-        cos_theta=dot(z_ob,z_body)/(norm(z_ob)*norm(z_body)); % Calculate cosine of the angle
-        theta=acos(cos_theta); % compute angle in radians
-        theta_deg=rad2deg(theta); %Convert to degrees
-        theta_deg_arr(current_cycle) = theta_deg;
-
+        cos_theta_x=dot(x_ob,z_body)/(norm(x_ob)*norm(z_body)); % Calculate cosine of the angle
+        cos_theta_y=dot(y_ob,z_body)/(norm(y_ob)*norm(z_body));
+        cos_theta_z=dot(z_ob,z_body)/(norm(z_ob)*norm(z_body));
+                     
+        theta_x=acos(cos_theta_x); % compute angle in radians
+        theta_y=acos(cos_theta_y);
+        theta_z=acos(cos_theta_z);
+        theta_deg_x=rad2deg(theta_x); %Convert to degrees
+        theta_deg_y=rad2deg(theta_y) ;
+        theta_deg_z=rad2deg(theta_z) ;
+        theta_deg_arr_x(current_cycle) = theta_deg_x;
+        theta_deg_arr_y(current_cycle) = theta_deg_y;
+        theta_deg_arr_z(current_cycle) = theta_deg_z;
 
     %% Calculate V, I, P of MTQ's
     [V_mtq, I_mtq, P_thermal_mtq] = mtq_model(M);
@@ -125,8 +160,9 @@ for current_cycle = 1:length(Time) %Main loop
 
 
     %%  Disturbances for 2 timesteps to acquire magnetometer measurements
-    [T_disturbances, ~] = disturbances_bdot(R_BO, sun_pos_orbit(:, current_cycle), B_body(:, current_cycle), setDisturbances);
-    torq = T_magnetic + T_disturbances;
+   % [T_disturbances, ~] = disturbances_bdot(R_BO, sun_pos_orbit(:, current_cycle), B_body(:, current_cycle), setDisturbances);
+    T_disturbances=[0;0;0];
+   torq = T_magnetic + T_disturbances;
     for j = 1:(cycle_duration / dt_model * 0.2)
         x = real_model.stateTransFun(x, stateTransCookieFinalNominal(T_disturbances, 0, 0));
     end
@@ -143,7 +179,7 @@ end
 figure()
 subplot(3, 1, 1)
 plot(1:plotter_step:length(Time), w_b_ob(1, 1:plotter_step:end))
-title('Angular Velocities', 'interpreter', 'latex', 'fontsize', 17);
+title('Angular Velocities w_b_ob', 'interpreter', 'latex', 'fontsize', 17);
 xlabel('Time [$s$]', 'interpreter', 'latex', 'fontsize', 12);
 ylabel(['$\omega_', num2str(1), '$', '[rad/sec]'], 'interpreter', 'latex', 'fontsize', 14);
 grid on
@@ -158,6 +194,43 @@ xlabel('Time [$s$]', 'interpreter', 'latex', 'fontsize', 12);
 ylabel(['$\omega_', num2str(3), '$', '[rad/sec]'], 'interpreter', 'latex', 'fontsize', 14);
 grid on
 
+%%  Plotting the Angular Velocities
+figure()
+subplot(3, 1, 1)
+plot(1:plotter_step:length(Time), w_b_ib(1, 1:plotter_step:end))
+title('Angular Velocities w_b_io', 'interpreter', 'latex', 'fontsize', 17);
+xlabel('Time [$s$]', 'interpreter', 'latex', 'fontsize', 12);
+ylabel(['$\omega_', num2str(1), '$', '[rad/sec]'], 'interpreter', 'latex', 'fontsize', 14);
+grid on
+subplot(3, 1, 2)
+plot(1:plotter_step:length(Time), w_b_ib(2, 1:plotter_step:end))
+xlabel('Time [$s$]', 'interpreter', 'latex', 'fontsize', 12);
+ylabel(['$\omega_', num2str(2), '$', '[rad/sec]'], 'interpreter', 'latex', 'fontsize', 14);
+grid on
+subplot(3, 1, 3)
+plot(1:plotter_step:length(Time), w_b_ib(3, 1:plotter_step:end))
+xlabel('Time [$s$]', 'interpreter', 'latex', 'fontsize', 12);
+ylabel(['$\omega_', num2str(3), '$', '[rad/sec]'], 'interpreter', 'latex', 'fontsize', 14);
+grid on
+
+%%  Plotting the Angular Velocities
+figure()
+subplot(3, 1, 1)
+plot(1:plotter_step:length(Time), w_o_ob(1, 1:plotter_step:end))
+title('Angular Velocities w_o_ob', 'interpreter', 'latex', 'fontsize', 17);
+xlabel('Time [$s$]', 'interpreter', 'latex', 'fontsize', 12);
+ylabel(['$\omega_', num2str(1), '$', '[rad/sec]'], 'interpreter', 'latex', 'fontsize', 14);
+grid on
+subplot(3, 1, 2)
+plot(1:plotter_step:length(Time), w_o_ob(2, 1:plotter_step:end))
+xlabel('Time [$s$]', 'interpreter', 'latex', 'fontsize', 12);
+ylabel(['$\omega_', num2str(2), '$', '[rad/sec]'], 'interpreter', 'latex', 'fontsize', 14);
+grid on
+subplot(3, 1, 3)
+plot(1:plotter_step:length(Time), w_o_ob(3, 1:plotter_step:end))
+xlabel('Time [$s$]', 'interpreter', 'latex', 'fontsize', 12);
+ylabel(['$\omega_', num2str(3), '$', '[rad/sec]'], 'interpreter', 'latex', 'fontsize', 14);
+grid on
 
 
 % Plotting the angular velocity using Bdot
@@ -242,8 +315,35 @@ ylabel({'Magnetic'; 'Dipole [Am^2]'});
 
 % Plotting the Angle between Z-Axis of b.f. and Z-Axis of o.f.
 figure()
-plot(1:plotter_step:length(Time), theta_deg_arr(1:plotter_step:end));
+plot(1:plotter_step:length(Time), theta_deg_arr_x(1:plotter_step:end));
+title('Angle between Z-Axis of b.f. and X-Axis of o.f.', 'interpreter', 'latex', 'fontsize', 17);
+xlabel('Time [$s$]', 'interpreter', 'latex', 'fontsize', 12);
+ylabel('Angle [degrees]', 'interpreter', 'latex', 'fontsize', 14);
+grid on
+
+figure()
+plot(1:plotter_step:length(Time), theta_deg_arr_y(1:plotter_step:end));
+title('Angle between Z-Axis of b.f. and Y-Axis of o.f.', 'interpreter', 'latex', 'fontsize', 17);
+xlabel('Time [$s$]', 'interpreter', 'latex', 'fontsize', 12);
+ylabel('Angle [degrees]', 'interpreter', 'latex', 'fontsize', 14);
+grid on
+
+
+figure()
+plot(1:plotter_step:length(Time), theta_deg_arr_z(1:plotter_step:end));
 title('Angle between Z-Axis of b.f. and Z-Axis of o.f.', 'interpreter', 'latex', 'fontsize', 17);
 xlabel('Time [$s$]', 'interpreter', 'latex', 'fontsize', 12);
 ylabel('Angle [degrees]', 'interpreter', 'latex', 'fontsize', 14);
 grid on
+
+figure()
+plot(B_body(3,:))
+title('Magnetic field in Z axis', 'interpreter', 'latex', 'fontsize', 17);
+
+figure()
+plot(B_body(2,:))
+title('Magnetic field in Y axis', 'interpreter', 'latex', 'fontsize', 17);
+
+figure()
+plot(B_body(1,:))
+title('Magnetic field in X axis', 'interpreter', 'latex', 'fontsize', 17);
