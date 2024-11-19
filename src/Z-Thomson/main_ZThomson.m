@@ -121,11 +121,11 @@ for current_cycle = 1:length(Time) %Main loop
 
          M(3,1)= Kd * Bdot_body_z(current_cycle);
          if (abs(B_body(2,current_cycle))>abs(B_body(1,current_cycle)))
-         M(1,1)= Ks*(w_b_ib(3,current_cycle)-0.15)*sign(Bdot_body(2,current_cycle));
+         M(1,1)= Ks*(w_b_ob_Bdot(3,current_cycle)-0.3)*sign(Bdot_body(2,current_cycle));
          M(2,1)= 0;
          elseif (abs(B_body(2,current_cycle))<abs(B_body(1,current_cycle)))
           M(1,1)= 0;
-          M(2,1)=-Ks*(w_b_ib(3,current_cycle)-0.15)*sign(Bdot_body(1,current_cycle));
+          M(2,1)=-Ks*(w_b_ob_Bdot(3,current_cycle)-0.3)*sign(Bdot_body(1,current_cycle));
          end    
 
 
