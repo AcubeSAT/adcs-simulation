@@ -352,13 +352,19 @@ for cycle_index = cycle_index:number_of_cycles
         x_hat(1:4) = x_hat(1:4) / norm(x_hat(1:4));
 
         %% PD function
-        q_ob_hat = quat_EB2OB(x_hat(1:4), Nodem, Inclm, Argpm, Mm);
+        % Choose x_hat for determination, x for ground truth 
+    
+        q_ob_hat = quat_EB2OB(x_hat(1:4),Nodem,Inclm,Argpm,Mm);
+        % q_ob_hat = quat_EB2OB(x(1:4),Nodem,Inclm,Argpm,Mm);
+
         acceleration_rw(1, 1) = acceleration_rw(2, 1);
         acceleration_rw(2, 1) = acceleration_rw(3, 1);
         AngVel_rw_radps(1, 1) = AngVel_rw_radps(2, 1);
         AngVel_rw_radps(2, 1) = AngVel_rw_radps(3, 1);
         AngVel_rw_rpm(1, 1) = AngVel_rw_rpm(2, 1);
         AngVel_rw_rpm(2, 1) = AngVel_rw_rpm(3, 1);
+
+        % Choose first PD for determination, second PD for ground truth
 
         [torq, T_rw, T_magnetic_effective, ~, ~, ~, AngVel_rw_rpm_next, AngVel_rw_radps_next, ...
             acceleration_rw_cur, rw_ang_momentum, init_AngVel_dz, init_accel_dz, ~, ~, ~, ...
@@ -367,6 +373,14 @@ for cycle_index = cycle_index:number_of_cycles
             Const.mtq_max, Const.lim_dz, AngVel_rw_radps(2, 1), AngVel_rw_rpm(2, 1), ...
             acceleration_rw(1, 1), init_AngVel_dz, init_accel_dz, timeflag_dz, Const.rw_max_torque, ...
             y_real(1:3)*norm(Mag_field_orbit), cycle_index, Sun_pos_eci, Const.known_rm,Const.const1_accel,Const.const2_accel,Const.const3_accel,Const.const4_accel,Const.AngVel_rw_lim,Const.sun_desired);
+
+        % [torq, T_rw, T_magnetic_effective, ~, ~, ~, AngVel_rw_rpm_next, AngVel_rw_radps_next, ...
+        %     acceleration_rw_cur, rw_ang_momentum, init_AngVel_dz, init_accel_dz, ~, ~, ~, ...
+        %     timeflag_dz, M, q_sb] = ...
+        %     PD_Sun_Pointing(q_desired, x_hat(1:4), x(5:7), y_real(1:3)*norm(Mag_field_orbit), ...
+        %     Const.mtq_max, Const.lim_dz, AngVel_rw_radps(2, 1), AngVel_rw_rpm(2, 1), ...
+        %     acceleration_rw(1, 1), init_AngVel_dz, init_accel_dz, timeflag_dz, Const.rw_max_torque, ...
+        %     y_real(1:3)*norm(Mag_field_orbit), cycle_index, Sun_pos_eci, Const.known_rm,Const.const1_accel,Const.const2_accel,Const.const3_accel,Const.const4_accel,Const.AngVel_rw_lim,Const.sun_desired);
 
         %% Propagate the system
         q_ob = quat_EB2OB(x(1:4), Nodem, Inclm, Argpm, Mm);
