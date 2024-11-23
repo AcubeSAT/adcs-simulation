@@ -249,4 +249,3 @@ end
 %     end
 % 
 % 
->>>>>>> ae33f4e (Refine solution 1)
