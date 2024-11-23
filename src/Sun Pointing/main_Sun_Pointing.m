@@ -1020,14 +1020,26 @@ grid on;
 figure()
 subplot(3, 1, 1)
 plot(Time(1:length(sun_angle(1,:))), rad2deg(sun_angle(1,:)), 'LineWidth', 1.5, 'Color', 'blue');
+hold on;
+x_angle = 135; 
+plot([Time(1), Time(end)], [x_angle, x_angle], 'r', 'LineWidth', 1.5);
+hold off;
 title('Angle Between +X axis and Sun Vector [deg]', 'interpreter', 'latex', 'fontsize', 17);
 xlabel('Time [$s$]', 'interpreter', 'latex', 'fontsize', 12);
 subplot(3, 1, 2)
 plot(Time(1:length(sun_angle(2,:))), rad2deg(sun_angle(2,:)), 'LineWidth', 1.5, 'Color', 'blue');
+hold on;
+y_angle = 45; 
+plot([Time(1), Time(end)], [y_angle, y_angle], 'r', 'LineWidth', 1.5);
+hold off;
 title('Angle Between +Y axis and Sun Vector [deg]', 'interpreter', 'latex', 'fontsize', 17);
 xlabel('Time [$s$]', 'interpreter', 'latex', 'fontsize', 12);
 subplot(3, 1, 3)
 plot(Time(1:length(sun_angle(3,:))), rad2deg(sun_angle(3,:)), 'LineWidth', 1.5, 'Color', 'blue');
+hold on;
+z_angle = 90; 
+plot([Time(1), Time(end)], [z_angle, z_angle], 'r', 'LineWidth', 1.5);
+hold off;
 title('Angle Between +Z axis and Sun Vector [deg]', 'interpreter', 'latex', 'fontsize', 17);
 xlabel('Time [$s$]', 'interpreter', 'latex', 'fontsize', 12);
 grid on;
