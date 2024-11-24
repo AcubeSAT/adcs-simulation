@@ -59,9 +59,10 @@ function Param = setParamsFinal_Nadir_Pointing(I)
     disturbancesEnabled = "total";  % Set which disturbances you want to activate: tau_g, tau_ad, tau_sp, tau_rm, total, zero
     rng(1);                         % Fix the random number generator for reproducible results
     % Gyro bias std dev
-    sigma_u = 7.7570e-05;
+    %sigma_u = 7.7570e-05;
+    sigma_u = 3.4434e-04;
     % Gyro white noise std dev
-    sigma_v = 0.0026;
+    sigma_v = 0.00026;
 
     %% ======= Albedo ========
 
