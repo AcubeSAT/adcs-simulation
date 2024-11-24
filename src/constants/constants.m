@@ -49,6 +49,7 @@
 %       rw_max_torque - Maximum torque of the Reaction Wheel
 %       reflectance_factor - Reflectance factor of the spacecraft surface materials
 %       N2D_threshold - Threshold for switching from nominal to detumbling
+%       S2D_threshold - Threshold for switching from nominal to detumbling
 %       D2N_threshold - Threshold for switching from detumbling to nominal
 %
 %
@@ -156,6 +157,7 @@ function Const = constants()
     rw_max_torque = 1e-4;
     reflectance_factor=0.6;
     N2D_threshold = 0.08; % rad/sec                    
+    S2D_threshold = 0.08; % rad/sec                    
     D2N_threshold = 0.035; % rad/sec  
     const1_accel=25;
     const2_accel=50;
@@ -196,6 +198,7 @@ function Const = constants()
     Const.known_rm = known_rm;
     Const.reflectance_factor=reflectance_factor;
     Const.N2D_threshold= N2D_threshold;
+    Const.S2D_threshold= S2D_threshold;
     Const.D2N_threshold= D2N_threshold;
     Const.const1_accel= const1_accel;
     Const.const2_accel= const2_accel;

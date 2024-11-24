@@ -12,7 +12,7 @@ function Param = setParamsFinal_Sun_Pointing(I)
     %% ======= Satellite ========
 
     dt = .1; %Timestep for Orbit Propagator
-    orbits = 3;
+    orbits = 1;
     orbitPeriod = 5545;
     tf = orbits * orbitPeriod;  %Total Simulation Seconds
     q_desired = [1, 0, 0, 0];   %Desired quaternion
@@ -21,8 +21,8 @@ function Param = setParamsFinal_Sun_Pointing(I)
     %% ======= Orbit Propagation ========
 
     [satrec, ~] = orbit_init();
-    %[~, ~, xsat_eci, ~, ~, eclipse, ~, mag_field_eci, ~, mag_field_orbit, ~, sun_pos_eci, ~, sun_pos_orbit, ~, argpm, nodem, inclm, mm, ~, ~] = orbit_sgp4(satrec, dt, tf+dt);
-    [~,~,xsat_eci,~,~,eclipse,~,mag_field_eci,~,mag_field_orbit,~,sun_pos_eci,~,sun_pos_orbit,~,argpm,nodem,inclm,mm,~,~] = orbit_sgp4_offset(satrec,dt,tf+dt,1000);
+    [~, ~, xsat_eci, ~, ~, eclipse, ~, mag_field_eci, ~, mag_field_orbit, ~, sun_pos_eci, ~, sun_pos_orbit, ~, argpm, nodem, inclm, mm, ~, ~] = orbit_sgp4(satrec, dt, tf+dt);
+    %[~,~,xsat_eci,~,~,eclipse,~,mag_field_eci,~,mag_field_orbit,~,sun_pos_eci,~,sun_pos_orbit,~,argpm,nodem,inclm,mm,~,~] = orbit_sgp4_offset(satrec,dt,tf+dt,1000);
 
     %% ======================= Testing Initial Quaternions =============================
     %Q0 = [0.5; -0.5; 0.5; 0.5];
@@ -59,9 +59,10 @@ function Param = setParamsFinal_Sun_Pointing(I)
     disturbancesEnabled = "total";      % Set which disturbances you want to activate: tau_g, tau_ad, tau_sp, tau_rm, total, zero
     rng(1);                             % Fix the random number generator for reproducible results
     % Gyro bias std dev
-    sigma_u = 7.7570e-05;
+    %sigma_u = 7.7570e-05;
+    sigma_u = 3.4434e-04;
     % Gyro white noise std dev
-    sigma_v = 0.0026;
+    sigma_v = 0.00026;
 
     %% ======= Albedo ========
 
@@ -100,6 +101,10 @@ function Param = setParamsFinal_Sun_Pointing(I)
     P0 = 1 * eye(n_dim_error, n_dim_error);
     use_analytic_jacob = true;
 
+    %%  Parameters for threshold limits
+    total_limit = 20;
+    exceptions_limit = 2;
+
     %%  Passing the values of the parameters in a struct.
 
     Param.dt = dt;
@@ -133,5 +138,7 @@ function Param = setParamsFinal_Sun_Pointing(I)
     Param.number_of_measurements = number_of_measurements;
     Param.use_analytic_jacob = use_analytic_jacob;
     Param.xsat_eci = xsat_eci;
+    Param.total_limit= total_limit;
+    Param.exceptions_limit= exceptions_limit;
     Param.N_Timesteps= N_Timesteps;
 end

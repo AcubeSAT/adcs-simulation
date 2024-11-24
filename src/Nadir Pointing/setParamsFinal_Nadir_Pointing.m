@@ -21,8 +21,8 @@ function Param = setParamsFinal_Nadir_Pointing(I)
     %% ======= Orbit Propagation ========
 
     [satrec, ~] = orbit_init();
-    %[~, ~, xsat_eci, ~, ~, eclipse, ~, mag_field_eci, ~, mag_field_orbit, ~, sun_pos_eci, ~, sun_pos_orbit, ~, argpm, nodem, inclm, mm, ~, ~] = orbit_sgp4(satrec, dt, tf+dt);
-    [~,~,xsat_eci,~,~,eclipse,~,mag_field_eci,~,mag_field_orbit,~,sun_pos_eci,~,sun_pos_orbit,~,argpm,nodem,inclm,mm,~,~] = orbit_sgp4_offset(satrec,dt,tf+dt,1000);
+    [~, ~, xsat_eci, ~, ~, eclipse, ~, mag_field_eci, ~, mag_field_orbit, ~, sun_pos_eci, ~, sun_pos_orbit, ~, argpm, nodem, inclm, mm, ~, ~] = orbit_sgp4(satrec, dt, tf+dt);
+    %[~,~,xsat_eci,~,~,eclipse,~,mag_field_eci,~,mag_field_orbit,~,sun_pos_eci,~,sun_pos_orbit,~,argpm,nodem,inclm,mm,~,~] = orbit_sgp4_offset(satrec,dt,tf+dt,1000);
 
     %% ======================= Testing Initial Quaternions =============================
     %Q0 = [0.5; -0.5; 0.5; 0.5];
@@ -59,9 +59,10 @@ function Param = setParamsFinal_Nadir_Pointing(I)
     disturbancesEnabled = "total";  % Set which disturbances you want to activate: tau_g, tau_ad, tau_sp, tau_rm, total, zero
     rng(1);                         % Fix the random number generator for reproducible results
     % Gyro bias std dev
-    sigma_u = 7.7570e-05;
+    %sigma_u = 7.7570e-05;
+    sigma_u = 3.4434e-04;
     % Gyro white noise std dev
-    sigma_v = 0.0026;
+    sigma_v = 0.00026;
 
     %% ======= Albedo ========
 
