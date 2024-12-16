@@ -1,3 +1,7 @@
+
+
+
+
 % ========================================================================
 %   Main function for Z-Thomson Mode simulation.
 % ========================================================================
@@ -29,7 +33,7 @@ theta_deg_arr_x = zeros(1,length(Time));
 theta_deg_arr_y = zeros(1,length(Time));
 theta_deg_arr_z = zeros(1,length(Time));
 q_orbit_body_data = zeros(4,length(Time));
-
+w=zeros(3,length(Time));
 global R_coils; R_coils = Const.R_coils;
 global N_coils; N_coils = Const.N_coils;
 global A_coils; A_coils = Const.A_coils;
@@ -51,7 +55,7 @@ for current_cycle = 1:length(Time) %Main loop
     w_b_ob_magn(current_cycle) = norm(w_b_ob(:, current_cycle));
     w_b_ib(:,current_cycle)=  w_b_ob(:, current_cycle) + w_b_io;
     w_o_ob(:,current_cycle)= R_BO*w_b_ob(:,current_cycle);
-
+    w(:,current_cycle)=rotate_vector([0 ;1 ;1; 1],w_b_ib(:,current_cycle));
     %% First timestep - Orbit propagation
     [T_disturbances, ~] = disturbances_bdot(R_BO, sun_pos_orbit(:, current_cycle), B_body(:, current_cycle), setDisturbances); % Calculation of external torques
     for j = 1:(cycle_duration / dt_model * 0.1)
@@ -66,7 +70,7 @@ for current_cycle = 1:length(Time) %Main loop
     R_OB = quat2dcm(q_orbit_body'); % Calculating the transformation matrix from orbit to body frame
     B_body_2 = R_OB * mag_field_orbit2 * 10^(-9);
     B_body_2 = B_body_2 + sqrt(R) * randn(size(B_body(:, current_cycle))); % Second measurment from magnetometer
-
+    R_EB=quat2dcm(q_eci_body');
     %% Bdot calculation
     Bx=acos(B_body(1,current_cycle)/norm(B_body(:,current_cycle)));
     Bx2=acos(B_body_2(1)/norm(B_body_2));
@@ -117,16 +121,31 @@ for current_cycle = 1:length(Time) %Main loop
       % Mag(:, current_cycle) = M;
       % T_magnetic = cross(M, B_body(:, current_cycle));
         
-       %% Z Thomson based on lappas's paper
+       %% Z Thomson based on lappas' paper
+
+       % if (abs(w_b_ib) < 0.12)
+       %     w_ref = w_ref2;
+       % else
+       %     w_ref = w_ref1;
+       % end
+
+         % M(3,1)= Kd * Bdot_body_z(current_cycle);
+         % if (abs(B_body(2,current_cycle))>abs(B_body(1,current_cycle)))
+         % M(1,1)= Ks*(w_b_ib(3,current_cycle)-w_ref)*sign(B_body(2,current_cycle));
+         % M(2,1)= 0;
+         % elseif (abs(B_body(2,current_cycle))<abs(B_body(1,current_cycle)))
+         %  M(1,1)= 0;
+         %  M(2,1)=-Ks*(w_b_ib(3,current_cycle)-w_ref)*sign(B_body(1,current_cycle));
+         % end  
 
          M(3,1)= Kd * Bdot_body_z(current_cycle);
          if (abs(B_body(2,current_cycle))>abs(B_body(1,current_cycle)))
-         M(1,1)= Ks*(w_b_ob_Bdot(3,current_cycle)-0.3)*sign(Bdot_body(2,current_cycle));
-         M(2,1)= 0;
+            M(1,1)= Ks*(abs(w_b_ib(3,current_cycle))-w_ref)*sign(B_body(2,current_cycle));
+            M(2,1)= 0;
          elseif (abs(B_body(2,current_cycle))<abs(B_body(1,current_cycle)))
-          M(1,1)= 0;
-          M(2,1)=-Ks*(w_b_ob_Bdot(3,current_cycle)-0.3)*sign(Bdot_body(1,current_cycle));
-         end    
+            M(1,1)= 0;
+            M(2,1)=-Ks*(abs(w_b_ib(3,current_cycle))-w_ref)*sign(B_body(1,current_cycle));
+         end  
 
 
          M = mtq_scaling(M, Const.mtq_max); % MTQ scaling
@@ -176,6 +195,12 @@ for current_cycle = 1:length(Time) %Main loop
     t = t + cycle_duration;
 
 end
+
+
+
+
+
+
 
 %%  Plotting the Angular Velocities
 figure()
@@ -372,40 +397,6 @@ figure()
 plot(B_body(1,:))
 title('Magnetic field in X axis', 'interpreter', 'latex', 'fontsize', 17);
 
-% figure()
-% grid on;
-% hold on
-% for i = 1:length(Time)
-%     % Clear current plot
-%     cla;
-% 
-%     % Plot vector as an arrow (from origin [0, 0, 0] to [x(t), y(t), z(t)])
-%     quiver3(0, 0, 0, z_body_in_orbit(1,i), z_body_in_orbit(2,i), z_body_in_orbit(3,i), 'r', 'LineWidth', 2, 'MaxHeadSize', 0.5);
-% 
-%     % Plot the trajectory of the tip of the vector
-%     plot3(z_body_in_orbit(1,1:i), z_body_in_orbit(2,1:i),z_body_in_orbit(3,1:i), 'b--'); % trajectory of vector time
-% 
-%     % Plot the vector as an arrow (from origin [0, 0, 0] to [x(t), y(t), z(t)])
-%     %quiver3(0, 0, 0, z_body_in_orbit(1,i), z_body_in_orbit(2,i), z_body_in_orbit(3,i), 'r', 'LineWidth', 2, 'MaxHeadSize', 0.5);
-% 
-%     % Plot the trajectory of the tip of the vector (the path it traces)
-%     %plot3(z_body_in_orbit(1,1:i), z_body_in_orbit(2,1:i),z_body_in_orbit(3,1:i), 'b--', 'LineWidth', 1.5); % Blue dashed line
-% 
-%     % Set axis limits and labels
-%     xlim([-1.2, 1.2]);
-%     ylim([-1.2, 1.2]);
-%     zlim([-1.2, 1.2]);
-% 
-%     xlabel('x');
-%     ylabel('y');
-%     zlabel('z');
-% 
-%     % Pause for animation effect
-%     pause(0.1);
-% end
-% 
-% hold off;
-
 % Parameters for the 3D rectangle
 width = 1;   % Width along the X-axis
 height = 1;  % Height along the Y-axis
@@ -450,11 +441,11 @@ time_text = text(0, 5, 5, '', 'FontSize', 12, 'Color', 'black');  % Position the
 
 % Animation loop
 for t = 1:length(Time)
-    
+
     % Rotation matrix
     q_orbit_body = q_orbit_body_data(:,t);
     R_OB = quat2dcm(q_orbit_body');
-    
+
     % Apply rotation to each vertex
     rotated_vertices = (R_OB' * vertices')';  % Transform vertices using R
 
