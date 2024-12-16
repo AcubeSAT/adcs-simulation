@@ -1,7 +1,3 @@
-
-
-
-
 % ========================================================================
 %   Main function for Z-Thomson Mode simulation.
 % ========================================================================
@@ -19,8 +15,7 @@ x = x0;
 t = 0;
 B_body = zeros(3, length(Time));                    % Earth magnetic field satellite in body frame
 w_b_ob = zeros(3, length(Time));                    % Angular velocity from orbit to body frame expressed in body frame
-w_b_ib = zeros(3,length(Time));
-w_o_ob = zeros(3,length(Time));
+w_o_ob = zeros(3, length(Time));
 Bdot_body = zeros(3, length(Time));                 % Bdot estimation in body frane
 Bdot_body_z = zeros(1, length(Time));
 Bdot_body_new = zeros(3, length(Time)); 
@@ -33,7 +28,7 @@ theta_deg_arr_x = zeros(1,length(Time));
 theta_deg_arr_y = zeros(1,length(Time));
 theta_deg_arr_z = zeros(1,length(Time));
 q_orbit_body_data = zeros(4,length(Time));
-w=zeros(3,length(Time));
+
 global R_coils; R_coils = Const.R_coils;
 global N_coils; N_coils = Const.N_coils;
 global A_coils; A_coils = Const.A_coils;
@@ -53,9 +48,7 @@ for current_cycle = 1:length(Time) %Main loop
     w_b_io = R_OB(:, 3) * Const.w_o;
     w_b_ob(:, current_cycle) = x(5:7) - w_b_io; % Calculating angular rate of satellite relative to ECI frame
     w_b_ob_magn(current_cycle) = norm(w_b_ob(:, current_cycle));
-    w_b_ib(:,current_cycle)=  w_b_ob(:, current_cycle) + w_b_io;
-    w_o_ob(:,current_cycle)= R_BO*w_b_ob(:,current_cycle);
-    w(:,current_cycle)=rotate_vector([0 ;1 ;1; 1],w_b_ib(:,current_cycle));
+
     %% First timestep - Orbit propagation
     [T_disturbances, ~] = disturbances_bdot(R_BO, sun_pos_orbit(:, current_cycle), B_body(:, current_cycle), setDisturbances); % Calculation of external torques
     for j = 1:(cycle_duration / dt_model * 0.1)
@@ -70,7 +63,7 @@ for current_cycle = 1:length(Time) %Main loop
     R_OB = quat2dcm(q_orbit_body'); % Calculating the transformation matrix from orbit to body frame
     B_body_2 = R_OB * mag_field_orbit2 * 10^(-9);
     B_body_2 = B_body_2 + sqrt(R) * randn(size(B_body(:, current_cycle))); % Second measurment from magnetometer
-    R_EB=quat2dcm(q_eci_body');
+
     %% Bdot calculation
     Bx=acos(B_body(1,current_cycle)/norm(B_body(:,current_cycle)));
     Bx2=acos(B_body_2(1)/norm(B_body_2));
@@ -105,71 +98,64 @@ for current_cycle = 1:length(Time) %Main loop
     % M = mtq_scaling(M, Const.mtq_max); % MTQ scaling
     % Mag(:, current_cycle) = M;
     % T_magnetic = cross(M, B_body(:, current_cycle));
- 
-   
-      
-      % %% Z Thomson New attempt
-      % 
-      % M(1,1) = -Ks * (w_b_oo(3,current_cycle) - 0.05) * sign(B_body(2,current_cycle));
-      % %M(1,1) = 0;
-      % %M(2,1) = Ks * (w_b_oo(3,current_cycle) - 0.05) * sign(B_body(1,current_cycle));
-      % M(2,1) = 0;
-      % %M(3,1) = -Kd * Bdot_body(3,current_cycle) / norm(B_body(:,current_cycle)); % the old way
-      % M(3,1) = Kd * Bdot_body_z(current_cycle);  % the new new way 
-      % 
-      % M = mtq_scaling(M, Const.mtq_max); % MTQ scaling
-      % Mag(:, current_cycle) = M;
-      % T_magnetic = cross(M, B_body(:, current_cycle));
-        
-       %% Z Thomson based on lappas' paper
-
-       % if (abs(w_b_ib) < 0.12)
-       %     w_ref = w_ref2;
-       % else
-       %     w_ref = w_ref1;
-       % end
-
-         % M(3,1)= Kd * Bdot_body_z(current_cycle);
-         % if (abs(B_body(2,current_cycle))>abs(B_body(1,current_cycle)))
-         % M(1,1)= Ks*(w_b_ib(3,current_cycle)-w_ref)*sign(B_body(2,current_cycle));
-         % M(2,1)= 0;
-         % elseif (abs(B_body(2,current_cycle))<abs(B_body(1,current_cycle)))
-         %  M(1,1)= 0;
-         %  M(2,1)=-Ks*(w_b_ib(3,current_cycle)-w_ref)*sign(B_body(1,current_cycle));
-         % end  
-
-         M(3,1)= Kd * Bdot_body_z(current_cycle);
-         if (abs(B_body(2,current_cycle))>abs(B_body(1,current_cycle)))
-            M(1,1)= Ks*(abs(w_b_ib(3,current_cycle))-w_ref)*sign(B_body(2,current_cycle));
-            M(2,1)= 0;
-         elseif (abs(B_body(2,current_cycle))<abs(B_body(1,current_cycle)))
-            M(1,1)= 0;
-            M(2,1)=-Ks*(abs(w_b_ib(3,current_cycle))-w_ref)*sign(B_body(1,current_cycle));
-         end  
+    
+    
+    %% Z Thomson New attempt
+    %M(1,1) = Ks * (w_b_ob(3,current_cycle) - 0.05) * sign(B_body(2,current_cycle));
+    M(1,1) = 0;
+    M(2,1) = 0;
+    w_o_ob(:, current_cycle) = R_BO*w_b_ob(:,current_cycle);
+    %M(2,1) = -Ks * (w_b_ob(3,current_cycle) - 0.05) * sign(B_body(1,current_cycle));
+     
+    %M(3,1) = -Kd * Bdot_body(3,current_cycle) / norm(B_body(:,current_cycle)); % the old way
+    %M(3,1) = -Kd * Bdot_body_new(3,current_cycle) / norm(B_body(:,current_cycle));  % the new new way 
+    M(3,1) = Kd * Bdot_body_z(current_cycle);    % the new way
+    M = mtq_scaling(M, Const.mtq_max); % MTQ scaling
+    Mag(:, current_cycle) = M;
+    T_magnetic = cross(M, B_body(:, current_cycle));
 
 
-         M = mtq_scaling(M, Const.mtq_max); % MTQ scaling
-         Mag(:, current_cycle) = M;
-         T_magnetic = cross(M, B_body(:, current_cycle));
+    %% Angle between Z-Axis of b.f. and all axes of o.f.
+    %  z_ob= R_OB(:,3); % Extract the third column of R_OB(z-axis of orbit in body frame)
+    %  z_body=[0; 0; 1]; % z-axis of the body frame
+    %  cos_theta=dot(z_ob,z_body)/(norm(z_ob)*norm(z_body)); % Calculate cosine of the angle
+    %  theta=acos(cos_theta); % compute angle in radians
+    %  theta_deg=rad2deg(theta); %Convert to degrees
+    %  theta_deg_arr(3,current_cycle) = theta_deg;
+    %  %z_body_in_orbit(:,current_cycle) = R_BO(:,3);
+    % 
+    %  y_body=[0; 1; 0]; % z-axis of the body frame
+    %  cos_theta=dot(z_ob,y_body)/(norm(z_ob)*norm(y_body)); % Calculate cosine of the angle
+    %  theta=acos(cos_theta); % compute angle in radians
+    %  theta_deg=rad2deg(theta); %Convert to degrees
+    %  theta_deg_arr(2,current_cycle) = theta_deg;
+    %  %z_body_in_orbit(:,current_cycle) = R_BO(:,3);
+    % 
+    %  x_body=[1; 0; 0]; % z-axis of the body frame
+    %  cos_theta=dot(z_ob,x_body)/(norm(z_ob)*norm(x_body)); % Calculate cosine of the angle
+    %  theta=acos(cos_theta); % compute angle in radians
+    %  theta_deg=rad2deg(theta); %Convert to degrees
+    %  theta_deg_arr(1,current_cycle) = theta_deg;
+    %  %z_body_in_orbit(:,current_cycle) = R_BO(:,3);
 
-        %% Angle between Z-Axis of b.f. and Z-Axis of o.f.
-        x_ob=R_OB(:,1); 
-        y_ob=R_OB(:,2);
-        z_ob=R_OB(:,3); % Extract the third column of R_OB(z-axis of orbit in body frame)
-        z_body=[0; 0; 1]; % z-axis of the body frame
-        cos_theta_x=dot(x_ob,z_body)/(norm(x_ob)*norm(z_body)); % Calculate cosine of the angle
-        cos_theta_y=dot(y_ob,z_body)/(norm(y_ob)*norm(z_body));
-        cos_theta_z=dot(z_ob,z_body)/(norm(z_ob)*norm(z_body));
-                     
-        theta_x=acos(cos_theta_x); % compute angle in radians
-        theta_y=acos(cos_theta_y);
-        theta_z=acos(cos_theta_z);
-        theta_deg_x=rad2deg(theta_x); %Convert to degrees
-        theta_deg_y=rad2deg(theta_y) ;
-        theta_deg_z=rad2deg(theta_z) ;
-        theta_deg_arr_x(current_cycle) = theta_deg_x;
-        theta_deg_arr_y(current_cycle) = theta_deg_y;
-        theta_deg_arr_z(current_cycle) = theta_deg_z;
+    %% Angle between all axes of b.f. and Z-Axis of o.f.
+    x_ob=R_OB(:,1); 
+    y_ob=R_OB(:,2);
+    z_ob=R_OB(:,3); % Extract the third column of R_OB(z-axis of orbit in body frame)
+    z_body=[0; 0; 1]; % z-axis of the body frame
+    cos_theta_x=dot(x_ob,z_body)/(norm(x_ob)*norm(z_body)); % Calculate cosine of the angle
+    cos_theta_y=dot(y_ob,z_body)/(norm(y_ob)*norm(z_body));
+    cos_theta_z=dot(z_ob,z_body)/(norm(z_ob)*norm(z_body));
+                 
+    theta_x=acos(cos_theta_x); % compute angle in radians
+    theta_y=acos(cos_theta_y);
+    theta_z=acos(cos_theta_z);
+    theta_deg_x=rad2deg(theta_x); %Convert to degrees
+    theta_deg_y=rad2deg(theta_y); 
+    theta_deg_z=rad2deg(theta_z); 
+    theta_deg_arr_x(current_cycle) = theta_deg_x;
+    theta_deg_arr_y(current_cycle) = theta_deg_y;
+    theta_deg_arr_z(current_cycle) = theta_deg_z;
 
     %% Calculate V, I, P of MTQ's
     [V_mtq, I_mtq, P_thermal_mtq] = mtq_model(M);
@@ -181,9 +167,8 @@ for current_cycle = 1:length(Time) %Main loop
 
 
     %%  Disturbances for 2 timesteps to acquire magnetometer measurements
-   [T_disturbances, ~] = disturbances_bdot(R_BO, sun_pos_orbit(:, current_cycle), B_body(:, current_cycle), setDisturbances);
-   % T_disturbances=[0;0;0];
-   torq = T_magnetic + T_disturbances;
+    [T_disturbances, ~] = disturbances_bdot(R_BO, sun_pos_orbit(:, current_cycle), B_body(:, current_cycle), setDisturbances);
+    torq = T_magnetic + T_disturbances;
     for j = 1:(cycle_duration / dt_model * 0.2)
         x = real_model.stateTransFun(x, stateTransCookieFinalNominal(T_disturbances, 0, 0));
     end
@@ -195,12 +180,6 @@ for current_cycle = 1:length(Time) %Main loop
     t = t + cycle_duration;
 
 end
-
-
-
-
-
-
 
 %%  Plotting the Angular Velocities
 figure()
@@ -221,26 +200,6 @@ xlabel('Time [$s$]', 'interpreter', 'latex', 'fontsize', 12);
 ylabel(['$\omega_', num2str(3), '$', '[rad/sec]'], 'interpreter', 'latex', 'fontsize', 14);
 grid on
 
-%%  Plotting the Angular Velocities
-figure()
-subplot(3, 1, 1)
-plot(1:plotter_step:length(Time), w_b_ib(1, 1:plotter_step:end))
-title('Angular Velocities w_b_ib', 'interpreter', 'latex', 'fontsize', 17);
-xlabel('Time [$s$]', 'interpreter', 'latex', 'fontsize', 12);
-ylabel(['$\omega_', num2str(1), '$', '[rad/sec]'], 'interpreter', 'latex', 'fontsize', 14);
-grid on
-subplot(3, 1, 2)
-plot(1:plotter_step:length(Time), w_b_ib(2, 1:plotter_step:end))
-xlabel('Time [$s$]', 'interpreter', 'latex', 'fontsize', 12);
-ylabel(['$\omega_', num2str(2), '$', '[rad/sec]'], 'interpreter', 'latex', 'fontsize', 14);
-grid on
-subplot(3, 1, 3)
-plot(1:plotter_step:length(Time), w_b_ib(3, 1:plotter_step:end))
-xlabel('Time [$s$]', 'interpreter', 'latex', 'fontsize', 12);
-ylabel(['$\omega_', num2str(3), '$', '[rad/sec]'], 'interpreter', 'latex', 'fontsize', 14);
-grid on
-
-%%  Plotting the Angular Velocities
 figure()
 subplot(3, 1, 1)
 plot(1:plotter_step:length(Time), w_o_ob(1, 1:plotter_step:end))
@@ -258,6 +217,7 @@ plot(1:plotter_step:length(Time), w_o_ob(3, 1:plotter_step:end))
 xlabel('Time [$s$]', 'interpreter', 'latex', 'fontsize', 12);
 ylabel(['$\omega_', num2str(3), '$', '[rad/sec]'], 'interpreter', 'latex', 'fontsize', 14);
 grid on
+
 
 
 % Plotting the angular velocity using Bdot
@@ -457,40 +417,32 @@ faces = [1 2 3 4;
 % Initialize the figure and axis
 figure;
 axis equal;
-grid on;
 xlim([-5 5]); ylim([-5 5]); zlim([-5 5]);
-xlabel('X Orbit Frame'); ylabel('Y Orbit Frame'); zlabel('Z Orbit Frame');
+xlabel('X'); ylabel('Y'); zlabel('Z');
 hold on;
-
-% Set the view for 3D visualization
-view(3);  % This ensures the plot uses a 3D view
-
 
 % Create patch object for the rectangular prism
 rect_prism = patch('Vertices', vertices, 'Faces', faces, ...
                    'FaceColor', 'cyan', 'EdgeColor', 'black');
 
-% Initialize text handle for the current time and frame
-time_text = text(0, 5, 5, '', 'FontSize', 12, 'Color', 'black');  % Position the text above the plot area
-
 % Animation loop
 for t = 1:length(Time)
-
+    
     % Rotation matrix
     q_orbit_body = q_orbit_body_data(:,t);
     R_OB = quat2dcm(q_orbit_body');
-
+    
     % Apply rotation to each vertex
-    rotated_vertices = (R_OB' * vertices')';  % Transform vertices using R
+    rotated_vertices = (R_OB * vertices')';  % Transform vertices using R
 
     % Update the rectangular prism's vertices
     set(rect_prism, 'Vertices', rotated_vertices);
 
-    % Update the time and frame label
-    set(time_text, 'String', sprintf('Time: %d', t));
-
     % Update the plot
     drawnow;
 
-    pause(0.005);
+    pause(0.01);
 end
+
+
+
