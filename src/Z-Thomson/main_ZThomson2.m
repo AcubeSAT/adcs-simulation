@@ -114,6 +114,9 @@ clc;
     gyro_noise_data = zeros(3,length(Time));
     Bbody_data = zeros(3,length(Time));
     bdot_activation_matrix = zeros(2, length(Time));
+    theta_deg_arr_x = zeros(1,length(Time));
+    theta_deg_arr_y = zeros(1,length(Time));
+    theta_deg_arr_z = zeros(1,length(Time));
     threshold_times = 0;
     threshold_exceptions = 0;
 
@@ -231,7 +234,7 @@ clc;
 
     for cycle_index = cycle_index:number_of_cycles
 
-        for timestep_index = 1:2
+        for timestep_index = 1:3
 
             current_timestep = (cycle_index-1)*N_Timesteps+timestep_index + 1;
 
@@ -298,7 +301,7 @@ clc;
             % P[k+1|k]. These will be utilized by the filter at the next time step.
 
             gyro = y_noise(4:6);
-            mekf.predict(stateTransCookieFinalNominal(torq,0,[0;0;0]),dt);
+            mekf.predict(stateTransCookieFinalNominal(torq,0,gyro),dt);
 
             %% Matrices update
 
@@ -318,7 +321,7 @@ clc;
 
         end
 
-        for timestep_index=3:10
+        for timestep_index=4:10
 
             current_timestep = (cycle_index-1)*N_Timesteps+timestep_index +1 ;
 
@@ -362,8 +365,6 @@ clc;
             w_b_ob(:, current_timestep) = x(5:7) - w_b_io; % Calculating angular rate of satellite relative to ECI frame
             w_b_ob_magn(current_timestep) = norm(w_b_ob(:, current_timestep));
             w_b_ib(:,current_timestep)=  w_b_ob(:, current_timestep) + w_b_io;
-            w_o_ob(:,current_timestep)= R_BO*w_b_ob(:,current_timestep);
-            w(:,current_timestep)=rotate_vector([0 ;1 ;1; 1],w_b_ib(:,current_timestep));
             
             %% Angular velocity and Magnetic field expressed in body frame
             q_orbit_eci = dcm2quat(Orbit2ECI_DCM(nodem(1,current_timestep), inclm(1,current_timestep), argpm(1,current_timestep)+mm(1,current_timestep)));
@@ -375,17 +376,17 @@ clc;
             R_EB=quat2dcm(q_eci_body');
             
             %% Bdot calculation
-            Bx=acos(B_body(1,current_timestep)/norm(B_body(:,current_timestep)));
-            Bx2=acos(B_body_2(1)/norm(B_body_2));
-        
-            By=acos(B_body(2,current_timestep)/norm(B_body(:,current_timestep)));
-            By2=acos(B_body_2(2)/norm(B_body_2));
+            % Bx=acos(B_body(1,current_timestep)/norm(B_body(:,current_timestep)));
+            % Bx2=acos(B_body_2(1)/norm(B_body_2));
+            % 
+            % By=acos(B_body(2,current_timestep)/norm(B_body(:,current_timestep)));
+            % By2=acos(B_body_2(2)/norm(B_body_2));
             
             Bz=acos(B_body(3,current_timestep)/norm(B_body(:,current_timestep)));
             Bz2=acos(B_body_2(3)/norm(B_body_2));
         
-            Bdot_body(:, current_timestep) = (B_body_2 - B_body(:, current_timestep)) / 0.1;
-            Bdot_body_new(:, current_timestep) = ([Bx2;By2;Bz2] - [Bx;By;Bz]) / 0.1;
+            % Bdot_body(:, current_timestep) = (B_body_2 - B_body(:, current_timestep)) / 0.1;
+            % Bdot_body_new(:, current_timestep) = ([Bx2;By2;Bz2] - [Bx;By;Bz]) / 0.1;
             Bdot_body_z(current_timestep) = (Bz2 - Bz) / 0.1;
 
 
@@ -404,13 +405,31 @@ clc;
              Mag = M;
              T_magnetic = cross(M, B_body(:, current_timestep));
           
+             %% Angle between Z-Axis of b.f. and Z-Axis of o.f.
+            x_ob=R_OB(:,1); 
+            y_ob=R_OB(:,2);
+            z_ob=R_OB(:,3); % Extract the third column of R_OB(z-axis of orbit in body frame)
+            z_body=[0; 0; 1]; % z-axis of the body frame
+            cos_theta_x=dot(x_ob,z_body)/(norm(x_ob)*norm(z_body)); % Calculate cosine of the angle
+            cos_theta_y=dot(y_ob,z_body)/(norm(y_ob)*norm(z_body));
+            cos_theta_z=dot(z_ob,z_body)/(norm(z_ob)*norm(z_body));
+                         
+            theta_x=acos(cos_theta_x); % compute angle in radians
+            theta_y=acos(cos_theta_y);
+            theta_z=acos(cos_theta_z);
+            theta_deg_x=rad2deg(theta_x); %Convert to degrees
+            theta_deg_y=rad2deg(theta_y) ;
+            theta_deg_z=rad2deg(theta_z) ;
+            theta_deg_arr_x(current_timestep) = theta_deg_x;
+            theta_deg_arr_y(current_timestep) = theta_deg_y;
+            theta_deg_arr_z(current_timestep) = theta_deg_z;
 
             %% Propagate the system
 
             q_ob = quat_EB2OB(x(1:4),Nodem,Inclm,Argpm,Mm);
             [T_dist, ~,~,ad,r,sp,g] = disturbances_pd(q_ob,Sun_pos_orbit, Mag_field_orbit, setDisturbances);
 
-            torq = torq + T_dist;
+            torq = T_magnetic + T_dist;
 
             x = real_model.stateTransFun(x, stateTransCookieFinalNominal(torq,0,[0;0;0]));
 
@@ -418,7 +437,7 @@ clc;
             %% MEKF predict
 
             gyro = y_noise(4:6);
-            mekf.predict(stateTransCookieFinalNominal(torq,0,[0;0;0]),dt);
+            mekf.predict(stateTransCookieFinalNominal(torq,0,gyro),dt);
 
             %% Matrices update
 
@@ -915,3 +934,26 @@ clc;
     %     hold off;
     %     grid on;
     % end
+
+
+    figure()
+plot(1:plotter_step:length(Time), theta_deg_arr_x(1:plotter_step:end));
+title('Angle between Z-Axis of b.f. and X-Axis of o.f.', 'interpreter', 'latex', 'fontsize', 17);
+xlabel('Time [$s$]', 'interpreter', 'latex', 'fontsize', 12);
+ylabel('Angle [degrees]', 'interpreter', 'latex', 'fontsize', 14);
+grid on
+
+figure()
+plot(1:plotter_step:length(Time), theta_deg_arr_y(1:plotter_step:end));
+title('Angle between Z-Axis of b.f. and Y-Axis of o.f.', 'interpreter', 'latex', 'fontsize', 17);
+xlabel('Time [$s$]', 'interpreter', 'latex', 'fontsize', 12);
+ylabel('Angle [degrees]', 'interpreter', 'latex', 'fontsize', 14);
+grid on
+
+
+figure()
+plot(1:plotter_step:length(Time), theta_deg_arr_z(1:plotter_step:end));
+title('Angle between Z-Axis of b.f. and Z-Axis of o.f.', 'interpreter', 'latex', 'fontsize', 17);
+xlabel('Time [$s$]', 'interpreter', 'latex', 'fontsize', 12);
+ylabel('Angle [degrees]', 'interpreter', 'latex', 'fontsize', 14);
+grid on
