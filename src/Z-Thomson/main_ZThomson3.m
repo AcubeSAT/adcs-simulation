@@ -80,7 +80,7 @@
 % t = 0;
 % number_of_cycles = floor(length(Time)/N_Timesteps); % Number of cycles
 % 
-% rw_ang_momentum = 1;
+% rw_ang_momentum = 0;
 % 
 % tau_mtq = zeros(3, length(Time));                   % Torques produced by MTQs
 % M_data = zeros(3, length(Time));
