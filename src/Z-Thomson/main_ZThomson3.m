@@ -151,13 +151,12 @@ for cycle_index = 1:bias_wahba_loops
             for i = 1:10
 
                 %% Current SGP4 matrices values
-                Nodem = nodem(1, current_timestep);
-                Inclm = inclm(1, current_timestep);
-                Argpm = argpm(1, current_timestep);
-                Mm = mm(1, current_timestep);
-                Sun_pos_orbit = sun_pos_orbit(:, current_timestep);
-                Sun_pos_eci = sun_pos_eci(:, current_timestep);
-                Mag_field_orbit = mag_field_orbit(:, current_timestep) * 10^(-9);
+                    Nodem = nodem(1,current_timestep);
+                    Inclm = inclm(1,current_timestep);
+                    Argpm = argpm(1,current_timestep);
+                    Mm = mm(1,current_timestep);
+                    Sun_pos_orbit = sun_pos_orbit(:,current_timestep);
+                    Mag_field_orbit = mag_field_orbit(:,current_timestep)*10^(-9);
 
                 %% Propagate the system
                 current_timestep = (cycle_index - 1) * N_Timesteps + i;
@@ -172,37 +171,14 @@ for cycle_index = 1:bias_wahba_loops
                 t = t + dt;
 
                 %% Matrices update
-                x_hat_data(:, current_timestep) = zeros(7, 1);
-                q_ob_data(:, current_timestep) = quat_EB2OB(x(1:4), nodem(1, current_timestep), ...
-                    inclm(1, current_timestep), argpm(1, current_timestep), mm(1, current_timestep));
-                bias_data(:, current_timestep) = real_bias;
-                gyro_noise_data(:, current_timestep) = gyro_noise;
-                q_sb_data(:, current_timestep) = q_sun_body(Sun_pos_eci, x(1:4),Const.sun_desired)';
-                R_OB = quat2dcm(q_ob');
-                    %% Angle between Z-Axis of b.f. and Z-Axis of o.f.
-        x_ob=R_OB(:,1); 
-        y_ob=R_OB(:,2);
-        z_ob=R_OB(:,3); % Extract the third column of R_OB(z-axis of orbit in body frame)
-        z_body=[0; 0; 1]; % z-axis of the body frame
-        cos_theta_x=dot(x_ob,z_body)/(norm(x_ob)*norm(z_body)); % Calculate cosine of the angle
-        cos_theta_y=dot(y_ob,z_body)/(norm(y_ob)*norm(z_body));
-        cos_theta_z=dot(z_ob,z_body)/(norm(z_ob)*norm(z_body));
-
-        theta_x=acos(cos_theta_x); % compute angle in radians
-        theta_y=acos(cos_theta_y);
-        theta_z=acos(cos_theta_z);
-        theta_deg_x=rad2deg(theta_x); %Convert to degrees
-        theta_deg_y=rad2deg(theta_y) ;
-        theta_deg_z=rad2deg(theta_z) ;
-        theta_deg_arr_x(current_timestep) = theta_deg_x;
-        theta_deg_arr_y(current_timestep) = theta_deg_y;
-        theta_deg_arr_z(current_timestep) = theta_deg_z;
-
-                sun_orbit_normalized = (Sun_pos_orbit / norm(Sun_pos_orbit));
-                Const.sun_desired = Const.sun_desired / norm(Const.sun_desired);
+                    x_hat_data(:,current_timestep) =  zeros(7,1);
+                    q_ob_data(:,current_timestep) = quat_EB2OB(x(1:4), nodem(1,current_timestep),...
+                        inclm(1,current_timestep),argpm(1,current_timestep),mm(1,current_timestep) );
+                    bias_data(:,current_timestep) = real_bias;
+                    gyro_noise_data(:,current_timestep) = gyro_noise;
 
             end
-            continue
+%             continue
         end
 
         %% Bias calculation
@@ -416,7 +392,7 @@ for cycle_index = cycle_index:number_of_cycles
 
         %% MEKF predict
         gyro = y_noise(4:6);
-        mekf.predict(stateTransCookieFinalNominal(torq, rw_ang_momentum, [0;0;0]), dt);
+        mekf.predict(stateTransCookieFinalNominal(torq, rw_ang_momentum, gyro), dt);
 
         %% Matrices update
         tau_ad(:, current_timestep) = ad;
@@ -466,29 +442,68 @@ for cycle_index = cycle_index:number_of_cycles
     end
 end
 
-n_dim = size(x_real, 1);
+    %% Calulation and plotting of knowledge error
 
-%figure('Position',[500 0 1420 1080]);
-figure();
-for i = 1:n_dim
-    subplot(n_dim, 1, i);
-    hold on;
-    if i < 5
-        plot(Time, x_real(i, 1:length(Time)), 'LineWidth', 2.0, 'Color', 'blue');
-    else
-        plot(Time(1:length(bias_data(1, :))), bias_data(i-4, 1:length(bias_data(1, :))))
+    x_hat_euler_know = zeros(length(x_hat_data), 6);
+    instant_error_know = zeros(length(x_hat_data), 6);
+
+    x_real_euler_know = quat2eul(x_real(1:4,1:length(x_hat_data))');
+    x_real_euler_know = rad2deg(x_real_euler_know');
+    x_hat_euler_know(:, 1:3) = quat2eul(x_hat_data(1:4,:)');
+    x_hat_euler_know(:, 1:3) = (rad2deg(x_hat_euler_know(:, 1:3)'))';
+
+    instant_error_know(:, 1:3) = x_hat_euler_know(:, 1:3) - x_real_euler_know';
+    instant_error_know(:, 4:6) = x_hat_data(5:7, 1:length(x_hat_data))' - bias_data';
+
+    for i=1:3
+        for cycle_index=1:length(instant_error_know)
+            if instant_error_know(cycle_index, i) > 180
+                instant_error_know(cycle_index, i) = instant_error_know(cycle_index, i) - 360;
+            elseif instant_error_know(cycle_index, i) < -180
+                instant_error_know(cycle_index, i) = instant_error_know(cycle_index, i) + 360;
+            end
+        end
     end
 
-    plot(Time(1:length(x_hat_data(i, :))), x_hat_data(i, :), 'LineWidth', 2.0, 'Color', 'magenta');
-    if (i == 1), legend({['$x_', num2str(i), '$'], ['$\hat{x}_', num2str(i), '$']}, 'interpreter', 'latex', 'fontsize', 15); end
-    ylabel(['$x_', num2str(i), '$'], 'interpreter', 'latex', 'fontsize', 14);
-    if (i == 1), title('MEKF estimation results', 'interpreter', 'latex', 'fontsize', 17); end
-    %     xlim([3 number_of_cycles]);
-    xlabel('Time [$s$]', 'interpreter', 'latex', 'fontsize', 12);
-    hold off;
-    grid on;
-end
+    figure();
+    for i=1:6
+        subplot(6,1,i);
+        hold on;
+        plot(Time(1:length(instant_error_know)), instant_error_know(1:length(instant_error_know), i), 'LineWidth',1.5, 'Color','blue');
+        if (i==1), title('Absolute Knowledge Errors', 'interpreter','latex', 'fontsize',17);end
+        if (i==1), ylabel('X-axis [deg]', 'interpreter','latex', 'fontsize',14); end
+        if (i==2), ylabel('Y-axis [deg]', 'interpreter','latex', 'fontsize',14); end
+        if (i==3), ylabel('Z-axis [deg]', 'interpreter','latex', 'fontsize',14); end
+        if (i==4), ylabel('$\omega_1 [rad/sec]$', 'interpreter','latex', 'fontsize',14); end
+        if (i==5), ylabel('$\omega_2 [rad/sec]$', 'interpreter','latex', 'fontsize',14); end
+        if (i==6), ylabel('$\omega_3 [rad/sec]$', 'interpreter','latex', 'fontsize',14); end
+        xlabel('Time [$s$]', 'interpreter','latex', 'fontsize',12);
+        hold off;
+        grid on;
+    end
 
+    n_dim = size(x_real,1);
+    %figure('Position',[500 0 1420 1080]);
+    figure();
+    for i=1:n_dim
+        subplot(n_dim,1,i);
+        hold on;
+        if i<5
+            plot(Time,x_real(i,1:length(Time)), 'LineWidth',2.0, 'Color','blue');
+        else
+            plot(Time(1:length(bias_data(1,:))),bias_data(i-4,1:length(bias_data(1,:))))
+        end
+
+        plot(Time(1:length(x_hat_data(i,:))),x_hat_data(i,:), 'LineWidth',2.0, 'Color','magenta');
+        if (i==1),legend({['$x_' num2str(i) '$'],['$\hat{x}_' num2str(i) '$']}, 'interpreter','latex', 'fontsize',15);end
+        ylabel(['$x_' num2str(i) '$'], 'interpreter','latex', 'fontsize',14);
+        if (i==1), title('MEKF estimation results', 'interpreter','latex', 'fontsize',17);end
+        %     xlim([3 number_of_cycles]);
+        xlabel('Time [$s$]', 'interpreter','latex', 'fontsize',12);
+        hold off;
+        grid on;
+    end
+    
 %% Eclipse plot
 figure()
 plot(1:length(eclipse), eclipse, 'LineWidth', 2.0, 'Color', 'blue');
