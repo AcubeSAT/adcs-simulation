@@ -3,6 +3,7 @@
 % ========================================================================
 
 close all;
+clear all;
 clc;
 
 %% Initialize Parameters Script
@@ -115,11 +116,13 @@ real_bias = init_bias;
 for cycle_index = 1:bias_wahba_loops
     current_timestep = (cycle_index - 1) * N_Timesteps + 1;
     if eclipse(current_timestep) == 0
+        
+        Mag_field_orbit = mag_field_orbit(:,current_timestep)*10^(-9);
 
         %% Measurements
         y_real = real_model.msrFun(x, msrCookieFinal(mag_field_eci(:, current_timestep), ...
             sun_pos_eci(:, current_timestep), eclipse(current_timestep), [0; 0; 0]));
-        y_noise(1:3) = y_real(1:3)*norm(Mag_field_orbit) + 1e-9*diag([15,15,15])*randn(3,1);;
+        y_noise(1:3) = y_real(1:3)*norm(Mag_field_orbit) + 1e-9*diag([15,15,15])*randn(3,1);
         [gyro_noise, real_bias] = gyro_noise_func(real_bias, dt, sigma_u, sigma_v);
 
 
@@ -142,10 +145,12 @@ for cycle_index = 1:bias_wahba_loops
         mekf.global_state(1:4) = q_wahba';
 
         %% Bias timer
+        
         bias_init_counter = bias_init_counter + 1;
+        quat_pos(:, bias_init_counter) = q_wahba;
         % We add zeros for every timestep before the initialization is finished
         if (bias_init_counter < bias_wahba_loops + 1)
-            quat_pos(:, bias_init_counter) = q_wahba;
+            
             %Set measurements to 0 until bias has initialized
 
             for i = 1:10
@@ -165,7 +170,8 @@ for cycle_index = 1:bias_wahba_loops
                 [T_dist, ~, ~, ~, ~, ~, ~] = disturbances_pd(q_ob, Sun_pos_orbit, Mag_field_orbit, disturbancesEnabled);
 
                 torq = T_dist;
-
+                gyro = y_noise(4:6);
+                
                 x = real_model.stateTransFun(x, stateTransCookieFinalNominal(torq, rw_ang_momentum, gyro));
                 x_real(:, current_timestep) = x;
                 t = t + dt;
@@ -222,7 +228,7 @@ for cycle_index = 1:bias_wahba_loops
             mean_omega(i) = mean(estimated_rate(i, :));
         end
 
-        initial_bias_estimate = real_rate - mean_omega;
+        initial_bias_estimate = real_rate - mean_omega';
         mekf.global_state(5:7) = initial_bias_estimate; %Initialize angular velocity equal to gyroscope measurement
 
     end
@@ -330,7 +336,7 @@ for cycle_index = cycle_index:number_of_cycles
         sun_orbit_normalized = (Sun_pos_orbit / norm(Sun_pos_orbit));
         Const.sun_desired = Const.sun_desired / norm(Const.sun_desired);
 
-        estimated_velocity(:, current_timestep) = gyro - x_hat(5:7);
+        estimated_velocity(:, current_timestep) = gyro - x_hat(5:7)';
 
         if timestep_index == 2
             B_body_thomson = y_noise(1:3)*norm(Mag_field_orbit);
@@ -388,8 +394,9 @@ for cycle_index = cycle_index:number_of_cycles
         q_ob = quat_EB2OB(x(1:4), Nodem, Inclm, Argpm, Mm);
         [T_dist, ~, ~, ad, r, sp, g] = disturbances_pd(q_ob, Sun_pos_orbit, Mag_field_orbit, disturbancesEnabled);
 
-        torq = torq + T_dist;
-
+        torq = torq' + T_dist;
+        
+        gyro = y_noise(4:6);
         x = real_model.stateTransFun(x, stateTransCookieFinalNominal(torq, rw_ang_momentum, gyro));
 
         %% MEKF predict
@@ -438,7 +445,7 @@ for cycle_index = cycle_index:number_of_cycles
         sun_orbit_normalized = (Sun_pos_orbit / norm(Sun_pos_orbit));
         Const.sun_desired = Const.sun_desired / norm(Const.sun_desired);
 
-        estimated_velocity(:, current_timestep) = gyro - x_hat(5:7);
+        estimated_velocity(:, current_timestep) = gyro - x_hat(5:7)';
 
 
     end
