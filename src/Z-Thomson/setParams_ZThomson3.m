@@ -12,7 +12,7 @@ function Param = setParams_ZThomson3(I)
     %% ======= Satellite ========
 
     dt = .1; %Timestep for Orbit Propagator
-    orbits = 3;
+    orbits = 5;
     orbitPeriod = 5545;
     tf = orbits * orbitPeriod;  %Total Simulation Seconds
     q_desired = [1, 0, 0, 0];   %Desired quaternion
@@ -23,6 +23,7 @@ function Param = setParams_ZThomson3(I)
     [satrec, ~] = orbit_init();
     [~, ~, xsat_eci, ~, ~, eclipse, ~, mag_field_eci, ~, mag_field_orbit, ~, sun_pos_eci, ~, sun_pos_orbit, ~, argpm, nodem, inclm, mm, ~, ~] = orbit_sgp4(satrec, dt, tf+dt);
     %[~,~,xsat_eci,~,~,eclipse,~,mag_field_eci,~,mag_field_orbit,~,sun_pos_eci,~,sun_pos_orbit,~,argpm,nodem,inclm,mm,~,~] = orbit_sgp4_offset(satrec,dt,tf+dt,1000);
+
 
 
 
@@ -67,6 +68,7 @@ function Param = setParams_ZThomson3(I)
     % Gyro white noise std dev
     sigma_u = 3.52e-7;
     sigma_v = 6.68e-5;
+
 
     %% ======= Albedo ========
 
