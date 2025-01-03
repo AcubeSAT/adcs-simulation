@@ -104,6 +104,7 @@ estimated_velocity = zeros(3, length(Time));
 theta_deg_arr_x= zeros(3, length(Time));
 theta_deg_arr_y= zeros(3, length(Time));
 theta_deg_arr_z= zeros(3, length(Time));
+y_noise = zeros(9,1);
 
 %% Next we initialize the bias estimation by solving Wahba's problem n times.
 
@@ -170,9 +171,8 @@ for cycle_index = 1:bias_wahba_loops
                 [T_dist, ~, ~, ~, ~, ~, ~] = disturbances_pd(q_ob, Sun_pos_orbit, Mag_field_orbit, disturbancesEnabled);
 
                 torq = T_dist;
-                gyro = y_noise(4:6);
                 
-                x = real_model.stateTransFun(x, stateTransCookieFinalNominal(torq, rw_ang_momentum, gyro));
+                x = real_model.stateTransFun(x, stateTransCookieFinalNominal(torq, rw_ang_momentum, [0;0;0]));
                 x_real(:, current_timestep) = x;
                 t = t + dt;
 
@@ -228,7 +228,7 @@ for cycle_index = 1:bias_wahba_loops
             mean_omega(i) = mean(estimated_rate(i, :));
         end
 
-        initial_bias_estimate = real_rate - mean_omega';
+        initial_bias_estimate = real_rate - mean_omega;
         mekf.global_state(5:7) = initial_bias_estimate; %Initialize angular velocity equal to gyroscope measurement
 
     end
@@ -256,7 +256,7 @@ for cycle_index = cycle_index:number_of_cycles
         Mag_field_orbit = mag_field_orbit(:, current_timestep) * 10^(-9);
 
         %% Q covariance update
-        Q_selection(Eclipse, Param.Q, Param.R_hat, mekf, Q_eclipse_load);
+%         Q_selection(Eclipse, Param.Q, Param.R_hat, mekf, Q_eclipse_load);
 
         %% Sensor Measurements
         y_real = real_model.msrFun(x, msrCookieFinal(Mag_field_eci, Sun_pos_eci, Eclipse, [0; 0; 0]));
@@ -268,7 +268,7 @@ for cycle_index = cycle_index:number_of_cycles
 
         y_noise(7:9) = css_noise(Sun_pos_eci, x(1:4), Xsat_eci, Albedo, lambda);
 
-        if eclipse(current_timestep)
+        if eclipse(current_timestep)~=0
             y_noise(7:9) = zeros(3, 1);
         else
             y_noise(7:9) = y_noise(7:9) / norm(y_noise(7:9));
@@ -288,7 +288,7 @@ for cycle_index = cycle_index:number_of_cycles
         [T_dist, ~, ~, ad, r, sp, g] = disturbances_pd(q_ob, Sun_pos_orbit, Mag_field_orbit, disturbancesEnabled);
 
         torq =  T_dist;
-        x = real_model.stateTransFun(x, stateTransCookieFinalNominal(torq, rw_ang_momentum, gyro));
+        x = real_model.stateTransFun(x, stateTransCookieFinalNominal(torq, 0, [0;0;0]));
 
         %% MEKF predict
         % Predict the states at next time step, k+1. This updates the State and
@@ -296,7 +296,7 @@ for cycle_index = cycle_index:number_of_cycles
         % P[k+1|k]. These will be utilized by the filter at the next time step.
 
         gyro = y_noise(4:6);
-        mekf.predict(stateTransCookieFinalNominal(torq, rw_ang_momentum, gyro), dt);
+        mekf.predict(stateTransCookieFinalNominal(torq, 0, gyro), dt);
 
         %% Matrices update
         x_hat_data(:, current_timestep) = x_hat;
@@ -336,7 +336,7 @@ for cycle_index = cycle_index:number_of_cycles
         sun_orbit_normalized = (Sun_pos_orbit / norm(Sun_pos_orbit));
         Const.sun_desired = Const.sun_desired / norm(Const.sun_desired);
 
-        estimated_velocity(:, current_timestep) = gyro - x_hat(5:7)';
+        estimated_velocity(:, current_timestep) = gyro - x_hat(5:7);
 
         if timestep_index == 2
             B_body_thomson = y_noise(1:3)*norm(Mag_field_orbit);
@@ -360,7 +360,7 @@ for cycle_index = cycle_index:number_of_cycles
         Mag_field_orbit = mag_field_orbit(:, current_timestep) * 10^(-9);
 
         %% Q covariance update
-        Q_selection(Eclipse, Param.Q, Param.R_hat, mekf, Q_eclipse_load);
+%         Q_selection(Eclipse, Param.Q, Param.R_hat, mekf, Q_eclipse_load);
 
         %% Sensor Measurements
         y_real = real_model.msrFun(x, msrCookieFinal(Mag_field_eci, Sun_pos_eci, Eclipse, [0; 0; 0]));
@@ -394,14 +394,13 @@ for cycle_index = cycle_index:number_of_cycles
         q_ob = quat_EB2OB(x(1:4), Nodem, Inclm, Argpm, Mm);
         [T_dist, ~, ~, ad, r, sp, g] = disturbances_pd(q_ob, Sun_pos_orbit, Mag_field_orbit, disturbancesEnabled);
 
-        torq = torq' + T_dist;
+        torq = torq + T_dist;
         
-        gyro = y_noise(4:6);
-        x = real_model.stateTransFun(x, stateTransCookieFinalNominal(torq, rw_ang_momentum, gyro));
+        x = real_model.stateTransFun(x, stateTransCookieFinalNominal(torq,0,[0;0;0]));
 
         %% MEKF predict
         gyro = y_noise(4:6);
-        mekf.predict(stateTransCookieFinalNominal(torq, rw_ang_momentum, gyro), dt);
+        mekf.predict(stateTransCookieFinalNominal(torq, 0, gyro), dt);
 
         %% Matrices update
         tau_ad(:, current_timestep) = ad;
@@ -445,7 +444,7 @@ for cycle_index = cycle_index:number_of_cycles
         sun_orbit_normalized = (Sun_pos_orbit / norm(Sun_pos_orbit));
         Const.sun_desired = Const.sun_desired / norm(Const.sun_desired);
 
-        estimated_velocity(:, current_timestep) = gyro - x_hat(5:7)';
+        estimated_velocity(:, current_timestep) = gyro - x_hat(5:7);
 
 
     end

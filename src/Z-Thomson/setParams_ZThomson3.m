@@ -62,6 +62,7 @@ function Param = setParams_ZThomson3(I)
     rng(1);                             % Fix the random number generator for reproducible results
     % Gyro bias std dev
 %     sigma_u = 7.7570e-05;
+%     sigma_v = 0.0026;
 %     sigma_u = 3.4434e-04;
     % Gyro white noise std dev
     sigma_u = 3.52e-7;
