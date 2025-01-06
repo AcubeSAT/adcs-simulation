@@ -1,5 +1,5 @@
 % ========================================================================
-%   Function for parameters definition in Sun-Pointing simulation.
+%   Function for parameters definition in Z Thomson simulation.
 %
 %   Inputs
 %     I         - Inertia matrix
