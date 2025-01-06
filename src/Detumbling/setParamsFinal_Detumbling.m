@@ -5,7 +5,7 @@
 %% ======= Satellite ========
 cycle_duration = 1;                                         % Timestep for Controller & Orbit Propagator
 dt_model = .001;                                            % Timestep for Model
-orbits = 1;
+orbits = 3;
 orbitPeriod = 5545;
 Total_simulation_time = orbits * orbitPeriod;               % Total Simulation Seconds
 Q0 = [0.3757; 0.5983; -0.2364; -0.6671];                    % Initial Quaternion in ECI frame
