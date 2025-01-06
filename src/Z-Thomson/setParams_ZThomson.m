@@ -7,7 +7,7 @@
 %     Param     - Struct containing simulation parameters
 % ========================================================================
 
-function Param = setParams_ZThomson3(I)
+function Param = setParams_ZThomson(I)
 
     %% ======= Satellite ========
 

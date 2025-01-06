@@ -9,7 +9,7 @@ clc;
 %% Initialize Parameters Script
 
 Const = constants();
-Param = setParams_ZThomson3(Const.I);
+Param = setParams_ZThomson(Const.I);
 satrec=Param.satrec;
 dt = Param.dt;
 orbits = Param.orbits;
@@ -160,12 +160,12 @@ for cycle_index = 1:bias_wahba_loops
             for i = 1:10
 
                 %% Current SGP4 matrices values
-                    Nodem = nodem(1,current_timestep);
-                    Inclm = inclm(1,current_timestep);
-                    Argpm = argpm(1,current_timestep);
-                    Mm = mm(1,current_timestep);
-                    Sun_pos_orbit = sun_pos_orbit(:,current_timestep);
-                    Mag_field_orbit = mag_field_orbit(:,current_timestep)*10^(-9);
+                Nodem = nodem(1,current_timestep);
+                Inclm = inclm(1,current_timestep);
+                Argpm = argpm(1,current_timestep);
+                Mm = mm(1,current_timestep);
+                Sun_pos_orbit = sun_pos_orbit(:,current_timestep);
+                Mag_field_orbit = mag_field_orbit(:,current_timestep)*10^(-9);
 
                 %% Propagate the system
                 current_timestep = (cycle_index - 1) * N_Timesteps + i;
@@ -180,30 +180,31 @@ for cycle_index = 1:bias_wahba_loops
                 t = t + dt;
 
                 %% Matrices update
-                    x_hat_data(:,current_timestep) =  zeros(7,1);
-                    q_ob_data(:,current_timestep) = quat_EB2OB(x(1:4), nodem(1,current_timestep),...
-                        inclm(1,current_timestep),argpm(1,current_timestep),mm(1,current_timestep) );
-                    bias_data(:,current_timestep) = real_bias;
-                    gyro_noise_data(:,current_timestep) = gyro_noise;
-                     R_OB = quat2dcm(q_ob');
-                 % Angle between Z-Axis of b.f. and Z-Axis of o.f.
-                     x_ob=R_OB(:,1) ;
-                    y_ob=R_OB(:,2);
-                    z_ob=R_OB(:,3); % Extract the third column of R_OB(z-axis of orbit in body frame)
-                    z_body=[0; 0; 1]; % z-axis of the body frame
-                    cos_theta_x=dot(x_ob,z_body)/(norm(x_ob)*norm(z_body)); % Calculate cosine of the angle
-                    cos_theta_y=dot(y_ob,z_body)/(norm(y_ob)*norm(z_body));
-                    cos_theta_z=dot(z_ob,z_body)/(norm(z_ob)*norm(z_body));
-            
-                    theta_x=acos(cos_theta_x); % compute angle in radians
-                    theta_y=acos(cos_theta_y);
-                    theta_z=acos(cos_theta_z);
-                    theta_x=rad2deg(theta_x); %Convert to degrees
-                    theta_y=rad2deg(theta_y) ;
-                    theta_z=rad2deg(theta_z) ;
-                    theta_deg_arr_x(:, current_timestep)=theta_x; %Convert to degrees
-                    theta_deg_arr_y(:, current_timestep)=theta_y ;
-                    theta_deg_arr_z(:, current_timestep)=theta_z ;
+                x_hat_data(:,current_timestep) =  zeros(7,1);
+                q_ob_data(:,current_timestep) = quat_EB2OB(x(1:4), nodem(1,current_timestep),...
+                    inclm(1,current_timestep),argpm(1,current_timestep),mm(1,current_timestep) );
+                bias_data(:,current_timestep) = real_bias;
+                gyro_noise_data(:,current_timestep) = gyro_noise;
+                R_OB = quat2dcm(q_ob');
+                 
+                % Angle between Z-Axis of b.f. and Z-Axis of o.f.
+                x_ob=R_OB(:,1) ;
+                y_ob=R_OB(:,2);
+                z_ob=R_OB(:,3); % Extract the third column of R_OB(z-axis of orbit in body frame)
+                z_body=[0; 0; 1]; % z-axis of the body frame
+                cos_theta_x=dot(x_ob,z_body)/(norm(x_ob)*norm(z_body)); % Calculate cosine of the angle
+                cos_theta_y=dot(y_ob,z_body)/(norm(y_ob)*norm(z_body));
+                cos_theta_z=dot(z_ob,z_body)/(norm(z_ob)*norm(z_body));
+        
+                theta_x=acos(cos_theta_x); % compute angle in radians
+                theta_y=acos(cos_theta_y);
+                theta_z=acos(cos_theta_z);
+                theta_x=rad2deg(theta_x); %Convert to degrees
+                theta_y=rad2deg(theta_y) ;
+                theta_z=rad2deg(theta_z) ;
+                theta_deg_arr_x(:, current_timestep)=theta_x; %Convert to degrees
+                theta_deg_arr_y(:, current_timestep)=theta_y ;
+                theta_deg_arr_z(:, current_timestep)=theta_z ;
 
             end
 %             continue
@@ -312,13 +313,13 @@ for cycle_index = cycle_index:number_of_cycles
 
         Bbody_data(:, current_timestep) = y_real(1:3) * norm(mag_field_orbit(:, current_timestep)*10^(-9));
 
-
         bias_data(:, current_timestep) = real_bias;
         gyro_noise_data(:, current_timestep) = gyro_noise;
         q_ob_data(:, current_timestep) = q_ob;
         q_sb_data(:, current_timestep) = q_sun_body(Sun_pos_eci, x(1:4),Const.sun_desired)';
         R_OB = quat2dcm(q_ob');
-                % Angle between Z-Axis of b.f. and Z-Axis of o.f.
+                
+        % Angle between Z-Axis of b.f. and Z-Axis of o.f.
         x_ob=R_OB(:,1) ;
         y_ob=R_OB(:,2);
         z_ob=R_OB(:,3); % Extract the third column of R_OB(z-axis of orbit in body frame)
@@ -374,24 +375,15 @@ for cycle_index = cycle_index:number_of_cycles
         x_hat = mekf.global_state;
         x_hat(1:4) = x_hat(1:4) / norm(x_hat(1:4));
 
-        %% PD function
-        % Choose x_hat for determination, x for ground truth 
+        %% Thomson Control
 
         q_ob_hat = quat_EB2OB(x_hat(1:4),Nodem,Inclm,Argpm,Mm);
-        % q_ob_hat = quat_EB2OB(x(1:4),Nodem,Inclm,Argpm,Mm);
 
-          q_ob = quat_EB2OB(x(1:4), Nodem, Inclm, Argpm, Mm);
-          R_OB=quat2dcm(q_ob');
+        q_ob = quat_EB2OB(x(1:4), Nodem, Inclm, Argpm, Mm);
+        R_OB=quat2dcm(q_ob');
 
-        % Choose first PD for determination, second PD for ground truth
-
-%           [~, ~, ~, ~, ~, ~, ~, ~, ~, mag_field_orbit2, ~, ~, ~, ~, ~, argpm2, nodem2, inclm2, mm2, ~, ~] = orbit_sgp4_offset(satrec, 1, 1, .1);
-
-
-         [Bdot_body,torq,V_mtq, I_mtq, P_thermal_mtq,M] = ...
+        [Bdot_body,torq,V_mtq, I_mtq, P_thermal_mtq,M] = ...
         Control_Thomson(x(5:7), y_noise(1:3)*norm(Mag_field_orbit), B_body_thomson, Const.mtq_max, Kd, Ks, w_ref);
-
-
 
         %% Propagate the system
         q_ob = quat_EB2OB(x(1:4), Nodem, Inclm, Argpm, Mm);
@@ -413,10 +405,6 @@ for cycle_index = cycle_index:number_of_cycles
         tau_dist(:, current_timestep) = T_dist;
         x_real(:, current_timestep) = x;
 
-
-
-
-
         M_data(:, current_timestep) = M;
         bias_data(:, current_timestep) = real_bias;
         gyro_noise_data(:, current_timestep) = gyro_noise;
@@ -425,7 +413,8 @@ for cycle_index = cycle_index:number_of_cycles
         q_ob_data(:, current_timestep) = q_ob;
         q_sb_data(:, current_timestep) = q_sun_body(Sun_pos_eci, x(1:4),Const.sun_desired)';
         R_OB = quat2dcm(q_ob');
-                 % Angle between Z-Axis of b.f. and Z-Axis of o.f.
+                 
+        % Angle between Z-Axis of b.f. and Z-Axis of o.f.
         x_ob=R_OB(:,1) ;
         y_ob=R_OB(:,2);
         z_ob=R_OB(:,3); % Extract the third column of R_OB(z-axis of orbit in body frame)
@@ -509,6 +498,26 @@ end
         if (i==1),legend({['$x_' num2str(i) '$'],['$\hat{x}_' num2str(i) '$']}, 'interpreter','latex', 'fontsize',15);end
         ylabel(['$x_' num2str(i) '$'], 'interpreter','latex', 'fontsize',14);
         if (i==1), title('MEKF estimation results', 'interpreter','latex', 'fontsize',17);end
+        %     xlim([3 number_of_cycles]);
+        xlabel('Time [$s$]', 'interpreter','latex', 'fontsize',12);
+        hold off;
+        grid on;
+    end
+
+    figure();
+    for i=1:n_dim
+        subplot(n_dim,1,i);
+        hold on;
+        if i<5
+            plot(Time,abs(x_real(i,1:length(Time)))-abs(x_hat_data(i,:)), 'LineWidth',2.0, 'Color','blue');
+        else
+            plot(Time(1:length(bias_data(1,:))),abs(bias_data(i-4,1:length(bias_data(1,:))))-abs(abs(x_hat_data(i,:))))
+        end
+
+        %plot(Time(1:length(x_hat_data(i,:))),x_hat_data(i,:), 'LineWidth',2.0, 'Color','magenta');
+        %if (i==1),legend({['$x_' num2str(i) '$'],['$\hat{x}_' num2str(i) '$']}, 'interpreter','latex', 'fontsize',15);end
+        ylabel(['$x_' num2str(i) '$'], 'interpreter','latex', 'fontsize',14);
+        if (i==1), title('MEKF errors', 'interpreter','latex', 'fontsize',17);end
         %     xlim([3 number_of_cycles]);
         xlabel('Time [$s$]', 'interpreter','latex', 'fontsize',12);
         hold off;
