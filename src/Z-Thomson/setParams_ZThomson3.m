@@ -12,11 +12,15 @@ function Param = setParams_ZThomson3(I)
     %% ======= Satellite ========
 
     dt = .1; %Timestep for Orbit Propagator
-    orbits = 5;
+    orbits = 3;
     orbitPeriod = 5545;
     tf = orbits * orbitPeriod;  %Total Simulation Seconds
     q_desired = [1, 0, 0, 0];   %Desired quaternion
     N_Timesteps = 10;           % Number of timesteps per cycle
+
+    Kd = 100;
+    Ks = 1;
+    w_ref = 0.087;
 
     %% ======= Orbit Propagation ========
 
@@ -147,4 +151,7 @@ function Param = setParams_ZThomson3(I)
     Param.total_limit= total_limit;
     Param.exceptions_limit= exceptions_limit;
     Param.N_Timesteps= N_Timesteps;
+    Param.Kd = Kd;
+    Param.Ks = Ks;
+    Param.w_ref = w_ref;
 end

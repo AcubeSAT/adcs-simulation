@@ -44,6 +44,9 @@ use_analytic_jacob = Param.use_analytic_jacob;
 total_limit = Param.total_limit;
 exceptions_limit= Param.exceptions_limit;
 N_Timesteps= Param.N_Timesteps;
+Kd = Param.Kd;
+Ks = Param.Ks;
+w_ref = Param.w_ref;
 
 
 %% Initialize Global Parameters
@@ -386,7 +389,7 @@ for cycle_index = cycle_index:number_of_cycles
 
 
          [Bdot_body,torq,V_mtq, I_mtq, P_thermal_mtq,M] = ...
-        Control_Thomson(x(5:7), y_noise(1:3)*norm(Mag_field_orbit), B_body_thomson, Const.mtq_max);
+        Control_Thomson(x(5:7), y_noise(1:3)*norm(Mag_field_orbit), B_body_thomson, Const.mtq_max, Kd, Ks, w_ref);
 
 
 
