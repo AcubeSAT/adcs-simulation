@@ -12,7 +12,7 @@ function Param = setParamsFinal_Nadir_Pointing(I)
     %% ======= Satellite ========
 
     dt = .1;                    %Timestep for Orbit Propagator
-    orbits = 3;
+    orbits = 4;
     orbitPeriod = 5545;
     tf = orbits * orbitPeriod;  %Total Simulation Seconds
     q_desired = [1, 0, 0, 0];   %Desired quaternion
@@ -59,9 +59,10 @@ function Param = setParamsFinal_Nadir_Pointing(I)
     disturbancesEnabled = "total";  % Set which disturbances you want to activate: tau_g, tau_ad, tau_sp, tau_rm, total, zero
     rng(1);                         % Fix the random number generator for reproducible results
     % Gyro bias std dev
-    sigma_u = 7.7570e-05;
+    % sigma_u = 7.7570e-05;
+    sigma_u = 7.7570e-08;
     % Gyro white noise std dev
-    sigma_v = 0.0026;
+    sigma_v = 1e-05;
 
     %% ======= Albedo ========
 

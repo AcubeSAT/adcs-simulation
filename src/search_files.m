@@ -12,7 +12,7 @@ rootDir = '..';
 scriptFilename = mfilename;
 
 % Define the search phrase
-searchPhrase = 'rw_';
+searchPhrase = ['Q_selection'];
 
 % Recursively search for files in all subdirectories
 files = dir(fullfile(rootDir, '**', '*.m'));

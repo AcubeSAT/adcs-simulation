@@ -1,16 +1,16 @@
 % ========================================================================
-%   Script for parameters definition in Detimbling Mode
+%   Script for parameters definition in Z-Thomson Mode
 % ========================================================================
 
 %% ======= Satellite ========
 cycle_duration = 1;                                         % Timestep for Controller & Orbit Propagator
 dt_model = .001;                                            % Timestep for Model
-orbits = 3;
+orbits = 4;
 orbitPeriod = 5545;
 Total_simulation_time = orbits * orbitPeriod;               % Total Simulation Seconds
 Q0 = [0.3757; 0.5983; -0.2364; -0.6671];                    % Initial Quaternion in ECI frame
 Q0 = Q0 / norm(Q0);                                         % Normalised Quaternion
-vRot0 = [pi / 6; -pi / 6; pi / 6];                          % Initial Angular Velocities from Body to ECI frame expressed in Body.
+vRot0 = [0.05 ; 0.05 ; 0.05];                          % Initial Angular Velocities from Body to ECI frame expressed in Body.
 x0 = [Q0; vRot0];
 real_model = real_SatelliteModel_Bdot(dt_model, Const.I);   % Initialize Satellite Model Class
 
@@ -18,8 +18,9 @@ real_model = real_SatelliteModel_Bdot(dt_model, Const.I);   % Initialize Satelli
 setDisturbances = "total";  % Set which disturbances you want to activate: tau_g, tau_ad, tau_sp, tau_rm, total, zero
 rng(1);                     % Fix the random number generator for reproducible results
 plotter_step = 10;
-%Kp = 10^5 * 4*pi / orbitPeriod * (1 + sin(inclm(1))) * Const.I(3,3);
-Kp = 300;
+%Kd = 10^5 * 4*pi / orbitPeriod * (1 + sin(inclm(1))) * Const.I(3,3);
+Kd = 150;
+Ks = 150;
 
 %% ======= Orbit Propagation ========
 satrec = orbit_init();

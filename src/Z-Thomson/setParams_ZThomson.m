@@ -5,7 +5,7 @@
 function Param = setParams_ZThomson(I)
 
 %% ======= Satellite ========
-cycle_duration = 1;                                         % Timestep for Controller & Orbit Propagator
+cycle_duration = 0.1;                                         % Timestep for Controller & Orbit Propagator
 dt = 0.1;
 dt_model = .001;                                            % Timestep for Model
 orbits = 1;
@@ -21,7 +21,7 @@ w_ref = 0.087;
 
 %% ======= Orbit Propagation ========
 satrec = orbit_init();
-[xsat_ecf, vsat_ecf, xsat_eci, vsat_eci, sat_llh, eclipse, mag_field_ned, mag_field_eci, mag_field_ecef, mag_field_orbit, sun_pos_ned, sun_pos_eci, sun_pos_ecef, sun_pos_orbit, satrec, argpm, nodem, inclm, mm, xnode, xinc] = orbit_sgp4_offset(satrec,dt,tf+dt,1000);
+[xsat_ecf, vsat_ecf, xsat_eci, vsat_eci, sat_llh, eclipse, mag_field_ned, mag_field_eci, mag_field_ecef, mag_field_orbit, sun_pos_ned, sun_pos_eci, sun_pos_ecef, sun_pos_orbit, satrec, argpm, nodem, inclm, mm, xnode, xinc] = orbit_sgp4(satrec,dt,tf+dt);
 
 %% ============== Calculations ====================================
 init_bias = [.01; 0.15; -.08];      % bias initialization

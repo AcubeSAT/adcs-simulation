@@ -117,6 +117,7 @@ clc;
     theta_deg_arr_x = zeros(1,length(Time));
     theta_deg_arr_y = zeros(1,length(Time));
     theta_deg_arr_z = zeros(1,length(Time));
+    y_noise_data = zeros(9,length(Time));
     threshold_times = 0;
     threshold_exceptions = 0;
 
@@ -253,6 +254,11 @@ clc;
             Sun_pos_orbit = sun_pos_orbit(:,current_timestep);
             Mag_field_orbit = mag_field_orbit(:,current_timestep)*10^(-9);
 
+            q_orbit_eci = dcm2quat(Orbit2ECI_DCM(nodem(1, current_timestep), inclm(1, current_timestep), argpm(1, current_timestep)+mm(1, current_timestep)));
+            q_eci_body = x(1:4);
+            q_orbit_body = quatProd(q_orbit_eci, q_eci_body);
+            R_OB = quat2dcm(q_orbit_body');
+
             %% Q covariance update
 
             Q_selection(Eclipse,Param.Q,Param.R_hat,mekf,Q_eclipse_load);
@@ -280,10 +286,29 @@ clc;
             %% MEKF correct
 
             gyro = y_noise(4:6);
-            mekf.correct(y_noise, msrCookieFinalExtended(Mag_field_eci,Sun_pos_eci,Eclipse,gyro,Xsat_eci,Albedo_inaccurate,lambda));
+            %mekf.correct(y_noise, msrCookieFinalExtended(Mag_field_eci,Sun_pos_eci,Eclipse,gyro,Xsat_eci,Albedo_inaccurate,lambda));
 
             x_hat = mekf.global_state;
             x_hat(1:4) = x_hat(1:4) / norm(x_hat(1:4));
+
+            %% Angle between Z-Axis of b.f. and Z-Axis of o.f.
+            x_ob=R_OB(:,1); 
+            y_ob=R_OB(:,2);
+            z_ob=R_OB(:,3); % Extract the third column of R_OB(z-axis of orbit in body frame)
+            z_body=[0; 0; 1]; % z-axis of the body frame
+            cos_theta_x=dot(x_ob,z_body)/(norm(x_ob)*norm(z_body)); % Calculate cosine of the angle
+            cos_theta_y=dot(y_ob,z_body)/(norm(y_ob)*norm(z_body));
+            cos_theta_z=dot(z_ob,z_body)/(norm(z_ob)*norm(z_body));
+                         
+            theta_x=acos(cos_theta_x); % compute angle in radians
+            theta_y=acos(cos_theta_y);
+            theta_z=acos(cos_theta_z);
+            theta_deg_x=rad2deg(theta_x); %Convert to degrees
+            theta_deg_y=rad2deg(theta_y) ;
+            theta_deg_z=rad2deg(theta_z) ;
+            theta_deg_arr_x(current_timestep) = theta_deg_x;
+            theta_deg_arr_y(current_timestep) = theta_deg_y;
+            theta_deg_arr_z(current_timestep) = theta_deg_z;
 
 
             %% Propagate the system
@@ -316,10 +341,39 @@ clc;
             bias_data(:,current_timestep) = real_bias;
             gyro_noise_data(:,current_timestep) = gyro_noise;
             q_ob_data(:,current_timestep) = q_ob;
+            y_noise_data(:,current_timestep) = y_noise;
 
            
 
         end
+       
+        w_b_io = R_OB(:, 3) * Const.w_o;
+        w_b_ob = x(5:7) - w_b_io; % Calculating angular rate of satellite relative to ECI frame
+        w_b_ib =  w_b_ob + w_b_io;
+       
+        B_body_2 = y_noise_data(1:3,current_timestep);
+        B_body = y_noise_data(1:3,current_timestep-1);
+
+        Bz=acos(B_body(3)/norm(B_body));
+        Bz2=acos(B_body_2(3)/norm(B_body_2));
+    
+        Bdot_body_z = (Bz2 - Bz) / 0.1;
+
+
+        %% Thomson spin
+        M(3,1)= Param.Kd * Bdot_body_z;
+        if (abs(B_body_2(2))>abs(B_body_2(1)))
+            M(1,1)= -Param.Ks*(abs(w_b_ib(3))-Param.w_ref)*sign(B_body_2(2));
+            M(2,1)= 0;
+        elseif (abs(B_body_2(2))<abs(B_body_2(1)))
+            M(1,1)= 0;
+            M(2,1)=Param.Ks*(abs(w_b_ib(3))-Param.w_ref)*sign(B_body_2(1));
+        end  
+
+
+         M = mtq_scaling(M, Const.mtq_max); % MTQ scaling
+         T_magnetic = cross(M, B_body_2);
+
 
         for timestep_index=4:10
 
@@ -337,6 +391,11 @@ clc;
             Sun_pos_orbit = sun_pos_orbit(:,current_timestep);
             Mag_field_orbit = mag_field_orbit(:,current_timestep)*10^(-9);
 
+            q_orbit_eci = dcm2quat(Orbit2ECI_DCM(nodem(1, current_timestep), inclm(1, current_timestep), argpm(1, current_timestep)+mm(1, current_timestep)));
+            q_eci_body = x(1:4);
+            q_orbit_body = quatProd(q_orbit_eci, q_eci_body);
+            R_OB = quat2dcm(q_orbit_body');
+
             %% Q covariance update
 
             Q_selection(Eclipse,Param.Q,Param.R_hat,mekf,Q_eclipse_load);
@@ -350,60 +409,7 @@ clc;
 
             x_hat = mekf.global_state;
             x_hat(1:4) = x_hat(1:4) / norm(x_hat(1:4));
-            
-            %% Angular velocity and Magnetic field expressed in body frame
-            q_orbit_eci = dcm2quat(Orbit2ECI_DCM(nodem(1, current_timestep), inclm(1, current_timestep), argpm(1, current_timestep)+mm(1, current_timestep)));
-            q_eci_body = x(1:4);
-            q_orbit_body = quatProd(q_orbit_eci, q_eci_body);
-            q_orbit_body_data(:,current_timestep) = q_orbit_body;
-            R_OB = quat2dcm(q_orbit_body'); % Calculating the transformation matrix from orbit to body frame
-            %B_body(:, current_timestep) = R_OB * mag_field_orbit(:, current_timestep) * 10^(-9);
-            %B_body(:, current_timestep) = B_body(:, current_timestep) + sqrt(R) * randn(size(B_body(:, current_timestep))); % Adding white noise to magnetometer measurements
-            B_body(:, current_timestep) =y_real(1:3);
-            R_BO = R_OB';
-            w_b_io = R_OB(:, 3) * Const.w_o;
-            w_b_ob(:, current_timestep) = x(5:7) - w_b_io; % Calculating angular rate of satellite relative to ECI frame
-            w_b_ob_magn(current_timestep) = norm(w_b_ob(:, current_timestep));
-            w_b_ib(:,current_timestep)=  w_b_ob(:, current_timestep) + w_b_io;
-            
-            %% Angular velocity and Magnetic field expressed in body frame
-            q_orbit_eci = dcm2quat(Orbit2ECI_DCM(nodem(1,current_timestep), inclm(1,current_timestep), argpm(1,current_timestep)+mm(1,current_timestep)));
-            q_eci_body = x(1:4);
-            q_orbit_body = quatProd(q_orbit_eci, q_eci_body);
-            R_OB = quat2dcm(q_orbit_body'); % Calculating the transformation matrix from orbit to body frame
-            B_body_2 = R_OB * mag_field_orbit(:,current_timestep) * 10^(-9);
-            B_body_2 = B_body_2 + sqrt(R(1:3)) * randn(size(B_body(:, current_timestep))); % Second measurment from magnetometer
-            R_EB=quat2dcm(q_eci_body');
-            
-            %% Bdot calculation
-            % Bx=acos(B_body(1,current_timestep)/norm(B_body(:,current_timestep)));
-            % Bx2=acos(B_body_2(1)/norm(B_body_2));
-            % 
-            % By=acos(B_body(2,current_timestep)/norm(B_body(:,current_timestep)));
-            % By2=acos(B_body_2(2)/norm(B_body_2));
-            
-            Bz=acos(B_body(3,current_timestep)/norm(B_body(:,current_timestep)));
-            Bz2=acos(B_body_2(3)/norm(B_body_2));
-        
-            % Bdot_body(:, current_timestep) = (B_body_2 - B_body(:, current_timestep)) / 0.1;
-            % Bdot_body_new(:, current_timestep) = ([Bx2;By2;Bz2] - [Bx;By;Bz]) / 0.1;
-            Bdot_body_z(current_timestep) = (Bz2 - Bz) / 0.1;
-
-
-            %% Thomson spin
-            M(3,1)= Param.Kd * Bdot_body_z(current_timestep);
-            if (abs(B_body(2,current_timestep))>abs(B_body(1,current_timestep)))
-                M(1,1)= -Param.Ks*(abs(w_b_ib(3,current_timestep))-Param.w_ref)*sign(B_body(2,current_timestep));
-                M(2,1)= 0;
-            elseif (abs(B_body(2,current_timestep))<abs(B_body(1,current_timestep)))
-                M(1,1)= 0;
-                M(2,1)=Param.Ks*(abs(w_b_ib(3,current_timestep))-Param.w_ref)*sign(B_body(1,current_timestep));
-            end  
-
-
-             M = mtq_scaling(M, Const.mtq_max); % MTQ scaling
-             Mag = M;
-             T_magnetic = cross(M, B_body(:, current_timestep));
+     
           
              %% Angle between Z-Axis of b.f. and Z-Axis of o.f.
             x_ob=R_OB(:,1); 
@@ -448,7 +454,7 @@ clc;
             tau_g(:,current_timestep) = g;
             tau_dist(:,current_timestep) = T_dist;
             x_real(:,current_timestep)=x;
-            M_data(:,current_timestep) = Mag;
+            M_data(:,current_timestep) = M;
             bias_data(:,current_timestep) = real_bias;
             gyro_noise_data(:,current_timestep) = gyro_noise;
             x_hat_data(:,current_timestep) = x_hat;

@@ -33,11 +33,11 @@ classdef real_SatelliteModel_Bdot
         function x_next = stateTransFun(this, x, cookie)
 
             this.torq = cookie.torq;
-            this.rw_ang_momentum = cookie.rw_ang_momentum;
+            this.rw_ang_momentum = 0;
             Q = x(1:4);
             vRot = x(5:7);
 
-            rw_ang_momentum_vector = [0;0;this.rw_ang_momentum];
+            rw_ang_momentum_vector = [0;0;0];
            
 
             % -------- Runge Kutta 4th Order  -----------------------------
@@ -105,15 +105,24 @@ classdef real_SatelliteModel_Bdot
             Q = x(1:4);
             vRot = x(5:7);
 
-            y = zeros(6,1);
+            y = zeros(6, 1);
             y(4:6) = vRot;
-            
-            this.magn_ref=this.magn_ref/norm(this.magn_ref);
-            
-            y1 = quatProd( quatInv(Q), quatProd([0; this.magn_ref], Q) );
-            
-            y(1:3) = y1(2:4);
+
+            this.magn_ref = this.magn_ref / norm(this.magn_ref);
+
+            y(1:3) = rotate_vector(Q, this.magn_ref);
+
             y(1:3) = y(1:3) / norm(y(1:3));
+
+            this.sun_ref = this.sun_ref / norm(this.sun_ref);
+
+            if this.eclipse == 0
+                y(7:9) = rotate_vector(Q, this.sun_ref);
+
+                y(7:9) = y(7:9) / norm(y(7:9));
+            else
+                y(7:9) = zeros(3, 1);
+            end
 
         end
 

@@ -90,7 +90,9 @@ function Const = constants()
     b_friction = 9.5e-9;            
     c_friction = 1.9e-7;            
     %Jw = 1.9e-6;                    
-    Jw = 2.0785e-6;                    
+    %Jw = 2.0785e-6;
+    %Jw = 1.323e-06;
+    Jw = 1.5e-06; % Wittenstein
     A = 0.12;                       
     lim_dz = 300;                   
 
@@ -153,7 +155,9 @@ function Const = constants()
     n = orbitPeriod * orbits;
     mtq_max = [0.2, 0.2, 0.2];
 
-    rw_max_torque = 1e-4;
+    %rw_max_torque = 1e-4;
+    %rw_max_torque = 23e-6;
+    rw_max_torque = 0.0004; % Wittenstein
     reflectance_factor=0.6;
     N2D_threshold = 0.08; % rad/sec                    
     D2N_threshold = 0.035; % rad/sec  
@@ -161,7 +165,9 @@ function Const = constants()
     const2_accel=50;
     const3_accel=100;
     const4_accel=200;
-    AngVel_rw_lim = 15000;
+    %AngVel_rw_lim = 15000;
+    %AngVel_rw_lim = 16380;
+    AngVel_rw_lim = 16380; % Wittenstein
     sun_desired=[-1,1,0];
 
     %%  Passing the values of the parameters in a struct.
