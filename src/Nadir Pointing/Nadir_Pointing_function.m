@@ -138,121 +138,102 @@ function [APE, Time, eclipse] = Nadir_Pointing_function(Kp_gain, Kd_gain)
     for cycle_index = 1:bias_wahba_loops
         current_timestep = (cycle_index - 1) * N_Timesteps + 1;
         if eclipse(current_timestep) == 0
-            
-            Mag_field_orbit = mag_field_orbit(:,current_timestep)*10^(-9);
-    
+
             %% Measurements
+
             y_real = real_model.msrFun(x, msrCookieFinal(mag_field_eci(:, current_timestep), ...
                 sun_pos_eci(:, current_timestep), eclipse(current_timestep), [0; 0; 0]));
-            y_noise(1:3) = y_real(1:3)*norm(Mag_field_orbit) + 1e-9*diag([15,15,15])*randn(3,1);
+            y_noise = y_real + sqrt(R) * randn(size(y_real));
             [gyro_noise, real_bias] = gyro_noise_func(real_bias, dt, sigma_u, sigma_v);
-    
-    
+
+
             y_noise(4:6) = y_real(4:6) + gyro_noise;
             % sign=randi([0 1]);
             % if sign==0
             %     sign=-1;
             % end
             y_noise(7:9) = css_noise(sun_pos_eci(:, current_timestep), x(1:4), xsat_eci(:, current_timestep), albedo(:, current_timestep), lambda);
-    
+
             if eclipse((cycle_index - 1)*N_Timesteps+1) ~= 0
                 y_noise(7:9) = zeros(3, 1);
             else
                 y_noise(7:9) = y_noise(7:9) / norm(y_noise(7:9));
             end
             y_noise(1:3) = y_noise(1:3) / norm(y_noise(1:3));
-    
+
             %% Wahba
-            [q_wahba, ~] = wahba(y_noise(7:9), y_noise(1:3), sun_pos_eci(:, current_timestep), mag_field_eci(:, current_timestep)*10^(-9));
+
+            [q_wahba,~]=wahba(y_noise(7:9),y_noise(1:3),sun_pos_eci(:,current_timestep),mag_field_eci(:,current_timestep)*10^(-9));
             mekf.global_state(1:4) = q_wahba';
-    
+
+
             %% Bias timer
-            
+
             bias_init_counter = bias_init_counter + 1;
-            quat_pos(:, bias_init_counter) = q_wahba;
             % We add zeros for every timestep before the initialization is finished
             if (bias_init_counter < bias_wahba_loops + 1)
-                
+                quat_pos(:,bias_init_counter) = q_wahba;
                 %Set measurements to 0 until bias has initialized
-    
-                for i = 1:10
-    
+
+                for i=1:10
                     %% Current SGP4 matrices values
-                        Nodem = nodem(1,current_timestep);
-                        Inclm = inclm(1,current_timestep);
-                        Argpm = argpm(1,current_timestep);
-                        Mm = mm(1,current_timestep);
-                        Sun_pos_orbit = sun_pos_orbit(:,current_timestep);
-                        Mag_field_orbit = mag_field_orbit(:,current_timestep)*10^(-9);
-    
+
+                    Nodem = nodem(1,current_timestep);
+                    Inclm = inclm(1,current_timestep);
+                    Argpm = argpm(1,current_timestep);
+                    Mm = mm(1,current_timestep);
+                    Sun_pos_orbit = sun_pos_orbit(:,current_timestep);
+                    Mag_field_orbit = mag_field_orbit(:,current_timestep)*10^(-9);
+
                     %% Propagate the system
-                    current_timestep = (cycle_index - 1) * N_Timesteps + i;
-    
-                    q_ob = quat_EB2OB(x(1:4), Nodem, Inclm, Argpm, Mm);
-                    [T_dist, ~, ~, ~, ~, ~, ~] = disturbances_pd(q_ob, Sun_pos_orbit, Mag_field_orbit, disturbancesEnabled);
-    
+
+                    current_timestep = (cycle_index-1)*N_Timesteps+i;
+
+                    q_ob = quat_EB2OB(x(1:4),Nodem,Inclm,Argpm,Mm);
+                    [T_dist, ~,~,~,~,~,~] = disturbances_pd(q_ob, Sun_pos_orbit,Mag_field_orbit, disturbancesEnabled);
+
                     torq = T_dist;
-                    gyro = y_noise(4:6);
-                    
-                    x = real_model.stateTransFun(x, stateTransCookieFinalNominal(torq, rw_ang_momentum, gyro));
-                    x_real(:, current_timestep) = x;
+
+                    x = real_model.stateTransFun(x, stateTransCookieFinalNominal(torq,rw_ang_momentum,[0;0;0]));
+                    x_real(:,current_timestep)=x;
                     t = t + dt;
-    
+
                     %% Matrices update
-                        x_hat_data(:,current_timestep) =  zeros(7,1);
-                        q_ob_data(:,current_timestep) = quat_EB2OB(x(1:4), nodem(1,current_timestep),...
-                            inclm(1,current_timestep),argpm(1,current_timestep),mm(1,current_timestep) );
-                        bias_data(:,current_timestep) = real_bias;
-                        gyro_noise_data(:,current_timestep) = gyro_noise;
-                         R_OB = quat2dcm(q_ob');
-                     % Angle between Z-Axis of b.f. and Z-Axis of o.f.
-                         x_ob=R_OB(:,1) ;
-                        y_ob=R_OB(:,2);
-                        z_ob=R_OB(:,3); % Extract the third column of R_OB(z-axis of orbit in body frame)
-                        z_body=[0; 0; 1]; % z-axis of the body frame
-                        cos_theta_x=dot(x_ob,z_body)/(norm(x_ob)*norm(z_body)); % Calculate cosine of the angle
-                        cos_theta_y=dot(y_ob,z_body)/(norm(y_ob)*norm(z_body));
-                        cos_theta_z=dot(z_ob,z_body)/(norm(z_ob)*norm(z_body));
-                
-                        theta_x=acos(cos_theta_x); % compute angle in radians
-                        theta_y=acos(cos_theta_y);
-                        theta_z=acos(cos_theta_z);
-                        theta_x=rad2deg(theta_x); %Convert to degrees
-                        theta_y=rad2deg(theta_y) ;
-                        theta_z=rad2deg(theta_z) ;
-                        theta_deg_arr_x(:, current_timestep)=theta_x; %Convert to degrees
-                        theta_deg_arr_y(:, current_timestep)=theta_y ;
-                        theta_deg_arr_z(:, current_timestep)=theta_z ;
-    
+
+                    x_hat_data(:,current_timestep) =  zeros(7,1);
+                    q_ob_data(:,current_timestep) = quat_EB2OB(x(1:4), nodem(1,current_timestep),...
+                        inclm(1,current_timestep),argpm(1,current_timestep),mm(1,current_timestep) );
+                    bias_data(:,current_timestep) = real_bias;
+                    gyro_noise_data(:,current_timestep) = gyro_noise;
                 end
-    %             continue
+                continue
+            end
+            %% Bias calculation
+
+            dqdt = zeros(4,bias_wahba_loops-1);
+            for i=2:bias_wahba_loops
+                dqdt(:,i-1) = quat_pos(:,i)-quat_pos(:,i-1);
             end
 
-            %% Bias calculation
-            dqdt = zeros(4, bias_wahba_loops-1);
-            for i = 2:bias_wahba_loops
-                dqdt(:, i-1) = quat_pos(:, i) - quat_pos(:, i-1);
-            end
-    
-            estimated_rate = zeros(3, bias_wahba_loops-1);
-    
+            estimated_rate = zeros(3,bias_wahba_loops-1);
+
             % The angular rate is calculated using: angular_rate = 2 * dq/dt * q^-1
-            for i = 1:bias_wahba_loops - 1
-                temp = 2 * quatProd(quatconj(quat_pos(:, i)'), dqdt(:, i));
-                estimated_rate(:, i) = temp(2:4);
+            for i=1:bias_wahba_loops-1
+                temp = 2*quatProd(quatconj(quat_pos(:,i)'),dqdt(:,i));
+                estimated_rate(:,i) = temp(2:4);
             end
-    
+
             real_rate = y_noise(4:6);
-    
-            mean_omega = [0; 0; 0]; % Time averaging for noise reduction
-    
-            for i = 1:3
-                mean_omega(i) = mean(estimated_rate(i, :));
+
+            mean_omega = [0;0;0];        % Time averaging for noise reduction
+
+            for i=1:3
+                mean_omega(i) = mean(estimated_rate(i,:));
             end
-    
-            initial_bias_estimate = real_rate - mean_omega';
+
+            initial_bias_estimate = real_rate-mean_omega;
             mekf.global_state(5:7) = initial_bias_estimate; %Initialize angular velocity equal to gyroscope measurement
-    
+
         end
     end
 
@@ -321,7 +302,7 @@ function [APE, Time, eclipse] = Nadir_Pointing_function(Kp_gain, Kd_gain)
             [T_dist, ~,~,ad,r,sp,g] = disturbances_pd(q_ob,Sun_pos_orbit, Mag_field_orbit, disturbancesEnabled);
 
             torq = T_rw_total + T_dist;
-            x = real_model.stateTransFun(x, stateTransCookieFinalNominal(torq,0,[0;0;0]));
+            x = real_model.stateTransFun(x, stateTransCookieFinalNominal(torq,rw_ang_momentum,[0;0;0]));
 
 
             %% MEKF predict
@@ -331,7 +312,7 @@ function [APE, Time, eclipse] = Nadir_Pointing_function(Kp_gain, Kd_gain)
             % P[k+1|k]. These will be utilized by the filter at the next time step.
 
             gyro = y_noise(4:6);
-            mekf.predict(stateTransCookieFinalNominal(torq,0,gyro),dt);
+            mekf.predict(stateTransCookieFinalNominal(torq,rw_ang_momentum,gyro),dt);
 
             %% Matrices update
 
@@ -417,7 +398,7 @@ function [APE, Time, eclipse] = Nadir_Pointing_function(Kp_gain, Kd_gain)
                         y_real(1:3)*norm(Mag_field_orbit), cycle_index, Const.known_rm,Const.const1_accel,Const.const2_accel,Const.const3_accel,Const.const4_accel,Const.AngVel_rw_lim);
             
            % [torq, T_rw, T_magnetic_effective, ~, ~, ~, AngVel_rw_rpm_next, AngVel_rw_radps_next,...
-           %              acceleration_rw_cur, 0, init_AngVel_dz, init_accel_dz, ~, ~, ~, ...
+           %              acceleration_rw_cur, rw_ang_momentum, init_AngVel_dz, init_accel_dz, ~, ~, ~, ...
            %              timeflag_dz,M] = ...
            %              PD_Nadir_Pointing(Eclipse,Kp_gain, Kd_gain, q_desired ,q_ob_hat, Const.w_o_io, x(5:7) , y_real(1:3)*norm(Mag_field_orbit), ...
            %              Const.mtq_max, Const.lim_dz, AngVel_rw_radps(2,1), AngVel_rw_rpm(2,1), ...
@@ -432,13 +413,13 @@ function [APE, Time, eclipse] = Nadir_Pointing_function(Kp_gain, Kd_gain)
 
             torq = torq + T_dist;
 
-            x = real_model.stateTransFun(x, stateTransCookieFinalNominal(torq,0,[0;0;0]));
+            x = real_model.stateTransFun(x, stateTransCookieFinalNominal(torq,rw_ang_momentum,[0;0;0]));
 
 
             %% MEKF predict
 
             gyro = y_noise(4:6);
-            mekf.predict(stateTransCookieFinalNominal(torq,0,gyro),dt);
+            mekf.predict(stateTransCookieFinalNominal(torq,rw_ang_momentum,gyro),dt);
 
             %% Matrices update
 
