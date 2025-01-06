@@ -202,67 +202,67 @@ ylabel('Eclipse', 'interpreter', 'latex', 'fontsize', 14);
 grid on;
 if (i == 1), title('Umbral, Penumbral or no Eclipse', 'interpreter', 'latex', 'fontsize', 17); end
 
-% Parameters for the 3D rectangle
-width = 1;   % Width along the X-axis
-height = 1;  % Height along the Y-axis
-depth = 3;   % Depth along the Z-axis
-
-% Define the rectangular prism's vertices
-vertices = [ -width/2, -height/2, -depth/2;
-              width/2, -height/2, -depth/2;
-              width/2,  height/2, -depth/2;
-             -width/2,  height/2, -depth/2;
-             -width/2, -height/2,  depth/2;
-              width/2, -height/2,  depth/2;
-              width/2,  height/2,  depth/2;
-             -width/2,  height/2,  depth/2];
-
-% Define the faces for patch plotting
-faces = [1 2 3 4;
-         5 6 7 8;
-         1 2 6 5;
-         2 3 7 6;
-         3 4 8 7;
-         4 1 5 8];
-
-% Initialize the figure and axis
-figure;
-axis equal;
-grid on;
-xlim([-5 5]); ylim([-5 5]); zlim([-5 5]);
-xlabel('X Orbit Frame'); ylabel('Y Orbit Frame'); zlabel('Z Orbit Frame');
-hold on;
-
-% Set the view for 3D visualization
-view(3);  % This ensures the plot uses a 3D view
-
-
-% Create patch object for the rectangular prism
-rect_prism = patch('Vertices', vertices, 'Faces', faces, ...
-                   'FaceColor', 'cyan', 'EdgeColor', 'black');
-
-% Initialize text handle for the current time and frame
-time_text = text(0, 5, 5, '', 'FontSize', 12, 'Color', 'black');  % Position the text above the plot area
-
-% Animation loop
-for t = 15000:length(Time)
-    
-    % Rotation matrix
-    q_orbit_body = q_orbit_body_data(:,t);
-    R_OB = quat2dcm(q_orbit_body');
-    
-    % Apply rotation to each vertex
-    rotated_vertices = (R_OB' * vertices')';  % Transform vertices using R
-
-    % Update the rectangular prism's vertices
-    set(rect_prism, 'Vertices', rotated_vertices);
-
-    % Update the time and frame label
-    set(time_text, 'String', sprintf('Time: %d', t));
-
-    % Update the plot
-    drawnow;
-
-    pause(0.05);
-end
-
+%% 3D plot
+% % Parameters for the 3D rectangle
+% width = 1;   % Width along the X-axis
+% height = 1;  % Height along the Y-axis
+% depth = 3;   % Depth along the Z-axis
+% 
+% % Define the rectangular prism's vertices
+% vertices = [ -width/2, -height/2, -depth/2;
+%               width/2, -height/2, -depth/2;
+%               width/2,  height/2, -depth/2;
+%              -width/2,  height/2, -depth/2;
+%              -width/2, -height/2,  depth/2;
+%               width/2, -height/2,  depth/2;
+%               width/2,  height/2,  depth/2;
+%              -width/2,  height/2,  depth/2];
+% 
+% % Define the faces for patch plotting
+% faces = [1 2 3 4;
+%          5 6 7 8;
+%          1 2 6 5;
+%          2 3 7 6;
+%          3 4 8 7;
+%          4 1 5 8];
+% 
+% % Initialize the figure and axis
+% figure;
+% axis equal;
+% grid on;
+% xlim([-5 5]); ylim([-5 5]); zlim([-5 5]);
+% xlabel('X Orbit Frame'); ylabel('Y Orbit Frame'); zlabel('Z Orbit Frame');
+% hold on;
+% 
+% % Set the view for 3D visualization
+% view(3);  % This ensures the plot uses a 3D view
+% 
+% 
+% % Create patch object for the rectangular prism
+% rect_prism = patch('Vertices', vertices, 'Faces', faces, ...
+%                    'FaceColor', 'cyan', 'EdgeColor', 'black');
+% 
+% % Initialize text handle for the current time and frame
+% time_text = text(0, 5, 5, '', 'FontSize', 12, 'Color', 'black');  % Position the text above the plot area
+% 
+% % Animation loop
+% for t = 1:length(Time)
+% 
+%     % Rotation matrix
+%     q_orbit_body = q_orbit_body_data(:,t);
+%     R_OB = quat2dcm(q_orbit_body');
+% 
+%     % Apply rotation to each vertex
+%     rotated_vertices = (R_OB' * vertices')';  % Transform vertices using R
+% 
+%     % Update the rectangular prism's vertices
+%     set(rect_prism, 'Vertices', rotated_vertices);
+% 
+%     % Update the time and frame label
+%     set(time_text, 'String', sprintf('Time: %d', t));
+% 
+%     % Update the plot
+%     drawnow;
+% 
+%     pause(0.05);
+% end 

@@ -18,11 +18,8 @@ function Q_selection(Eclipse, Q_no_eclipse, R_no_eclipse, mekf, Q_eclipse_load)
         %Q = Q_eclipse_load; % Variance of the process noise w[cycle_index]
         
         Q_eclipse = 1e-4*diag([1 1 1 1e-3 1e-3 1e-3]); 
+        
         %R_eclipse =[1e-7;1e-7;1e-7;1;1;1].*eye(6, 6);
-<<<<<<< HEAD
-=======
-        % R_eclipse =[10;10;10;1;1;1].*eye(6, 6);
->>>>>>> b2f8ea6 (Some changes)
         R_eclipse =[1;1;1;1e5;1e5;1e5].*eye(6, 6);
         
         mekf.setProcessNoiseCov(Q_eclipse); %Q variance matrix

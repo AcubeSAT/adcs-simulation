@@ -19,7 +19,7 @@ setDisturbances = "total";  % Set which disturbances you want to activate: tau_g
 rng(1);                     % Fix the random number generator for reproducible results
 plotter_step = 10;
 %Kp = 10^5 * 4*pi / orbitPeriod * (1 + sin(inclm(1))) * Const.I(3,3);
-Kp = 300;
+Kp = 1;
 
 %% ======= Orbit Propagation ========
 satrec = orbit_init();
