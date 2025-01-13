@@ -79,6 +79,7 @@ end
 Time = 0:dt:tf;
 x_real = zeros(7, length(Time)); % Real state
 q_ob_data = zeros(4, length(Time));
+q_ib_data = zeros(4, length(Time));
 x = x0(1:7);
 x_real(:, 1) = x0(1:7);
 t = 0;
@@ -183,6 +184,11 @@ for cycle_index = 1:bias_wahba_loops
                 x_hat_data(:,current_timestep) =  zeros(7,1);
                 q_ob_data(:,current_timestep) = quat_EB2OB(x(1:4), nodem(1,current_timestep),...
                     inclm(1,current_timestep),argpm(1,current_timestep),mm(1,current_timestep) );
+                R_OI = Orbit2ECI_DCM(Nodem, Inclm, Argpm);
+                R_IO = R_ECI2Orbit(Nodem, Inclm, Argpm);
+                q_io = dcm2quat(R_IO);
+                q_io = q_io/norm(q_io);
+                q_ib_data(:,current_timestep) = quatProd(q_ob_data(:,current_timestep),q_io);
                 bias_data(:,current_timestep) = real_bias;
                 gyro_noise_data(:,current_timestep) = gyro_noise;
                 R_OB = quat2dcm(q_ob');
@@ -316,6 +322,11 @@ for cycle_index = cycle_index:number_of_cycles
         bias_data(:, current_timestep) = real_bias;
         gyro_noise_data(:, current_timestep) = gyro_noise;
         q_ob_data(:, current_timestep) = q_ob;
+        R_OI = Orbit2ECI_DCM(Nodem, Inclm, Argpm);
+        R_IO = R_ECI2Orbit(Nodem, Inclm, Argpm);
+        q_io = dcm2quat(R_IO);
+        q_io = q_io/norm(q_io);
+        q_ib_data(:,current_timestep) = quatProd(q_ob_data(:,current_timestep),q_io);
         q_sb_data(:, current_timestep) = q_sun_body(Sun_pos_eci, x(1:4),Const.sun_desired)';
         R_OB = quat2dcm(q_ob');
                 
@@ -411,6 +422,10 @@ for cycle_index = cycle_index:number_of_cycles
         x_hat_data(:, current_timestep) = x_hat;
         Bbody_data(:, current_timestep) = y_real(1:3) * norm(mag_field_orbit(:, current_timestep)*10^(-9));
         q_ob_data(:, current_timestep) = q_ob;
+        R_IO = R_ECI2Orbit(Nodem, Inclm, Argpm);
+        q_io = dcm2quat(R_IO);
+        q_io = q_io/norm(q_io);
+        q_ib_data(:,current_timestep) = quatProd(q_ob_data(:,current_timestep),q_io);
         q_sb_data(:, current_timestep) = q_sun_body(Sun_pos_eci, x(1:4),Const.sun_desired)';
         R_OB = quat2dcm(q_ob');
                  
@@ -638,3 +653,34 @@ grid on
 % 
 %     pause(0.005);
 % end
+
+
+% Conversion factor from radians to degrees
+rad_to_deg = 180 / pi;
+
+% Prepare data for CSV
+Time_data = Time';                  % Column vector for Time
+Quaternion_data = q_ib_data'; % Transpose to make rows for each timestep
+AngVel_data = x_real(5:7,:)' * rad_to_deg;  % Convert angular velocity from rad/sec to deg/sec
+% Transpose for similar structure
+
+% Combine all data into a single matrix
+CSV_data = [Time_data, Quaternion_data, AngVel_data];
+
+% Create a header for the CSV file
+header = 'Time Quat_w Quat_x Quat_y Quat_z AngVel_x AngVel_y AngVel_z';
+
+% Write the header and data to the CSV file
+output_filename = 'simulation_data.csv'; % Space-separated CSV file
+fid = fopen(output_filename, 'w');
+fprintf(fid, '%s\n', header);           % Write header
+
+% Write the data row by row with space as a separator, and Time in the format xxx.xxx
+for i = 1:size(CSV_data, 1)
+    fprintf(fid, '%.3f ', CSV_data(i, 1));  % Time formatted to 3 decimal places
+    fprintf(fid, '%.6f %.6f %.6f %.6f %.6f %.6f %.6f\n', CSV_data(i, 2:end)); % Other data with default precision
+end
+
+fclose(fid);
+
+disp(['Data successfully written to ', output_filename]);
