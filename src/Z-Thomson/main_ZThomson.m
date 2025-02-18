@@ -590,6 +590,7 @@ grid on
 
 
 
+
 % % Parameters for the 3D rectangle
 % width = 1;   % Width along the X-axis
 % height = 1;  % Height along the Y-axis
@@ -613,6 +614,15 @@ grid on
 %          3 4 8 7;
 %          4 1 5 8];
 % 
+% 
+% face_colors = [0 1 1;  % Cyan for -Z
+%                1 0 1;  % Magenta for +Z
+%                0 1 1;  % Cyan for bottom (-Y)
+%                1 0 1;  % Magenta for +X
+%                0 1 1;  % Cyan for top (+Y)
+%                0 1 1]; % Cyan for -X
+% 
+% 
 % % Initialize the figure and axis
 % figure;
 % axis equal;
@@ -624,19 +634,29 @@ grid on
 % % Set the view for 3D visualization
 % view(3);  % This ensures the plot uses a 3D view
 % 
-% 
 % % Create patch object for the rectangular prism
 % rect_prism = patch('Vertices', vertices, 'Faces', faces, ...
-%                    'FaceColor', 'cyan', 'EdgeColor', 'black');
+%                    'FaceVertexCData', face_colors, 'FaceColor', 'flat', ...
+%                    'EdgeColor', 'black');
+% 
 % 
 % % Initialize text handle for the current time and frame
 % time_text = text(0, 5, 5, '', 'FontSize', 12, 'Color', 'black');  % Position the text above the plot area
+% 
+% 
+% % Initialize quiver objects for the vectors
+% B_quiver = quiver3(0, 0, 0, 0, 0, 0, 'b', 'LineWidth', 2, 'MaxHeadSize', 0.5); % Magnetic field vector (Blue)
+% S_quiver = quiver3(0, 0, 0, 0, 0, 0, 'r', 'LineWidth', 2, 'MaxHeadSize', 0.5); % Sun vector (Red)
+% 
+% % Add legend
+% legend({'Satellite', 'Magnetic Field', 'Sun Vector'}, 'Location', 'best');
+% 
 % 
 % % Animation loop
 % for t = 1:length(Time)
 % 
 %     % Rotation matrix
-%     q_orbit_body = q_orbit_body_data(:,t);
+%     q_orbit_body = q_ob_data(:,t);
 %     R_OB = quat2dcm(q_orbit_body');
 % 
 %     % Apply rotation to each vertex
@@ -644,6 +664,20 @@ grid on
 % 
 %     % Update the rectangular prism's vertices
 %     set(rect_prism, 'Vertices', rotated_vertices);
+% 
+%     %Update Magnetic Field Vector
+%     B_body =Bbody_data(:,t)*1e5;  % Magnetic field in body frame
+%     B_orbit =R_OB'*B_body;   % Transform to orbit frame
+% 
+%     set(B_quiver, 'XData', 0, 'YData', 0, 'ZData', 0, ...
+%                   'UData', B_orbit(1), 'VData', B_orbit(2), 'WData', B_orbit(3));
+% 
+%     % Update Sun Vector
+%     S_body = sun_orbit_normalized*5; % Sun vector already in orbit frame
+% 
+% 
+%     set(S_quiver, 'XData', 0, 'YData', 0, 'ZData', 0, ...
+%                   'UData', S_body(1), 'VData', S_body(2), 'WData', S_body(3));
 % 
 %     % Update the time and frame label
 %     set(time_text, 'String', sprintf('Time: %d', t));
