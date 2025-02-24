@@ -1042,7 +1042,8 @@ grid on;
 % 
 % 
 %     % Update Sun Vector
-%     S_body = sun_orbit_normalized*5; % Sun vector already in orbit frame
+%     S_body = sun_pos_orbit(:,t)/norm(sun_pos_orbit(:,t))*5; % Sun vector already in orbit frame
+%
 % 
 % 
 %     set(S_quiver, 'XData', 0, 'YData', 0, 'ZData', 0, ...
