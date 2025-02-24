@@ -283,7 +283,7 @@ if (i == 1), title('Umbral, Penumbral or no Eclipse', 'interpreter', 'latex', 'f
 %      %Update Magnetic Field Vector
 % 
 %     B_orbit =R_OB'*B_body(:,t)*1e5;   % Transform to orbit frame
-%     disp(B_orbit);
+%     
 % 
 %     set(B_quiver, 'XData', 0, 'YData', 0, 'ZData', 0, ...
 %                   'UData', B_orbit(1), 'VData', B_orbit(2), 'WData', B_orbit(3));
