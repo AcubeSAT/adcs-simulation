@@ -295,5 +295,5 @@ if (i == 1), title('Umbral, Penumbral or no Eclipse', 'interpreter', 'latex', 'f
 %     % Update the plot
 %     drawnow;
 % 
-%     pause(0.05);
+%     pause(0.005);
 % end 
