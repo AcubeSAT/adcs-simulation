@@ -13,6 +13,9 @@
 %  Theoratical values for ADXRS453:
 %  sigma_u = 3.4434e-04
 %  sigma_v = 0.0004;
+%  Theoratical values for SCHAT63T:
+%  sigma_u = 2e-6; 
+%  sigma_v = 2.04e-5;
 %
 %
 %  Based on Markley-Crassidis p.147
