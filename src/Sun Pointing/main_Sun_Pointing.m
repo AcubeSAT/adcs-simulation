@@ -497,6 +497,32 @@ for i = 1:4
     grid on;
 end
 
+%MEKF error
+
+ figure();
+    for i=1:n_dim
+        subplot(n_dim,1,i);
+        hold on;
+        if i<5
+            plot(Time,abs(x_real(i,1:length(Time)))-abs(x_hat_data(i,:)), 'LineWidth',2.0, 'Color','blue');
+        else
+            plot(Time(1:length(bias_data(1,:))),abs(bias_data(i-4,1:length(bias_data(1,:))))-abs(abs(x_hat_data(i,:))))
+        end
+
+        %plot(Time(1:length(x_hat_data(i,:))),x_hat_data(i,:), 'LineWidth',2.0, 'Color','magenta');
+        %if (i==1),legend({['$x_' num2str(i) '$'],['$\hat{x}_' num2str(i) '$']}, 'interpreter','latex', 'fontsize',15);end
+        ylabel(['$x_' num2str(i) '$'], 'interpreter','latex', 'fontsize',14);
+        if (i==1), title('MEKF errors', 'interpreter','latex', 'fontsize',17);end
+        %     xlim([3 number_of_cycles]);
+        xlabel('Time [$s$]', 'interpreter','latex', 'fontsize',12);
+        hold off;
+        grid on;
+    end
+
+
+
+
+
 %% Eclipse plot
 figure()
 plot(1:length(eclipse), eclipse, 'LineWidth', 2.0, 'Color', 'blue');
