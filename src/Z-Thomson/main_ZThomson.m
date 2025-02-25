@@ -648,8 +648,6 @@ grid on
 % B_quiver = quiver3(0, 0, 0, 0, 0, 0, 'b', 'LineWidth', 2, 'MaxHeadSize', 0.5); % Magnetic field vector (Blue)
 % S_quiver = quiver3(0, 0, 0, 0, 0, 0, 'r', 'LineWidth', 2, 'MaxHeadSize', 0.5); % Sun vector (Red)
 % 
-% % Add legend
-% legend({'Satellite', 'Magnetic Field', 'Sun Vector'}, 'Location', 'best');
 % 
 % 
 % % Animation loop
@@ -682,6 +680,12 @@ grid on
 % 
 %     % Update the time and frame label
 %     set(time_text, 'String', sprintf('Time: %d', t));
+%
+%     if eclipse(t)
+%        legend({'Eclipse','Magnetic Field Vector','Sun Vector'}, 'Location', 'best');
+%     else
+%        legend({' No Eclipse','Magnetic Field Vector','Sun Vector'},'Location','best');
+%     end 
 % 
 %     % Update the plot
 %     drawnow;
