@@ -1150,7 +1150,7 @@ function [APE, Time, eclipse] = Nadir_Pointing_function(Kp_gain, Kd_gain)
 % 
 % 
 %     % Update Nadir Vector
-%     N_body = ECI2Orbit(xsat_eci,Nodem,Inclm,Argpm); 
+%     N_body = ECI2Orbit(xsat_eci(:,t),Nodem,Inclm,Argpm); 
 % 
 % 
 %     set(N_quiver, 'XData', 0, 'YData', 0, 'ZData', 0, ...
