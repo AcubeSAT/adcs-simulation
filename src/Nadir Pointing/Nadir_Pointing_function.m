@@ -1130,8 +1130,6 @@ function [APE, Time, eclipse] = Nadir_Pointing_function(Kp_gain, Kd_gain)
 % 
 % N_quiver = quiver3(0, 0, 0, 0, 0, 0, 'r', 'LineWidth', 2, 'MaxHeadSize', 0.5); % Sun vector (Red)
 % 
-% % Add legend
-% legend({'Satellite','Nadir Vector'}, 'Location', 'best');
 % 
 % 
 % % Animation loop
@@ -1158,6 +1156,11 @@ function [APE, Time, eclipse] = Nadir_Pointing_function(Kp_gain, Kd_gain)
 % 
 %     % Update the time and frame label
 %     set(time_text, 'String', sprintf('Time: %d', t));
+%      if eclipse(t)
+%        legend({'Eclipse','Nadir Vector'}, 'Location', 'best');
+%      else
+%        legend({' No Eclipse','Nadir Vector'},'Location','best');
+%      end    
 % 
 %     % Update the plot
 %     drawnow;
