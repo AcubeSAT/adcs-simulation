@@ -262,8 +262,6 @@ if (i == 1), title('Umbral, Penumbral or no Eclipse', 'interpreter', 'latex', 'f
 % % Initialize quiver objects for the vectors
 %  B_quiver = quiver3(0, 0, 0, 0, 0, 0, 'b', 'LineWidth', 2, 'MaxHeadSize', 0.5); % Magnetic field vector (Blue)
 % 
-%  % Add legend
-%  legend({'Satellite', 'Magnetic Field'}, 'Location', 'best');
 % 
 % % Animation loop
 % for t = 1:length(Time)
@@ -291,6 +289,14 @@ if (i == 1), title('Umbral, Penumbral or no Eclipse', 'interpreter', 'latex', 'f
 % 
 %     % Update the time and frame label
 %     set(time_text, 'String', sprintf('Time: %d', t));
+%     
+%
+%     if eclipse(t)
+%        legend({'Eclipse','Magnetic Field Vector'}, 'Location', 'best');
+%     else
+%        legend({' No Eclipse','Magnetic Field Vector'},'Location','best');
+%     end    
+%
 % 
 %     % Update the plot
 %     drawnow;
