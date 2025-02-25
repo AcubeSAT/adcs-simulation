@@ -643,53 +643,49 @@ grid on
 % % Initialize text handle for the current time and frame
 % time_text = text(0, 5, 5, '', 'FontSize', 12, 'Color', 'black');  % Position the text above the plot area
 % 
-% 
-% % Initialize quiver objects for the vectors
+% Initialize plot handles for objects in the plot
+% eclipse_handle = plot(NaN, NaN, 'LineWidth', 2.0, 'Color', 'blue');  % Placeholder for Eclipse
 % B_quiver = quiver3(0, 0, 0, 0, 0, 0, 'b', 'LineWidth', 2, 'MaxHeadSize', 0.5); % Magnetic field vector (Blue)
 % S_quiver = quiver3(0, 0, 0, 0, 0, 0, 'r', 'LineWidth', 2, 'MaxHeadSize', 0.5); % Sun vector (Red)
 % 
-% 
+% % Create initial legend
+% legend_handles = [eclipse_handle, B_quiver, S_quiver];
+% legend_labels = {'Eclipse','Magnetic Field Vector','Sun Vector'};
+% legend(legend_handles, legend_labels, 'Location', 'best');
 % 
 % % Animation loop
 % for t = 1:length(Time)
-% 
 %     % Rotation matrix
 %     q_orbit_body = q_ob_data(:,t);
 %     R_OB = quat2dcm(q_orbit_body');
 % 
 %     % Apply rotation to each vertex
 %     rotated_vertices = (R_OB' * vertices')';  % Transform vertices using R
-% 
-%     % Update the rectangular prism's vertices
 %     set(rect_prism, 'Vertices', rotated_vertices);
 % 
-%     %Update Magnetic Field Vector
-%     B_body =Bbody_data(:,t)*1e5;  % Magnetic field in body frame
-%     B_orbit =R_OB'*B_body;   % Transform to orbit frame
-% 
-%     set(B_quiver, 'XData', 0, 'YData', 0, 'ZData', 0, ...
-%                   'UData', B_orbit(1), 'VData', B_orbit(2), 'WData', B_orbit(3));
+%     % Update Magnetic Field Vector
+%     B_body = Bbody_data(:, t) * 1e5;  % Magnetic field in body frame
+%     B_orbit = R_OB' * B_body;  % Transform to orbit frame
+%     set(B_quiver, 'UData', B_orbit(1), 'VData', B_orbit(2), 'WData', B_orbit(3));
 % 
 %     % Update Sun Vector
-%     S_body = sun_pos_orbit(:,t)/norm(sun_pos_orbit(:,t))*5; % Sun vector already in orbit frame
-%    
-% 
-% 
-%     set(S_quiver, 'XData', 0, 'YData', 0, 'ZData', 0, ...
-%                   'UData', S_body(1), 'VData', S_body(2), 'WData', S_body(3));
+%     S_body = sun_pos_orbit(:, t) / norm(sun_pos_orbit(:, t)) * 5;  % Sun vector in orbit frame
+%     set(S_quiver, 'UData', S_body(1), 'VData', S_body(2), 'WData', S_body(3));
 % 
 %     % Update the time and frame label
 %     set(time_text, 'String', sprintf('Time: %d', t));
-%
+% 
+%     % Update Eclipse plot
 %     if eclipse(t)
-%        legend({'Eclipse','Magnetic Field Vector','Sun Vector'}, 'Location', 'best');
+%         set(eclipse_handle, 'XData', Time(t), 'YData', 1);  % Update Eclipse presence (1)
+%         set(eclipse_handle, 'DisplayName', 'Eclipse');  % Update the name
 %     else
-%        legend({' No Eclipse','Magnetic Field Vector','Sun Vector'},'Location','best');
-%     end 
+%         set(eclipse_handle, 'XData', Time(t), 'YData', 0);  % No Eclipse (0)
+%         set(eclipse_handle, 'DisplayName', 'No Eclipse');
+%     end
 % 
 %     % Update the plot
 %     drawnow;
-% 
 %     pause(0.005);
 % end
 
