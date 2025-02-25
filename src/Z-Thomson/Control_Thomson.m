@@ -18,8 +18,8 @@
 %  Bdot_body       -Magnetic field Deviation 
 %  torq            -Applied torque
 %  V_mtq           -Voltage applied on mtq
-%  I_mtq           -Amperage applied on RW
-%  P_thermal_mtq   -Power consumed from RW 
+%  I_mtq           -Amperage applied on mtq
+%  P_thermal_mtq   -Power consumed from mtq 
 %  M               -Magnetic dipole
 
 function [Bdot_body,torq,V_mtq, I_mtq, P_thermal_mtq,M] = ...
