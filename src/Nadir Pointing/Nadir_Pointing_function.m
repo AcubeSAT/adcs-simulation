@@ -1149,7 +1149,7 @@ function [APE, Time, eclipse] = Nadir_Pointing_function(Kp_gain, Kd_gain)
 %     set(rect_prism, 'Vertices', rotated_vertices);
 % 
 % 
-%     % Update Sun Vector
+%     % Update Nadir Vector
 %     N_body = ECI2Orbit(xsat_eci,Nodem,Inclm,Argpm); 
 % 
 % 
