@@ -394,7 +394,7 @@ for cycle_index = cycle_index:number_of_cycles
         R_OB=quat2dcm(q_ob');
 
         [Bdot_body,torq,V_mtq, I_mtq, P_thermal_mtq,M] = ...
-        Control_Thomson(x(5:7), y_noise(1:3)*norm(Mag_field_orbit), B_body_thomson, Const.mtq_max, Kd, Ks, w_ref);
+        Control_Thomson(x(5:7), y_noise(1:3)*norm(Mag_field_orbit), B_body_thomson,y_real(1:3)*norm(Mag_field_orbit) ,Const.mtq_max, Kd, Ks, w_ref);
 
         %% Propagate the system
         q_ob = quat_EB2OB(x(1:4), Nodem, Inclm, Argpm, Mm);

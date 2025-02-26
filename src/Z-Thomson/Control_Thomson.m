@@ -8,6 +8,7 @@
 %                   body frame
 %  B_body          -Estimated magnetic field expressed in body frame
 %  B_body_2        -Second magnetometer measurement 
+%  B_body_real     -Real magnetic field expressed in body frame
 %  mtq_max         -Maximum dipole provided by each Magnetorquer
 %  Kd              -Gain for Detumbling
 %  Ks              -Gain for Thomson
@@ -23,7 +24,7 @@
 %  M               -Magnetic dipole
 
 function [Bdot_body,torq,V_mtq, I_mtq, P_thermal_mtq,M] = ...
-        Control_Thomson(w_b_ib, B_body_2,B_body, mtq_max, Kd, Ks, w_ref)
+        Control_Thomson(w_b_ib, B_body_2,B_body,B_body_real ,mtq_max, Kd, Ks, w_ref)
 
     Bx=acos(B_body(1)/norm(B_body));
     Bx2=acos(B_body_2(1)/norm(B_body_2));
@@ -47,7 +48,7 @@ function [Bdot_body,torq,V_mtq, I_mtq, P_thermal_mtq,M] = ...
     end  
 
     M = mtq_scaling(M, mtq_max);
-    T_magnetic_effective = cross(M, B_body);
+    T_magnetic_effective = cross(M, B_body_real);
     torq = T_magnetic_effective;
 
     %% Calculate V, I, P of MTQ's
