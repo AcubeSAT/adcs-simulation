@@ -19,6 +19,7 @@ Bdot_body = zeros(3, length(Time));                 % Bdot estimation in body fr
 w_b_ob_magn = zeros(1, length(Time));               % Angular velocity magnitude
 Mag = zeros(3, length(Time));                       % Commanded magnetic dipole moment
 w_b_ob_Bdot = zeros(3, length(Time));               % Angular velocity estimation using Bdot
+w_b_ib = zeros(3,length(Time));                     % Angular velocity from ECI to body frame expressed in body frame 
 q_orbit_body_data = zeros(4, length(Time)); 
 threshold_times = 0;
 threshold_exceptions = 0;
@@ -44,6 +45,7 @@ for current_cycle = 1:length(Time) %Main loop
     w_b_io = R_OB(:, 3) * Const.w_o;
     w_b_ob(:, current_cycle) = x(5:7) - w_b_io; % Calculating angular rate of satellite relative to ECI frame
     w_b_ob_magn(current_cycle) = norm(w_b_ob(:, current_cycle));
+    w_b_ib(:,current_cycle)=x(5:7); 
 
     %% First timestep - Orbit propagation
     [T_disturbances, ~] = disturbances_bdot(R_BO, sun_pos_orbit(:, current_cycle), B_body(:, current_cycle), setDisturbances); % Calculation of external torques
@@ -78,7 +80,7 @@ for current_cycle = 1:length(Time) %Main loop
 
     %% Calculate when Nominal is ready to be activated
     if current_cycle > 1
-        [bdot_activation, nonBdot_activation, threshold_times, threshold_exceptions] = trigger_D2N(threshold_times, threshold_exceptions, w_b_ob(:, current_cycle), w_b_ob_Bdot(:, current_cycle), w_b_ob_Bdot(:, current_cycle-1),Const.D2N_threshold,total_limit,exceptions_limit);
+        [bdot_activation, nonBdot_activation, threshold_times, threshold_exceptions] = trigger_D2N(threshold_times, threshold_exceptions, w_b_ib(:, current_cycle), w_b_ob_Bdot(:, current_cycle), w_b_ob_Bdot(:, current_cycle-1),Const.D2N_threshold,total_limit,exceptions_limit);
         nominal_activation_matrix(1, current_cycle) = bdot_activation;
         nominal_activation_matrix(2, current_cycle) = nonBdot_activation;
     end
@@ -135,6 +137,29 @@ plot(1:plotter_step:length(Time), w_b_ob_Bdot(3, 1:plotter_step:end))
 xlabel('Time [s]');
 ylabel('Angular Velocity-z [rad/sec]');
 grid on;
+
+
+
+figure()
+subplot(3, 1, 1)
+plot(1:plotter_step:length(Time), w_b_ib(1, 1:plotter_step:end))
+title('w_b_ib', 'interpreter', 'latex', 'fontsize', 17);
+xlabel('Time [$s$]', 'interpreter', 'latex', 'fontsize', 12);
+ylabel(['$\omega_', num2str(1), '$', '[rad/sec]'], 'interpreter', 'latex', 'fontsize', 14);
+grid on
+subplot(3, 1, 2)
+plot(1:plotter_step:length(Time), w_b_ib(2, 1:plotter_step:end))
+xlabel('Time [$s$]', 'interpreter', 'latex', 'fontsize', 12);
+ylabel(['$\omega_', num2str(2), '$', '[rad/sec]'], 'interpreter', 'latex', 'fontsize', 14);
+grid on
+subplot(3, 1, 3)
+plot(1:plotter_step:length(Time), w_b_ib(3, 1:plotter_step:end))
+xlabel('Time [$s$]', 'interpreter', 'latex', 'fontsize', 12);
+ylabel(['$\omega_', num2str(3), '$', '[rad/sec]'], 'interpreter', 'latex', 'fontsize', 14);
+grid on
+
+
+
 
 %% Bdot
 figure()
