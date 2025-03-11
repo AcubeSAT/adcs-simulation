@@ -22,6 +22,7 @@
 %  I_mtq           -Amperage applied on mtq
 %  P_thermal_mtq   -Power consumed from mtq 
 %  M               -Magnetic dipole
+% ===============================================================================================
 
 function [Bdot_body,torq,V_mtq, I_mtq, P_thermal_mtq,M] = ...
         Control_Thomson(w_b_ib, B_body_2,B_body,B_body_real ,mtq_max, Kd, Ks, w_ref)
