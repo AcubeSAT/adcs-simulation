@@ -640,14 +640,16 @@ grid on
 % % Initialize text handle for the current time and frame
 % time_text = text(0, 5, 5, '', 'FontSize', 12, 'Color', 'black');  % Position the text above the plot area
 % 
-% Initialize plot handles for objects in the plot
-% eclipse_handle = plot(NaN, NaN, 'LineWidth', 2.0, 'Color', 'blue');  % Placeholder for Eclipse
+% % Initialize text handle for the eclipse
+% eclipse_text = text(0, -5, 5, '', 'FontSize', 12, 'Color', 'black');  % Position the text above the plot area
+% 
+% % Initialize plot handles for objects in the plot
 % B_quiver = quiver3(0, 0, 0, 0, 0, 0, 'b', 'LineWidth', 2, 'MaxHeadSize', 0.5); % Magnetic field vector (Blue)
 % S_quiver = quiver3(0, 0, 0, 0, 0, 0, 'r', 'LineWidth', 2, 'MaxHeadSize', 0.5); % Sun vector (Red)
 % 
 % % Create initial legend
-% legend_handles = [eclipse_handle, B_quiver, S_quiver];
-% legend_labels = {'Eclipse','Magnetic Field Vector','Sun Vector'};
+% legend_handles = [B_quiver, S_quiver];
+% legend_labels = {'Magnetic Field Vector','Sun Vector'};
 % legend(legend_handles, legend_labels, 'Location', 'best');
 % 
 % % Animation loop
@@ -672,13 +674,11 @@ grid on
 %     % Update the time and frame label
 %     set(time_text, 'String', sprintf('Time: %d', t));
 % 
-%     % Update Eclipse plot
-%     if eclipse(t)
-%         set(eclipse_handle, 'XData', Time(t), 'YData', 1);  % Update Eclipse presence (1)
-%         set(eclipse_handle, 'DisplayName', 'Eclipse');  % Update the name
+%     % Update eclipse label
+%     if (eclipse(t) == 0)
+%         set(eclipse_text, 'String', 'No Eclipse');
 %     else
-%         set(eclipse_handle, 'XData', Time(t), 'YData', 0);  % No Eclipse (0)
-%         set(eclipse_handle, 'DisplayName', 'No Eclipse');
+%         set(eclipse_text, 'String', 'Eclipse');
 %     end
 % 
 %     % Update the plot
