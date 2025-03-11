@@ -964,17 +964,19 @@ ylabel('Torque [Nm]')
 xlabel('Time [s]');
 grid on;
 
+%% Plotting z-axis magnetic field
 figure()
 plot(Bbody_data(3, :))
 title('Magnetic field in Z axis', 'interpreter', 'latex', 'fontsize', 17);
 
+%% Plotting total angle error
 figure()
 plot(Time(1:length(sun_pointing_error)), rad2deg(sun_pointing_error), 'LineWidth', 1.5, 'Color', 'blue');
 title('Angle Error between actual and desired vector [deg]', 'interpreter', 'latex', 'fontsize', 17);
 xlabel('Time [$s$]', 'interpreter', 'latex', 'fontsize', 12);
 grid on;
 
-
+%% Plotting angle error per axis
 figure()
 subplot(3, 1, 1)
 plot(Time(1:length(sun_angle(1,:))), rad2deg(sun_angle(1,:)), 'LineWidth', 1.5, 'Color', 'blue');
@@ -990,8 +992,7 @@ title('Angle Between +Z axis and Sun Vector [deg]', 'interpreter', 'latex', 'fon
 xlabel('Time [$s$]', 'interpreter', 'latex', 'fontsize', 12);
 grid on;
 
-
-
+%% Box Plot
 % Parameters for the 3D rectangle
 % width = 1;   % Width along the X-axis
 % height = 1;  % Height along the Y-axis
