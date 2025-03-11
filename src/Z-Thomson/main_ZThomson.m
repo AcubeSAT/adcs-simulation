@@ -564,7 +564,7 @@ for i = 1:3
 end
 
 
-% Plotting the Angle between Z-Axis of b.f. and Z-Axis of o.f.
+%% Plotting the Angle between Z-Axis of b.f. and Z-Axis of o.f.
 figure()
 plot(Time(1:end-1), theta_deg_arr_x(1:length(Time)-1));
 title('Angle between Z-Axis of b.f. and X-Axis of o.f.', 'interpreter', 'latex', 'fontsize', 17);
@@ -587,10 +587,7 @@ xlabel('Time [$s$]', 'interpreter', 'latex', 'fontsize', 12);
 ylabel('Angle [degrees]', 'interpreter', 'latex', 'fontsize', 14);
 grid on
 
-
-
-
-
+%% Box Plot
 % % Parameters for the 3D rectangle
 % width = 1;   % Width along the X-axis
 % height = 1;  % Height along the Y-axis
