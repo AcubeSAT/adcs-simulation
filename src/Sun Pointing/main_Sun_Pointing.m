@@ -993,7 +993,7 @@ xlabel('Time [$s$]', 'interpreter', 'latex', 'fontsize', 12);
 grid on;
 
 %% Box Plot
-% Parameters for the 3D rectangle
+% % Parameters for the 3D rectangle
 % width = 1;   % Width along the X-axis
 % height = 1;  % Height along the Y-axis
 % depth = 3;   % Depth along the Z-axis
@@ -1045,16 +1045,14 @@ grid on;
 % % Initialize text handle for the current time and frame
 % time_text = text(0, 5, 5, '', 'FontSize', 12, 'Color', 'black');  % Position the text above the plot area
 % 
+% % Initialize text handle for the eclipse
+% eclipse_text = text(0, -5, 5, '', 'FontSize', 12, 'Color', 'black');  % Position the text above the plot area
 % 
 % % Initialize quiver objects for the vectors
-% 
 % S_quiver = quiver3(0, 0, 0, 0, 0, 0, 'r', 'LineWidth', 2, 'MaxHeadSize', 0.5); % Sun vector (Red)
-% 
-% 
 % 
 % % Animation loop
 % for t = 1:length(Time)
-% 
 %     % Rotation matrix
 %     q_orbit_body = q_ob_data(:,t);
 %     R_OB = quat2dcm(q_orbit_body');
@@ -1065,23 +1063,21 @@ grid on;
 %     % Update the rectangular prism's vertices
 %     set(rect_prism, 'Vertices', rotated_vertices);
 % 
-% 
 %     % Update Sun Vector
 %     S_body = sun_pos_orbit(:,t)/norm(sun_pos_orbit(:,t))*5; % Sun vector already in orbit frame
-%
-% 
 % 
 %     set(S_quiver, 'XData', 0, 'YData', 0, 'ZData', 0, ...
 %                   'UData', S_body(1), 'VData', S_body(2), 'WData', S_body(3));
 % 
 %     % Update the time and frame label
 %     set(time_text, 'String', sprintf('Time: %d', t));
-%
-% if eclipse(t)
-%        legend({'Eclipse','Sun Vector'}, 'Location', 'best');
-%    else
-%        legend({' No Eclipse','Sun Vector'},'Location','best');
-    end    
+% 
+%     % Update eclipse label
+%     if (eclipse(t) == 0)
+%         set(eclipse_text, 'String', 'No Eclipse');
+%     else
+%         set(eclipse_text, 'String', 'Eclipse');
+%     end   
 % 
 %     % Update the plot
 %     drawnow;
