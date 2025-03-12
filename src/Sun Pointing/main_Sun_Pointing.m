@@ -1051,6 +1051,11 @@ grid on;
 % % Initialize quiver objects for the vectors
 % S_quiver = quiver3(0, 0, 0, 0, 0, 0, 'r', 'LineWidth', 2, 'MaxHeadSize', 0.5); % Sun vector (Red)
 % 
+% % Create initial legend
+% legend_handles = S_quiver;
+% legend_labels = {'Sun Vector'};
+% legend(legend_handles, legend_labels, 'Location', 'best');
+% 
 % % Animation loop
 % for t = 1:length(Time)
 %     % Rotation matrix
