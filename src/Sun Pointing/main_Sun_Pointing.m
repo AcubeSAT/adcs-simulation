@@ -39,6 +39,8 @@ sigma_u = Param.sigma_u;
 sigma_v = Param.sigma_v;
 P0 = Param.P0;
 use_analytic_jacob = Param.use_analytic_jacob;
+total_limit = Param.total_limit;
+exceptions_limit= Param.exceptions_limit;
 N_Timesteps= Param.N_Timesteps;
 
 %% Initialize Global Parameters
@@ -109,6 +111,10 @@ Bbody_data = zeros(3, length(Time));
 q_sb_data = zeros(4, length(Time));
 sun_pointing_error = zeros(1, length(Time));
 sun_angle = zeros(3, length(Time));
+bdot_activation_matrix = zeros(2, length(Time));
+threshold_times = 0;
+threshold_exceptions = 0;
+estimated_velocity = zeros(3, length(Time));
 
 %% Next we initialize the bias estimation by solving Wahba's problem n times.
 
@@ -305,6 +311,17 @@ for cycle_index = cycle_index:number_of_cycles
         Const.sun_desired = Const.sun_desired / norm(Const.sun_desired);
         sun_pointing_error(:, current_timestep) = acos(sun_orbit_normalized'*(R_OB' * Const.sun_desired'));
         sun_angle(:, current_timestep) = acos(sun_orbit_normalized'*(R_OB')); 
+        estimated_velocity(:, current_timestep) = gyro - x_hat(5:7);
+
+         %% Check if the time for Detumbling has come
+
+            if current_timestep > 1
+                [trigger_flag, trigger_flag_raw, threshold_times, threshold_exceptions] = ...
+                    trigger_S2D(x_real(5:7, current_timestep), x_real(5:7, current_timestep-1), threshold_times, threshold_exceptions,Const.S2D_threshold,total_limit,exceptions_limit);
+
+                bdot_activation_matrix(1, current_timestep) = trigger_flag;
+                bdot_activation_matrix(2, current_timestep) = trigger_flag_raw;
+            end
     end
 
     for timestep_index = 4:10
@@ -335,13 +352,19 @@ for cycle_index = cycle_index:number_of_cycles
         x_hat(1:4) = x_hat(1:4) / norm(x_hat(1:4));
 
         %% PD function
-        q_ob_hat = quat_EB2OB(x_hat(1:4), Nodem, Inclm, Argpm, Mm);
+        % Choose x_hat for determination, x for ground truth 
+    
+        q_ob_hat = quat_EB2OB(x_hat(1:4),Nodem,Inclm,Argpm,Mm);
+        % q_ob_hat = quat_EB2OB(x(1:4),Nodem,Inclm,Argpm,Mm);
+
         acceleration_rw(1, 1) = acceleration_rw(2, 1);
         acceleration_rw(2, 1) = acceleration_rw(3, 1);
         AngVel_rw_radps(1, 1) = AngVel_rw_radps(2, 1);
         AngVel_rw_radps(2, 1) = AngVel_rw_radps(3, 1);
         AngVel_rw_rpm(1, 1) = AngVel_rw_rpm(2, 1);
         AngVel_rw_rpm(2, 1) = AngVel_rw_rpm(3, 1);
+
+        % Choose first PD for determination, second PD for ground truth
 
         [torq, T_rw, T_magnetic_effective, ~, ~, ~, AngVel_rw_rpm_next, AngVel_rw_radps_next, ...
             acceleration_rw_cur, rw_ang_momentum, init_AngVel_dz, init_accel_dz, ~, ~, ~, ...
@@ -350,6 +373,14 @@ for cycle_index = cycle_index:number_of_cycles
             Const.mtq_max, Const.lim_dz, AngVel_rw_radps(2, 1), AngVel_rw_rpm(2, 1), ...
             acceleration_rw(1, 1), init_AngVel_dz, init_accel_dz, timeflag_dz, Const.rw_max_torque, ...
             y_real(1:3)*norm(Mag_field_orbit), cycle_index, Sun_pos_eci, Const.known_rm,Const.const1_accel,Const.const2_accel,Const.const3_accel,Const.const4_accel,Const.AngVel_rw_lim,Const.sun_desired);
+
+        % [torq, T_rw, T_magnetic_effective, ~, ~, ~, AngVel_rw_rpm_next, AngVel_rw_radps_next, ...
+        %     acceleration_rw_cur, rw_ang_momentum, init_AngVel_dz, init_accel_dz, ~, ~, ~, ...
+        %     timeflag_dz, M, q_sb] = ...
+        %     PD_Sun_Pointing(q_desired, x_hat(1:4), x(5:7), y_real(1:3)*norm(Mag_field_orbit), ...
+        %     Const.mtq_max, Const.lim_dz, AngVel_rw_radps(2, 1), AngVel_rw_rpm(2, 1), ...
+        %     acceleration_rw(1, 1), init_AngVel_dz, init_accel_dz, timeflag_dz, Const.rw_max_torque, ...
+        %     y_real(1:3)*norm(Mag_field_orbit), cycle_index, Sun_pos_eci, Const.known_rm,Const.const1_accel,Const.const2_accel,Const.const3_accel,Const.const4_accel,Const.AngVel_rw_lim,Const.sun_desired);
 
         %% Propagate the system
         q_ob = quat_EB2OB(x(1:4), Nodem, Inclm, Argpm, Mm);
@@ -388,7 +419,17 @@ for cycle_index = cycle_index:number_of_cycles
         Const.sun_desired = Const.sun_desired / norm(Const.sun_desired);
         sun_pointing_error(:, current_timestep) = acos(sun_orbit_normalized'*(R_OB' * Const.sun_desired'));
         sun_angle(:, current_timestep) = acos(sun_orbit_normalized'*(R_OB')); 
+        estimated_velocity(:, current_timestep) = gyro - x_hat(5:7);
 
+        %% Check if the time for Detumbling has come
+
+            if current_timestep > 1
+                [trigger_flag, trigger_flag_raw, threshold_times, threshold_exceptions] = ...
+                    trigger_S2D(x_real(5:7, current_timestep), x_real(5:7, current_timestep-1), threshold_times, threshold_exceptions,Const.S2D_threshold,total_limit,exceptions_limit);
+
+                bdot_activation_matrix(1, current_timestep) = trigger_flag;
+                bdot_activation_matrix(2, current_timestep) = trigger_flag_raw;
+            end
     end
 end
 
@@ -497,8 +538,8 @@ for i = 1:4
     grid on;
 end
 
-%MEKF error
 
+%MEKF error
  figure();
     for i=1:n_dim
         subplot(n_dim,1,i);
@@ -518,9 +559,6 @@ end
         hold off;
         grid on;
     end
-
-
-
 
 
 %% Eclipse plot
@@ -561,6 +599,34 @@ for i = 1:3
     ylabel(['$\omega_', num2str(i), '$', '[rad/sec]'], 'interpreter', 'latex', 'fontsize', 14);
     if (i == 1), legend('Angular Velocity'); end
     if (i == 1), title('Angular Velocities', 'interpreter', 'latex', 'fontsize', 17); end
+    grid on;
+end
+
+figure();
+for i = 1:3
+    subplot(3, 1, i);
+    plot(Time(1:end-1), estimated_velocity(i, 1:length(Time)-1), 'LineWidth', 2.0, 'Color', 'blue');
+    xlabel('Time [s]', 'interpreter', 'latex', 'fontsize', 12);
+    if (i == 1), ylabel('$\omega_1$ [rad/sec]', 'interpreter', 'latex', 'fontsize', 14); end
+    if (i == 2), ylabel('$\omega_2$ [rad/sec]', 'interpreter', 'latex', 'fontsize', 14); end
+    if (i == 3), ylabel('$\omega_3$ [rad/sec]', 'interpreter', 'latex', 'fontsize', 14); end
+    ylabel(['$\omega_', num2str(i), '$', '[rad/sec]'], 'interpreter', 'latex', 'fontsize', 14);
+    if (i == 1), legend('Estimated Angular Velocity'); end
+    if (i == 1), title('Estimated Angular Velocities', 'interpreter', 'latex', 'fontsize', 17); end
+    grid on;
+end
+
+figure();
+for i = 1:3
+    subplot(3, 1, i);
+    plot(Time(1:end-1), x_real(4+i, 1:length(Time)-1) - estimated_velocity(i, 1:length(Time)-1), 'LineWidth', 2.0, 'Color', 'blue');
+    xlabel('Time [s]', 'interpreter', 'latex', 'fontsize', 12);
+    if (i == 1), ylabel('$\omega_1$ [rad/sec]', 'interpreter', 'latex', 'fontsize', 14); end
+    if (i == 2), ylabel('$\omega_2$ [rad/sec]', 'interpreter', 'latex', 'fontsize', 14); end
+    if (i == 3), ylabel('$\omega_3$ [rad/sec]', 'interpreter', 'latex', 'fontsize', 14); end
+    ylabel(['$\omega_', num2str(i), '$', '[rad/sec]'], 'interpreter', 'latex', 'fontsize', 14);
+    if (i == 1), legend('Estimation Error'); end
+    if (i == 1), title('Estimation error for angular velocity $\omega_{true} - \omega_{est}$', 'interpreter', 'latex', 'fontsize', 17); end
     grid on;
 end
 
@@ -976,21 +1042,35 @@ title('Angle Error between actual and desired vector [deg]', 'interpreter', 'lat
 xlabel('Time [$s$]', 'interpreter', 'latex', 'fontsize', 12);
 grid on;
 
+
 %% Plotting angle error per axis
 figure()
 subplot(3, 1, 1)
 plot(Time(1:length(sun_angle(1,:))), rad2deg(sun_angle(1,:)), 'LineWidth', 1.5, 'Color', 'blue');
+hold on;
+x_angle = 135; 
+plot([Time(1), Time(end)], [x_angle, x_angle], 'r', 'LineWidth', 1.5);
+hold off;
 title('Angle Between +X axis and Sun Vector [deg]', 'interpreter', 'latex', 'fontsize', 17);
 xlabel('Time [$s$]', 'interpreter', 'latex', 'fontsize', 12);
 subplot(3, 1, 2)
 plot(Time(1:length(sun_angle(2,:))), rad2deg(sun_angle(2,:)), 'LineWidth', 1.5, 'Color', 'blue');
+hold on;
+y_angle = 45; 
+plot([Time(1), Time(end)], [y_angle, y_angle], 'r', 'LineWidth', 1.5);
+hold off;
 title('Angle Between +Y axis and Sun Vector [deg]', 'interpreter', 'latex', 'fontsize', 17);
 xlabel('Time [$s$]', 'interpreter', 'latex', 'fontsize', 12);
 subplot(3, 1, 3)
 plot(Time(1:length(sun_angle(3,:))), rad2deg(sun_angle(3,:)), 'LineWidth', 1.5, 'Color', 'blue');
+hold on;
+z_angle = 90; 
+plot([Time(1), Time(end)], [z_angle, z_angle], 'r', 'LineWidth', 1.5);
+hold off;
 title('Angle Between +Z axis and Sun Vector [deg]', 'interpreter', 'latex', 'fontsize', 17);
 xlabel('Time [$s$]', 'interpreter', 'latex', 'fontsize', 12);
 grid on;
+
 
 %% Plotting Bdot Activation Matrix
 figure();
