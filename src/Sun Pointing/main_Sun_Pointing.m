@@ -538,6 +538,29 @@ for i = 1:4
     grid on;
 end
 
+
+%MEKF error
+ figure();
+    for i=1:n_dim
+        subplot(n_dim,1,i);
+        hold on;
+        if i<5
+            plot(Time,abs(x_real(i,1:length(Time)))-abs(x_hat_data(i,:)), 'LineWidth',2.0, 'Color','blue');
+        else
+            plot(Time(1:length(bias_data(1,:))),abs(bias_data(i-4,1:length(bias_data(1,:))))-abs(abs(x_hat_data(i,:))))
+        end
+
+        %plot(Time(1:length(x_hat_data(i,:))),x_hat_data(i,:), 'LineWidth',2.0, 'Color','magenta');
+        %if (i==1),legend({['$x_' num2str(i) '$'],['$\hat{x}_' num2str(i) '$']}, 'interpreter','latex', 'fontsize',15);end
+        ylabel(['$x_' num2str(i) '$'], 'interpreter','latex', 'fontsize',14);
+        if (i==1), title('MEKF errors', 'interpreter','latex', 'fontsize',17);end
+        %     xlim([3 number_of_cycles]);
+        xlabel('Time [$s$]', 'interpreter','latex', 'fontsize',12);
+        hold off;
+        grid on;
+    end
+
+
 %% Eclipse plot
 figure()
 plot(1:length(eclipse), eclipse, 'LineWidth', 2.0, 'Color', 'blue');
@@ -1007,16 +1030,20 @@ ylabel('Torque [Nm]')
 xlabel('Time [s]');
 grid on;
 
+%% Plotting z-axis magnetic field
 figure()
 plot(Bbody_data(3, :))
 title('Magnetic field in Z axis', 'interpreter', 'latex', 'fontsize', 17);
 
+%% Plotting total angle error
 figure()
 plot(Time(1:length(sun_pointing_error)), rad2deg(sun_pointing_error), 'LineWidth', 1.5, 'Color', 'blue');
 title('Angle Error between actual and desired vector [deg]', 'interpreter', 'latex', 'fontsize', 17);
 xlabel('Time [$s$]', 'interpreter', 'latex', 'fontsize', 12);
 grid on;
 
+
+%% Plotting angle error per axis
 figure()
 subplot(3, 1, 1)
 plot(Time(1:length(sun_angle(1,:))), rad2deg(sun_angle(1,:)), 'LineWidth', 1.5, 'Color', 'blue');
@@ -1046,16 +1073,114 @@ grid on;
 
 
 %% Plotting Bdot Activation Matrix
+figure();
+for i=1:2
+    subplot(2,1,i);
+    hold on;
+    plot(Time(1:length(Time)), bdot_activation_matrix(i, 1:length(Time)), 'LineWidth',1.5, 'Color','blue');
+    if (i==1), title('B-dot Activation', 'interpreter','latex', 'fontsize',17);end
+    if (i==1), ylabel('Data after process', 'interpreter','latex', 'fontsize',14); end
+    if (i==2), ylabel('Raw Data', 'interpreter','latex', 'fontsize',14); end
+    xlabel('Time [$s$]', 'interpreter','latex', 'fontsize',12);
+    hold off;
+    grid on;
+end
 
-    figure();
-    for i=1:2
-        subplot(2,1,i);
-        hold on;
-        plot(Time(1:length(Time)), bdot_activation_matrix(i, 1:length(Time)), 'LineWidth',1.5, 'Color','blue');
-        if (i==1), title('B-dot Activation', 'interpreter','latex', 'fontsize',17);end
-        if (i==1), ylabel('Data after process', 'interpreter','latex', 'fontsize',14); end
-        if (i==2), ylabel('Raw Data', 'interpreter','latex', 'fontsize',14); end
-        xlabel('Time [$s$]', 'interpreter','latex', 'fontsize',12);
-        hold off;
-        grid on;
-    end
+
+%% Box Plot
+% % Parameters for the 3D rectangle
+% width = 1;   % Width along the X-axis
+% height = 1;  % Height along the Y-axis
+% depth = 3;   % Depth along the Z-axis
+% 
+% % Define the rectangular prism's vertices
+% vertices = [ -width/2, -height/2, -depth/2;
+%               width/2, -height/2, -depth/2;
+%               width/2,  height/2, -depth/2;
+%              -width/2,  height/2, -depth/2;
+%              -width/2, -height/2,  depth/2;
+%               width/2, -height/2,  depth/2;
+%               width/2,  height/2,  depth/2;
+%              -width/2,  height/2,  depth/2];
+% 
+% % Define the faces for patch plotting
+% faces = [1 2 3 4;
+%          5 6 7 8;
+%          1 2 6 5;
+%          2 3 7 6;
+%          3 4 8 7;
+%          4 1 5 8];
+% 
+% 
+% face_colors = [0 1 1;  % Cyan for -Z
+%                1 0 1;  % Magenta for +Z
+%                0 1 1;  % Cyan for bottom (-Y)
+%                1 0 1;  % Magenta for +X
+%                0 1 1;  % Cyan for top (+Y)
+%                0 1 1]; % Cyan for -X
+% 
+% 
+% % Initialize the figure and axis
+% figure;
+% axis equal;
+% grid on;
+% xlim([-5 5]); ylim([-5 5]); zlim([-5 5]);
+% xlabel('X Orbit Frame'); ylabel('Y Orbit Frame'); zlabel('Z Orbit Frame');
+% hold on;
+% 
+% % Set the view for 3D visualization
+% view(3);  % This ensures the plot uses a 3D view
+% 
+% % Create patch object for the rectangular prism
+% rect_prism = patch('Vertices', vertices, 'Faces', faces, ...
+%                    'FaceVertexCData', face_colors, 'FaceColor', 'flat', ...
+%                    'EdgeColor', 'black');
+% 
+% 
+% % Initialize text handle for the current time and frame
+% time_text = text(0, 5, 5, '', 'FontSize', 12, 'Color', 'black');  % Position the text above the plot area
+% 
+% % Initialize text handle for the eclipse
+% eclipse_text = text(0, -5, 5, '', 'FontSize', 12, 'Color', 'black');  % Position the text above the plot area
+% 
+% % Initialize quiver objects for the vectors
+% S_quiver = quiver3(0, 0, 0, 0, 0, 0, 'r', 'LineWidth', 2, 'MaxHeadSize', 0.5); % Sun vector (Red)
+% 
+% % Create initial legend
+% legend_handles = S_quiver;
+% legend_labels = {'Sun Vector'};
+% legend(legend_handles, legend_labels, 'Location', 'best');
+% 
+% % Animation loop
+% for t = 1:length(Time)
+%     % Rotation matrix
+%     q_orbit_body = q_ob_data(:,t);
+%     R_OB = quat2dcm(q_orbit_body');
+% 
+%     % Apply rotation to each vertex
+%     rotated_vertices = (R_OB' * vertices')';  % Transform vertices using R
+% 
+%     % Update the rectangular prism's vertices
+%     set(rect_prism, 'Vertices', rotated_vertices);
+% 
+%     % Update Sun Vector
+%     S_body = sun_pos_orbit(:,t)/norm(sun_pos_orbit(:,t))*5; % Sun vector already in orbit frame
+% 
+%     set(S_quiver, 'XData', 0, 'YData', 0, 'ZData', 0, ...
+%                   'UData', S_body(1), 'VData', S_body(2), 'WData', S_body(3));
+% 
+%     % Update the time and frame label
+%     set(time_text, 'String', sprintf('Time: %d', t));
+% 
+%     % Update eclipse label
+%     if (eclipse(t) == 0)
+%         set(eclipse_text, 'String', 'No Eclipse');
+%     else
+%         set(eclipse_text, 'String', 'Eclipse');
+%     end   
+% 
+%     % Update the plot
+%     drawnow;
+% 
+%     pause(0.005);
+% end

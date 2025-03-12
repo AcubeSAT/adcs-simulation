@@ -10,9 +10,12 @@
 %  total_noise   - noise
 %  new_bias      - updated bias
 %
-%  Theoratical values :
-%  sigma_u = 7.7570e-05
-%  sigma_v = 0.0026
+%  Theoratical values for ADXRS453:
+%  sigma_u = 3.4434e-04
+%  sigma_v = 0.0004;
+%  Theoratical values for SCHAT63T:
+%  sigma_u = 2e-6; 
+%  sigma_v = 2.04e-5;
 %
 %
 %  Based on Markley-Crassidis p.147
@@ -23,4 +26,6 @@ function [total_noise, new_bias] = gyro_noise_func(old_bias, dt, sigma_u, sigma_
 
     total_noise = 0.5 * (old_bias + new_bias) + sqrt((sigma_v^2 / dt + sigma_u^2 * dt / 12)) * randn(3, 1);
 
+    % new_bias = 0;
+    % total_noise = 0;
 end

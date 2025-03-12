@@ -32,9 +32,9 @@ function [satrec, x] = orbit_init()
 
     %% Set TLE manually
     %infilename = "SSO-500-6PM.TLE";
-    infilename = "SS0-500-6PM-new.TLE";
+    infilename = "SSO-500-6PM.TLE";
 
-    %% Aks the user to provide TLE file
+    %% Ask the user to provide TLE file
     %infilename = input('input elset filename: ','s');
 
     %% Open TLE
