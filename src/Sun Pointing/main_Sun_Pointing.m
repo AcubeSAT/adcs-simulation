@@ -992,6 +992,21 @@ title('Angle Between +Z axis and Sun Vector [deg]', 'interpreter', 'latex', 'fon
 xlabel('Time [$s$]', 'interpreter', 'latex', 'fontsize', 12);
 grid on;
 
+%% Plotting Bdot Activation Matrix
+figure();
+for i=1:2
+    subplot(2,1,i);
+    hold on;
+    plot(Time(1:length(Time)), bdot_activation_matrix(i, 1:length(Time)), 'LineWidth',1.5, 'Color','blue');
+    if (i==1), title('B-dot Activation', 'interpreter','latex', 'fontsize',17);end
+    if (i==1), ylabel('Data after process', 'interpreter','latex', 'fontsize',14); end
+    if (i==2), ylabel('Raw Data', 'interpreter','latex', 'fontsize',14); end
+    xlabel('Time [$s$]', 'interpreter','latex', 'fontsize',12);
+    hold off;
+    grid on;
+end
+
+
 %% Box Plot
 % % Parameters for the 3D rectangle
 % width = 1;   % Width along the X-axis
