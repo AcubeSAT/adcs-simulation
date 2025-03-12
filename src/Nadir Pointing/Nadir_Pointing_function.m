@@ -1069,103 +1069,99 @@ function [APE, Time, eclipse] = Nadir_Pointing_function(Kp_gain, Kd_gain)
     end
 
 
-
-
-
-
-% %Parameters for the 3D rectangle
-% width = 1;   % Width along the X-axis
-% height = 1;  % Height along the Y-axis
-% depth = 3;   % Depth along the Z-axis
-% 
-% % Define the rectangular prism's vertices
-% vertices = [ -width/2, -height/2, -depth/2;
-%               width/2, -height/2, -depth/2;
-%               width/2,  height/2, -depth/2;
-%              -width/2,  height/2, -depth/2;
-%              -width/2, -height/2,  depth/2;
-%               width/2, -height/2,  depth/2;
-%               width/2,  height/2,  depth/2;
-%              -width/2,  height/2,  depth/2];
-% 
-% % Define the faces for patch plotting
-% faces = [1 2 3 4;
-%          5 6 7 8;
-%          1 2 6 5;
-%          2 3 7 6;
-%          3 4 8 7;
-%          4 1 5 8];
-% 
-% 
-% face_colors = [0 1 1;  % Cyan for -Z
-%                1 0 1;  % Magenta for +Z
-%                0 1 1;  % Cyan for bottom (-Y)
-%                1 0 1;  % Magenta for +X
-%                0 1 1;  % Cyan for top (+Y)
-%                0 1 1]; % Cyan for -X
-% 
-% 
-% % Initialize the figure and axis
-% figure;
-% axis equal;
-% grid on;
-% xlim([-5 5]); ylim([-5 5]); zlim([-5 5]);
-% xlabel('X Orbit Frame'); ylabel('Y Orbit Frame'); zlabel('Z Orbit Frame');
-% hold on;
-% 
-% % Set the view for 3D visualization
-% view(3);  % This ensures the plot uses a 3D view
-% 
-% % Create patch object for the rectangular prism
-% rect_prism = patch('Vertices', vertices, 'Faces', faces, ...
-%                    'FaceVertexCData', face_colors, 'FaceColor', 'flat', ...
-%                    'EdgeColor', 'black');
-% 
-% 
-% % Initialize text handle for the current time and frame
-% time_text = text(0, 5, 5, '', 'FontSize', 12, 'Color', 'black');  % Position the text above the plot area
-% 
-% 
-% % Initialize quiver objects for the vectors
-% 
-% N_quiver = quiver3(0, 0, 0, 0, 0, 0, 'r', 'LineWidth', 2, 'MaxHeadSize', 0.5); % Sun vector (Red)
-% 
-% 
-% 
-% % Animation loop
-% for t = 1:length(Time)
-% 
-%     % Rotation matrix
-% 
-%     q_orbit_body = q_ob_data(:,t);
-%     R_OB = quat2dcm(q_orbit_body');
-% 
-%     % Apply rotation to each vertex
-%     rotated_vertices = (R_OB' * vertices')';  % Transform vertices using R
-% 
-%     % Update the rectangular prism's vertices
-%     set(rect_prism, 'Vertices', rotated_vertices);
-% 
-% 
-%     % Update Nadir Vector
-%     N_body = ECI2Orbit(xsat_eci(:,t),Nodem,Inclm,Argpm); 
-% 
-% 
-%     set(N_quiver, 'XData', 0, 'YData', 0, 'ZData', 0, ...
-%                   'UData', N_body(1), 'VData', N_body(2), 'WData', N_body(3));
-% 
-%     % Update the time and frame label
-%     set(time_text, 'String', sprintf('Time: %d', t));
-%      if eclipse(t)
-%        legend({'Eclipse','Nadir Vector'}, 'Location', 'best');
-%      else
-%        legend({' No Eclipse','Nadir Vector'},'Location','best');
-%      end    
-% 
-%     % Update the plot
-%     drawnow;
-% 
-%     pause(0.005);
-% end
+    %% Box Plot
+    % % Parameters for the 3D rectangle
+    % width = 1;   % Width along the X-axis
+    % height = 1;  % Height along the Y-axis
+    % depth = 3;   % Depth along the Z-axis
+    % 
+    % % Define the rectangular prism's vertices
+    % vertices = [ -width/2, -height/2, -depth/2;
+    %               width/2, -height/2, -depth/2;
+    %               width/2,  height/2, -depth/2;
+    %              -width/2,  height/2, -depth/2;
+    %              -width/2, -height/2,  depth/2;
+    %               width/2, -height/2,  depth/2;
+    %               width/2,  height/2,  depth/2;
+    %              -width/2,  height/2,  depth/2];
+    % 
+    % % Define the faces for patch plotting
+    % faces = [1 2 3 4;
+    %          5 6 7 8;
+    %          1 2 6 5;
+    %          2 3 7 6;
+    %          3 4 8 7;
+    %          4 1 5 8];
+    % 
+    % face_colors = [0 1 1;  % Cyan for -Z
+    %                1 0 1;  % Magenta for +Z
+    %                0 1 1;  % Cyan for bottom (-Y)
+    %                1 0 1;  % Magenta for +X
+    %                0 1 1;  % Cyan for top (+Y)
+    %                0 1 1]; % Cyan for -X
+    % 
+    % % Initialize the figure and axis
+    % figure;
+    % axis equal;
+    % grid on;
+    % xlim([-5 5]); ylim([-5 5]); zlim([-5 5]);
+    % xlabel('X Orbit Frame'); ylabel('Y Orbit Frame'); zlabel('Z Orbit Frame');
+    % hold on;
+    % 
+    % % Set the view for 3D visualization
+    % view(3);  % This ensures the plot uses a 3D view
+    % 
+    % % Create patch object for the rectangular prism
+    % rect_prism = patch('Vertices', vertices, 'Faces', faces, ...
+    %                    'FaceVertexCData', face_colors, 'FaceColor', 'flat', ...
+    %                    'EdgeColor', 'black');
+    % 
+    % % Initialize text handle for the current time and frame
+    % time_text = text(0, 5, 5, '', 'FontSize', 12, 'Color', 'black');  % Position the text above the plot area
+    % 
+    % % Initialize text handle for the eclipse
+    % eclipse_text = text(0, -5, 5, '', 'FontSize', 12, 'Color', 'black');  % Position the text above the plot area
+    % 
+    % % Initialize quiver objects for the vectors
+    % N_quiver = quiver3(0, 0, 0, 0, 0, 0, 'r', 'LineWidth', 2, 'MaxHeadSize', 0.5); % Nadir vector (Red)
+    % 
+    % % Create initial legend
+    % legend_handles = N_quiver;
+    % legend_labels = {'Nadir Vector'};
+    % legend(legend_handles, legend_labels, 'Location', 'best');
+    % 
+    % % Animation loop
+    % for t = 1:length(Time)
+    %     % Rotation matrix
+    %     q_orbit_body = q_ob_data(:,t);
+    %     R_OB = quat2dcm(q_orbit_body');
+    % 
+    %     % Apply rotation to each vertex
+    %     rotated_vertices = (R_OB' * vertices')';  % Transform vertices using R
+    % 
+    %     % Update the rectangular prism's vertices
+    %     set(rect_prism, 'Vertices', rotated_vertices);
+    % 
+    %     % Update Nadir Vector
+    %     N_body = ECI2Orbit(xsat_eci(:,t),Nodem,Inclm,Argpm); 
+    % 
+    %     set(N_quiver, 'XData', 0, 'YData', 0, 'ZData', 0, ...
+    %                   'UData', N_body(1), 'VData', N_body(2), 'WData', N_body(3));
+    % 
+    %     % Update the time and frame label
+    %     set(time_text, 'String', sprintf('Time: %d', t));
+    % 
+    %     % Update eclipse label
+    %     if (eclipse(t) == 0)
+    %         set(eclipse_text, 'String', 'No Eclipse');
+    %     else
+    %         set(eclipse_text, 'String', 'Eclipse');
+    %     end 
+    % 
+    %     % Update the plot
+    %     drawnow;
+    % 
+    %     pause(0.005);
+    % end
 
 end
