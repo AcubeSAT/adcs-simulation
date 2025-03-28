@@ -3,23 +3,25 @@ function noise = power_law_noise(beta, v0, dims)
     n=dims(end);
     
     f = (0:floor(n/2))/n;
-    f(1) = 1/n; 
+    if ~(0 <= v0 && v0 <= 0.5)
+        error('v0 must be in the range [0, 0.5]');
+    end
+    v0 = max(v0, 1/n);
     
     
     S = (max(f, v0)).^(-beta/2);
     
     
-    X = randn(1,length(f)) .* S;
-    Y = randn(1,length(f)) .* S;
+    X = randn([dims(1:end-1), length(f)]) ;
+    Y = randn([dims(1:end-1), length(f)]) ;
     
    
-    Y(1) = 0;                   
+    Y(1,:) = 0;                   
     if mod(n,2) == 0
-        Y(end) = 0;            
+        Y(:,end) = 0;            
     end
     
-    
-    F = X + 1i*Y;
+     F = S .* (X + 1i * Y);
     
     
     if mod(n,2) == 0
@@ -29,6 +31,6 @@ function noise = power_law_noise(beta, v0, dims)
     end
     
 
-    noise = real(ifft(F_full));
+    noise = real(ifft(F_full, n, numel(dims)));
     noise = noise/std(noise);  
 end
