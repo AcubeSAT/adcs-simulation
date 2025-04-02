@@ -61,11 +61,18 @@ function Param = setParamsFinal_Nadir_Pointing(I)
     
     % Gyro bias std dev
     % sigma_u = 3.4434e-04; %ADXRS453   
-    sigma_u = 2e-6;         %SCHA63T
+    %sigma_u = 2e-6;         %SCHA63T
+    
 
     % Gyro white noise std dev  
     % sigma_v = 0.0026;  %ADXRS453
-    sigma_v = 2.04e-5;   %SCHAT63T
+    %sigma_v = 2.04e-5;   %SCHAT63T
+
+    % Noise Parameters
+
+    ARW=2e-5;
+    RRW=2e-6;
+    BI=1e-6;
 
     %% ======= Albedo ========
 
@@ -145,6 +152,9 @@ function Param = setParamsFinal_Nadir_Pointing(I)
     Param.total_limit= total_limit;
     Param.exceptions_limit= exceptions_limit;
     Param.N_Timesteps= N_Timesteps;
+    Param.ARW= ARW;
+    Param.RRW= RRW;
+    Param.BI= BI;
 
 
 end

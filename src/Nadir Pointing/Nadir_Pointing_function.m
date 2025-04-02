@@ -54,6 +54,9 @@ function [APE, Time, eclipse] = Nadir_Pointing_function(Kp_gain, Kd_gain)
     total_limit = Param.total_limit;
     exceptions_limit= Param.exceptions_limit;
     N_Timesteps= Param.N_Timesteps;
+    ARW=Param.ARW;
+    RRW=Param.RRW;
+    BI=Param.BI;
 
 
     %% Initialize Global Parameters
