@@ -58,11 +58,10 @@ function Param = setParamsFinal_Sun_Pointing(I)
 
     disturbancesEnabled = "total";      % Set which disturbances you want to activate: tau_g, tau_ad, tau_sp, tau_rm, total, zero
     rng(1);                             % Fix the random number generator for reproducible results
-    % Gyro bias std dev
-    %sigma_u = 7.7570e-05;
-    sigma_u = 3.4434e-04;
-    % Gyro white noise std dev
-    sigma_v = 0.00026;
+    %Gyro Noise Parameters
+    ARW=2e-5;
+    RRW=2e-6;
+    BI=1e-6;
 
     %% ======= Albedo ========
 
@@ -141,4 +140,7 @@ function Param = setParamsFinal_Sun_Pointing(I)
     Param.total_limit= total_limit;
     Param.exceptions_limit= exceptions_limit;
     Param.N_Timesteps= N_Timesteps;
+    Param.ARW= ARW;
+    Param.RRW= RRW;
+    Param.BI= BI;
 end
