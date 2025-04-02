@@ -42,6 +42,9 @@ use_analytic_jacob = Param.use_analytic_jacob;
 total_limit = Param.total_limit;
 exceptions_limit= Param.exceptions_limit;
 N_Timesteps= Param.N_Timesteps;
+ARW= Param.ARW;
+RRW= Param.RRW;
+BI= Param.BI;
 
 %% Initialize Global Parameters
 
@@ -115,6 +118,16 @@ bdot_activation_matrix = zeros(2, length(Time));
 threshold_times = 0;
 threshold_exceptions = 0;
 estimated_velocity = zeros(3, length(Time));
+Pink_noise_data=zeros(3,length(Time));
+
+%% Generate gyroscope noise using power law noise 
+
+[White_Noise,Pink_Noise,Red_Noise,gyro_noise] = calculate_gyro_noise(ARW,RRW,BI,[3 length(Time)]);
+
+for i=1:length(Time)
+    gyro_noise_data(:,i)=gyro_noise(:,i);
+    Pink_noise_data(:,i)=Pink_Noise(:,i);
+end   
 
 %% Next we initialize the bias estimation by solving Wahba's problem n times.
 
@@ -132,10 +145,9 @@ for cycle_index = 1:bias_wahba_loops
         y_real = real_model.msrFun(x, msrCookieFinal(mag_field_eci(:, current_timestep), ...
             sun_pos_eci(:, current_timestep), eclipse(current_timestep), [0; 0; 0]));
         y_noise = y_real + sqrt(R) * randn(size(y_real));
-        [gyro_noise, real_bias] = gyro_noise_func(real_bias, dt, sigma_u, sigma_v);
+       
 
-
-        y_noise(4:6) = y_real(4:6) + gyro_noise;
+        y_noise(4:6) = y_real(4:6) + gyro_noise(:,current_timestep);
         % sign=randi([0 1]);
         % if sign==0
         %     sign=-1;
@@ -188,7 +200,6 @@ for cycle_index = 1:bias_wahba_loops
                 q_ob_data(:, current_timestep) = quat_EB2OB(x(1:4), nodem(1, current_timestep), ...
                     inclm(1, current_timestep), argpm(1, current_timestep), mm(1, current_timestep));
                 bias_data(:, current_timestep) = real_bias;
-                gyro_noise_data(:, current_timestep) = gyro_noise;
                 q_sb_data(:, current_timestep) = q_sun_body(Sun_pos_eci, x(1:4),Const.sun_desired)';
                 R_OB = quat2dcm(q_ob');
                 sun_orbit_normalized = (Sun_pos_orbit / norm(Sun_pos_orbit));
@@ -255,9 +266,9 @@ for cycle_index = cycle_index:number_of_cycles
         y_real = real_model.msrFun(x, msrCookieFinal(Mag_field_eci, Sun_pos_eci, Eclipse, [0; 0; 0]));
 
         y_noise = y_real + sqrt(R) * randn(size(y_real));
-        [gyro_noise, real_bias] = gyro_noise_func(real_bias, dt, sigma_u, sigma_v);
+       
 
-        y_noise(4:6) = y_real(4:6) + gyro_noise;
+        y_noise(4:6) = y_real(4:6) + gyro_noise(:,current_timestep);
 
         y_noise(7:9) = css_noise(Sun_pos_eci, x(1:4), Xsat_eci, Albedo, lambda);
 
@@ -303,7 +314,6 @@ for cycle_index = cycle_index:number_of_cycles
         rw_ang_vel_rpm(1, current_timestep) = AngVel_rw_rpm(3, 1);
         Bbody_data(:, current_timestep) = y_real(1:3) * norm(mag_field_orbit(:, current_timestep)*10^(-9));
         bias_data(:, current_timestep) = real_bias;
-        gyro_noise_data(:, current_timestep) = gyro_noise;
         q_ob_data(:, current_timestep) = q_ob;
         q_sb_data(:, current_timestep) = q_sun_body(Sun_pos_eci, x(1:4),Const.sun_desired)';
         R_OB = quat2dcm(q_ob');
@@ -345,8 +355,8 @@ for cycle_index = cycle_index:number_of_cycles
         %% Sensor Measurements
         y_real = real_model.msrFun(x, msrCookieFinal(Mag_field_eci, Sun_pos_eci, Eclipse, [0; 0; 0]));
 
-        [gyro_noise, real_bias] = gyro_noise_func(real_bias, dt, sigma_u, sigma_v);
-        y_noise(4:6) = y_real(4:6) + gyro_noise;
+       
+        y_noise(4:6) = y_real(4:6) + gyro_noise(:,current_timestep);
 
         x_hat = mekf.global_state;
         x_hat(1:4) = x_hat(1:4) / norm(x_hat(1:4));
@@ -409,7 +419,6 @@ for cycle_index = cycle_index:number_of_cycles
         AngVel_rw_radps(3, 1) = AngVel_rw_radps_next;
         M_data(:, current_timestep) = M;
         bias_data(:, current_timestep) = real_bias;
-        gyro_noise_data(:, current_timestep) = gyro_noise;
         x_hat_data(:, current_timestep) = x_hat;
         Bbody_data(:, current_timestep) = y_real(1:3) * norm(mag_field_orbit(:, current_timestep)*10^(-9));
         q_ob_data(:, current_timestep) = q_ob;
@@ -467,7 +476,7 @@ x_hat_euler_know(:, 1:3) = quat2eul(x_hat_data(1:4, :)');
 x_hat_euler_know(:, 1:3) = (rad2deg(x_hat_euler_know(:, 1:3)'))';
 
 instant_error_know(:, 1:3) = x_hat_euler_know(:, 1:3) - x_real_euler_know';
-instant_error_know(:, 4:6) = x_hat_data(5:7, 1:length(x_hat_data))' - bias_data';
+instant_error_know(:, 4:6) = x_hat_data(5:7, 1:length(x_hat_data))' - Pink_noise_data';
 
 for i = 1:3
     for cycle_index = 1:length(instant_error_know)
@@ -505,7 +514,7 @@ for i = 1:n_dim
     if i < 5
         plot(Time, x_real(i, 1:length(Time)), 'LineWidth', 2.0, 'Color', 'blue');
     else
-        plot(Time(1:length(bias_data(1, :))), bias_data(i-4, 1:length(bias_data(1, :))))
+        plot(Time(1:length(Pink_noise_data(1, :))), Pink_noise_data(i-4, 1:length(Pink_noise_data(1, :))))
     end
 
     plot(Time(1:length(x_hat_data(i, :))), x_hat_data(i, :), 'LineWidth', 2.0, 'Color', 'magenta');
@@ -547,7 +556,7 @@ end
         if i<5
             plot(Time,abs(x_real(i,1:length(Time)))-abs(x_hat_data(i,:)), 'LineWidth',2.0, 'Color','blue');
         else
-            plot(Time(1:length(bias_data(1,:))),abs(bias_data(i-4,1:length(bias_data(1,:))))-abs(abs(x_hat_data(i,:))))
+            plot(Time(1:length(Pink_noise_data(1,:))),abs(Pink_noise_data(i-4,1:length(Pink_noise_data(1,:))))-abs(abs(x_hat_data(i,:))))
         end
 
         %plot(Time(1:length(x_hat_data(i,:))),x_hat_data(i,:), 'LineWidth',2.0, 'Color','magenta');
