@@ -76,5 +76,11 @@ function noise = power_law_noise(beta, v0, dims)
     
 
     noise = real(ifft(F_full, n, numel(dims)));
-    noise = noise/std(noise);  
+     norm_factor =  2*sqrt( ...
+        sum(S(2:end-1).^2) + ...
+        (S(end) * (1 + mod(n,2)) / 2)^2 ...
+    ) / n;
+    
+  
+    noise = noise / norm_factor;
 end
