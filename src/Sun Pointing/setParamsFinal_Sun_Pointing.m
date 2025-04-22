@@ -60,7 +60,6 @@ function Param = setParamsFinal_Sun_Pointing(I)
     rng(1);                             % Fix the random number generator for reproducible results
     
     %Gyro Noise Parameters (SCHA63T)
-
     ARW=2.27e-5; %(in (rad/sec)/sqrt(Hz))
     RRW=3e-9;  %((in (rad/sec)*sqrt(Hz)))
     BI=2.8e-7; %(in rad/sec)
@@ -133,8 +132,6 @@ function Param = setParamsFinal_Sun_Pointing(I)
     Param.R_coeff = R_coeff;
     Param.R = R;
     Param.R_hat = R_hat;
-    Param.sigma_u = sigma_u;
-    Param.sigma_v = sigma_v;
     Param.P0 = P0;
     Param.number_of_measurements = number_of_measurements;
     Param.use_analytic_jacob = use_analytic_jacob;

@@ -1,3 +1,5 @@
+
+
 % This function generates power law noise with a specified exponent (beta),
 % and scaling parameter(v0) , in a specified dimensional space(dims). The
 % power law scaling is applied in the frequency domain , followed by an
@@ -42,11 +44,15 @@
 %
 
 
+
+
+
+
 function noise = power_law_noise(beta, v0, dims)
-   
-    n=dims(end);
+
+    n = dims(end);
+    f = (0:floor(n/2)) / n;
     
-    f = (0:floor(n/2))/n;
     if ~(0 <= v0 && v0 <= 0.5)
         error('v0 must be in the range [0, 0.5]');
     end
@@ -55,32 +61,37 @@ function noise = power_law_noise(beta, v0, dims)
     
     S = (max(f, v0)).^(-beta/2);
     
+  
+    X = randn([dims(1:end-1), length(f)]);
+   
+    Y = randn([dims(1:end-1), length(f)]);
     
-    X = randn([dims(1:end-1), length(f)]) ;
-    Y = randn([dims(1:end-1), length(f)]) ;
+    
+    Y(:, 1) = 0;
+    if mod(n, 2) == 0
+        Y(:, end) = 0;
+    end
+    
+    
+    F = S .* (X + 1i * Y);
+    
+  
+    if mod(n, 2) == 0
+        F_full = [F, conj(F(:, end-1:-1:2))];
+    else
+        F_full = [F, conj(F(:, end:-1:2))];
+    end
     
    
-    Y(1,:) = 0;                   
-    if mod(n,2) == 0
-        Y(:,end) = 0;            
-    end
-    
-     F = S .* (X + 1i * Y);
-    
-    
-    if mod(n,2) == 0
-        F_full = [F, conj(F(end-1:-1:2))];
-    else
-        F_full = [F, conj(F(end:-1:2))];
-    end
-    
-
     noise = real(ifft(F_full, n, numel(dims)));
-     norm_factor =  2*sqrt( ...
+    
+   
+    norm_factor =  2*sqrt( ...
         sum(S(2:end-1).^2) + ...
         (S(end) * (1 + mod(n,2)) / 2)^2 ...
     ) / n;
     
   
     noise = noise / norm_factor;
+    
 end
