@@ -94,7 +94,7 @@ function [torque, T_rw, T_magnetic_effective, V_rw, I_rw, P_thermal_rw, AngVel_r
     [T_magnetic, T_rw] = mtq_saturation(T_magnetic, T_rw, T_commanded, B_body, M, mtq_max, known_rm);
 
     M = -cross(T_magnetic, B_body) / (norm(B_body))^2;
-    M = M - known_rm';
+    
     T_magnetic_effective = cross(M, B_body_real);
 
     %%  Desaturation of the RW
