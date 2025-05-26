@@ -11,9 +11,20 @@ filename = 'attitude.a';
 
 numPoints = length(Time);  % N = number of points
 
-% ========== Get Scenario Epoch from TLE ========== 
-tle_lines = {'1 99999U          27112.41666667  .00000000  00000-0  00000-0 0 00003', ...
-             '2 99999 097.4116 195.2397 0011825 245.9291 114.0710 15.24069409000015'};
+
+% Load TLE from a text file 
+tle_file = "\TLEs_2027\SS0-500-6PM.TLE"; 
+fileID = fopen(tle_file, 'r');
+if fileID == -1
+    error('Cannot open TLE file: %s', tle_file);
+end
+
+% Read the two lines of TLE
+tle_lines = cell(1,2);
+tle_lines{1} = fgetl(fileID);
+tle_lines{2} = fgetl(fileID);
+fclose(fileID);
+
 
 % Parse epoch from TLE line 1 (YYDDD.DDDDDDDD format)
 tleEpochStr = tle_lines{1}(19:32);
@@ -47,14 +58,14 @@ rad_to_deg = 180 / pi; %conversion from  radians to degrees
 
 
 
-for i = 1:numPoints
-    % The format must be as follows:
-    % [Time Quat(1) Quat(2) Quat(3) Quat(4) AngVelX AngVelY AngVelZ]
-    
-    fprintf(fid, '%.3f %.6f %.6f %.6f %.6f %.6f %.6f %.6f\n', ...
-        Time(i), q_ob_data(1,i), q_ob_data(2, i), q_ob_data(3, i), q_ob_data(4, i), ...
-        x_real(5, i)*rad_to_deg, x_real(6, i)*rad_to_deg, x_real(7, i)*rad_to_deg);
-end
+ for i = 1:numPoints
+     % The format must be as follows:
+     % [Time Quat(1) Quat(2) Quat(3) Quat(4) AngVelX AngVelY AngVelZ]
+ 
+     fprintf(fid, '%.3f %.6f %.6f %.6f %.6f %.6f %.6f %.6f\n', ...
+         Time(i), q_ob_data(1,i), q_ob_data(2, i), q_ob_data(3, i), q_ob_data(4, i), ...
+         x_real(5, i)*rad_to_deg, x_real(6, i)*rad_to_deg, x_real(7, i)*rad_to_deg);
+ end
 
 fprintf(fid, '\nEND Attitude\n');
 fclose(fid);
