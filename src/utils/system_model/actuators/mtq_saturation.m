@@ -18,11 +18,11 @@
 %     T_rw             - Torque to be provided by the RW
 % ======================================================================== %
 
-function [T_magnetic, T_rw] = mtq_saturation(T_magnetic, T_rw, T_commanded, B_body, M, mtq_max, known_rm)
-
+function [T_magnetic, T_rw] = mtq_saturation(T_magnetic, T_rw, T_commanded, B_body, M, mtq_max, h_diff)
+    mdd=0.02
     mtq_maxima = zeros(3, 2);
-    mtq_maxima(:, 1) = mtq_max + known_rm;
-    mtq_maxima(:, 2) = mtq_max - known_rm;
+    mtq_maxima(:, 1) = mtq_max-mdd;
+    mtq_maxima(:, 2) = mtq_max-mdd;
 
     M2 = (1 / norm(T_magnetic)) * M;
     Tm = T_magnetic / norm(T_magnetic);
@@ -42,7 +42,7 @@ function [T_magnetic, T_rw] = mtq_saturation(T_magnetic, T_rw, T_commanded, B_bo
         end
         Kma_s = min(abs(Torque_split_maxima./M2));
         Kwa_s = Kma_s * Kwa / Kma;
-        Ms = Kma_s * M2;
+        Ms = Kma_s * M2+mdd*sign(cross(h_diff,B_body));
         T_magnetic = skew(B_body)' * Ms;
         T_rw = Kwa_s .* Tw;
     else

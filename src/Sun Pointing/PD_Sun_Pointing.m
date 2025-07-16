@@ -30,6 +30,7 @@
 %     const4_accel           - Threshold for Case 4
 %     AngVel_rw_lim          - Angular velocity limit for RW desaturation
 %     sun_desired            - Desired sun vector
+%     bias                   - bias for reaction wheel desaturation
 %
 %   Outputs:
 %     torque                 - Total applied torque
@@ -57,7 +58,7 @@ function [torque, T_rw, T_magnetic_effective, V_rw, I_rw, P_thermal_rw, AngVel_r
         timeflag_dz, M, q_sb] = ...
         PD_Sun_Pointing(q_desired, q_eci_body, w_b_ib, B_body, mtq_max, ...
         lim_dz, AngVel_rw_radps_cur, AngVel_rw_rpm_cur, acceleration_rw_old, init_AngVel_dz, ...
-        init_accel_dz, timeflag_dz, rw_max_torque, B_body_real, time, sun_vector_eci, known_rm,const1_accel,const2_accel,const3_accel,const4_accel,AngVel_rw_lim,sun_desired)
+        init_accel_dz, timeflag_dz, rw_max_torque, B_body_real, time, sun_vector_eci, known_rm,const1_accel,const2_accel,const3_accel,const4_accel,AngVel_rw_lim,sun_desired,bias)
 
     global T_rw_data;
     global T_magnetic_data;
@@ -77,10 +78,10 @@ function [torque, T_rw, T_magnetic_effective, V_rw, I_rw, P_thermal_rw, AngVel_r
     T_rw = [0; 0; 1] * (B_body' * T_commanded) / B_body(3);
     T_magnetic = skew(b_hat)' * skew(b_hat) * (T_commanded - T_rw);
     M = skew(B_body) * T_magnetic / (B_body' * B_body);
+    h_diff=Jw*[0;0;abs(AngVel_rw_radps_cur)-bias];
+    %%  Saturation of the MTQs - Damping rw momentum with mtqs
 
-    %%  Saturation of the MTQs
-
-    [T_magnetic, T_rw] = mtq_saturation(T_magnetic, T_rw, T_commanded, B_body, M, mtq_max, known_rm);
+    [T_magnetic, T_rw] = mtq_saturation(T_magnetic, T_rw, T_commanded, B_body, M, mtq_max,h_diff);
 
     M = -cross(T_magnetic, B_body) / (norm(B_body))^2;
    
@@ -88,16 +89,12 @@ function [torque, T_rw, T_magnetic_effective, V_rw, I_rw, P_thermal_rw, AngVel_r
 
     %%  Saturation of the RW
 
-    if time > 1
-        [T_magnetic_effective, T_rw] = ...
-            rw_saturation(T_magnetic_effective, T_rw, acceleration_rw_old, AngVel_rw_rpm_cur, B_body,mtq_max,AngVel_rw_lim);
-
         if T_rw(3) > Max_RW_torq
             T_rw(3) = Max_RW_torq;
         elseif T_rw(3) < -Max_RW_torq
             T_rw(3) = -Max_RW_torq;
         end
-    end
+   
 
     %% Calculation of V_rw, I_rw, P_Rw in case of no-zero crossing
 

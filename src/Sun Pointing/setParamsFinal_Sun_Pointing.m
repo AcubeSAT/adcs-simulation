@@ -105,6 +105,10 @@ function Param = setParamsFinal_Sun_Pointing(I)
     total_limit = 20;
     exceptions_limit = 2;
 
+    %% Reaction wheel
+
+    rw_bias=312; %rad/sec
+
     %%  Passing the values of the parameters in a struct.
 
     Param.dt = dt;
@@ -142,4 +146,5 @@ function Param = setParamsFinal_Sun_Pointing(I)
     Param.ARW= ARW;
     Param.RRW= RRW;
     Param.BI= BI;
+    Param.rw_bias=rw_bias;
 end
