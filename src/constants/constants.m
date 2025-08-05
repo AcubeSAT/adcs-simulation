@@ -70,7 +70,7 @@ function Const = constants()
     global orbits;
 
     %m = 3.1;   % mass mentioned in STR's CDR
-    m = 4;      % mass mentioned in ADCS' CDR
+    m = 3.41;      % mass mentioned in ADCS' CDR
     
     lx = 0.1;
     ly = 0.1;
@@ -121,7 +121,7 @@ function Const = constants()
     % Cm =  [0.00121 0.00057 0.00188]';
 
     %% CDR inertias
-    PAI = [0.999821, -0.016374, 0.009515;0.016487 ,0.999792 , -0.011979;-0.009316 ,0.012134 , 0.999883];
+    PAI = [0.999821, 0.016374, 0.009515;-0.016487 ,0.999792 , 0.011979;-0.009316 ,-0.012134 , 0.999883];
 
     % PMI mentioned in Structural's CDR
     % good case for STR , worst case for ADCS
@@ -131,7 +131,7 @@ function Const = constants()
     % worst case for STR , good case for ADCS
     PMI = diag([0.034574563967471,  0.034310483309863, 0.005751920137378]);
 
-    Cm = [-0.01970702,0.002449076, 0.014907415]';
+    Cm = [-0.01970702,-0.002449076, 0.014907415]';
 
 
     for j = 1:3
