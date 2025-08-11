@@ -118,7 +118,7 @@ Pink_noise_data=zeros(3,1);
 
 for i=1:length(Time)
     gyro_noise_data(:,i)=gyro_noise(:,i);
-    Pink(:,i)=Pink_Noise(:,i);
+    Pink_noise_data(:,i)=Pink_Noise(:,i);
 end   
 
 
