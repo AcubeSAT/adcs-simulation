@@ -258,8 +258,8 @@ for cycle_index = cycle_index:number_of_cycles
         Sun_pos_orbit = sun_pos_orbit(:, current_timestep);
         Mag_field_orbit = mag_field_orbit(:, current_timestep) * 10^(-9);
 
-        %% Q covariance update
-        Q_selection(Eclipse, Param.Q, Param.R_hat, mekf, Q_eclipse_load);
+        
+        
 
         %% Sensor Measurements
         y_real = real_model.msrFun(x, msrCookieFinal(Mag_field_eci, Sun_pos_eci, Eclipse, [0; 0; 0]));
@@ -348,8 +348,7 @@ for cycle_index = cycle_index:number_of_cycles
         Sun_pos_orbit = sun_pos_orbit(:, current_timestep);
         Mag_field_orbit = mag_field_orbit(:, current_timestep) * 10^(-9);
 
-        %% Q covariance update
-        Q_selection(Eclipse, Param.Q, Param.R_hat, mekf, Q_eclipse_load);
+        
 
         %% Sensor Measurements
         y_real = real_model.msrFun(x, msrCookieFinal(Mag_field_eci, Sun_pos_eci, Eclipse, [0; 0; 0]));
