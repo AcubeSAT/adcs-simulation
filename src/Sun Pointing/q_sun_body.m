@@ -4,6 +4,7 @@ function q = q_sun_body(sun_eci, q_eci_body,sun_desired)
     q_sun_body = quatProd(quatconj(q_eci_body'), quatProd([0; sun_eci]', q_eci_body'));
     sun_body = q_sun_body(2:4);
     sun_desired = sun_desired / norm(sun_desired);
+    
 
     if dot(sun_body, sun_desired) > 0.999999
         q_sun_body(1) = 1;

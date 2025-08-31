@@ -26,14 +26,16 @@ function [T_mtq_effective, T_rw] = rw_saturation(T_magnetic_effective, T_rw, acc
    
     T_mtq_effective = T_magnetic_effective;
 
-    if abs(AngVel_rw) > AngVel_rw_lim && abs(T_rw(3)) > 0
+    % if abs(AngVel_rw) > AngVel_rw_lim && abs(T_rw(3)) > 0
         T_added = [0; 0; A * Jw * accel_rw];
         T_magnetic = T_magnetic_effective + T_added;
+        
+       
         M = -cross(T_magnetic, B_body) / (norm(B_body))^2;
         M = mtq_scaling(M, mtq_max);
         T_mtq_effective = cross(M, B_body);
 
         T_rw = T_rw - (T_mtq_effective - T_magnetic_effective);
-    end
+    % end
 
 end

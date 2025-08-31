@@ -12,7 +12,7 @@ function Param = setParams_ZThomson(I)
     %% ======= Satellite ========
 
     dt = .1; %Timestep for Orbit Propagator
-    orbits = 3;
+    orbits = 2;
     orbitPeriod = 5545;
     tf = orbits * orbitPeriod;  %Total Simulation Seconds
     q_desired = [1, 0, 0, 0];   %Desired quaternion
@@ -26,7 +26,7 @@ function Param = setParams_ZThomson(I)
 
     [satrec, ~] = orbit_init();
     [~, ~, xsat_eci, ~, ~, eclipse, ~, mag_field_eci, ~, mag_field_orbit, ~, sun_pos_eci, ~, sun_pos_orbit, ~, argpm, nodem, inclm, mm, ~, ~] = orbit_sgp4(satrec, dt, tf+dt);
-    %[~,~,xsat_eci,~,~,eclipse,~,mag_field_eci,~,mag_field_orbit,~,sun_pos_eci,~,sun_pos_orbit,~,argpm,nodem,inclm,mm,~,~] = orbit_sgp4_offset(satrec,dt,tf+dt,1000);
+   % [~,~,xsat_eci,~,~,eclipse,~,mag_field_eci,~,mag_field_orbit,~,sun_pos_eci,~,sun_pos_orbit,~,argpm,nodem,inclm,mm,~,~] = orbit_sgp4_offset(satrec,dt,tf+dt,1000);
 
 
 
@@ -52,7 +52,7 @@ function Param = setParams_ZThomson(I)
 
     Q0 = Q0 / norm(Q0);                     %Normalised Quaternion
     init_bias = [.01; 0.15; -.08];          % bias initialization
-    vRot0 = [0.05; 0.05; 0.05];                      %Initial Angular Velocities from Body to ECI frame expressed in Body.
+    vRot0 = [0.035; 0.035; 0.035];                      %Initial Angular Velocities from Body to ECI frame expressed in Body.
     x0 = [Q0; vRot0];                       %Initial state consists of [Quaternion;Angular Velocity]
     Q0_hat = [.6; .1; -.7; .01];            %Random Initial State Estimation
     Q0_hat = Q0_hat / norm(Q0_hat);
@@ -69,11 +69,16 @@ function Param = setParams_ZThomson(I)
 
 %     sigma_u = 3.4434e-04; %ADXRS453   
       sigma_u = 2e-6; %SCHA63T
-
+  
     % Gyro white noise std dev
       
 %     sigma_v = 0.0026;  %ADXRS453
       sigma_v = 2.04e-5; %SCHAT63T
+
+    ARW=2.27e-5; %(in (rad/sec)/sqrt(Hz))
+    RRW=3e-9;  %((in (rad/sec)*sqrt(Hz)))
+    BI=2.8e-7;
+
 
     %% ======= Albedo ========
 
@@ -105,7 +110,7 @@ function Param = setParams_ZThomson(I)
 
     % R Variances used in MEKF
     % R_hat_coeff=[1e-3;1e-3;1e-3;8e-3;8e-3;8e-3;5e-3;5e-3;5e-3];
-    R_hat_coeff = [.5e-3; .5e-3; .5e-3; 1e-3; 1e-3; 1e-3];
+    R_hat_coeff = [.5; .5; .5; 1e-3; 1e-3; 1e-3];
     R_hat = R_hat_coeff .* eye(6, 6);
     % Initialize Covariance matrix
     n_dim_error = 6; % error state length
@@ -155,4 +160,7 @@ function Param = setParams_ZThomson(I)
     Param.Kd = Kd;
     Param.Ks = Ks;
     Param.w_ref = w_ref;
+    Param.ARW=ARW;
+    Param.RRW=RRW;
+    Param.BI=BI;
 end

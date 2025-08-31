@@ -25,7 +25,7 @@ function [total_noise, new_bias] = gyro_noise_func(old_bias, dt, sigma_u, sigma_
     new_bias = old_bias + sigma_u * sqrt(dt) * randn(3, 1);
 
     total_noise = 0.5 * (old_bias + new_bias) + sqrt((sigma_v^2 / dt + sigma_u^2 * dt / 12)) * randn(3, 1);
-
+     
     % new_bias = 0;
     % total_noise = 0;
 end

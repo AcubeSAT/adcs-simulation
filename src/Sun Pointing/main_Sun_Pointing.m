@@ -42,6 +42,10 @@ use_analytic_jacob = Param.use_analytic_jacob;
 total_limit = Param.total_limit;
 exceptions_limit= Param.exceptions_limit;
 N_Timesteps= Param.N_Timesteps;
+ARW=Param.ARW;
+RRW=Param.RRW;
+BI=Param.BI;
+rw_bias=Param.rw_bias;
 
 %% Initialize Global Parameters
 
@@ -81,6 +85,8 @@ end
 Time = 0:dt:tf;
 x_real = zeros(7, length(Time)); % Real state
 q_ob_data = zeros(4, length(Time));
+q_data=zeros(4,length(Time));
+q_ib_data = zeros(4, length(Time));
 x = x0(1:7);
 x_real(:, 1) = x0(1:7);
 t = 0;
@@ -89,7 +95,8 @@ timeflag_dz = 0;
 init_AngVel_dz = 0;
 init_accel_dz = 0;
 rw_ang_momentum = 0;
-rw_ang_vel_rpm = zeros(1, length(Time));            % RW angular velocity in rpm
+rw_ang_vel_rpm = zeros(1,length(Time));            % RW angular velocity in rpm
+
 tau_mtq = zeros(3, length(Time));                   % Torques produced by MTQs
 tau_rw = zeros(1, length(Time));                    % Torques produced by the RW
 M_data = zeros(3, length(Time));
@@ -101,9 +108,10 @@ tau_g = zeros(3, length(Time));
 tau_sp = zeros(3, length(Time));
 plotter_step = 1;
 reps = length(Time);
-AngVel_rw_radps = zeros(3, 1); % 1 = old, 2 = cur, 3 = next
-AngVel_rw_rpm = zeros(3, 1);
+AngVel_rw_radps = [0;0;0]; % 1 = old, 2 = cur, 3 = next
+AngVel_rw_rpm = [0;0;0];
 acceleration_rw = zeros(3, 1);
+acc_rw=zeros(1,length(Time));
 x_hat_data = zeros(7, length(Time));
 bias_data = zeros(3, length(Time));
 gyro_noise_data = zeros(3, length(Time));
@@ -115,7 +123,18 @@ bdot_activation_matrix = zeros(2, length(Time));
 threshold_times = 0;
 threshold_exceptions = 0;
 estimated_velocity = zeros(3, length(Time));
+Pink=zeros(3,length(Time));
+css_noise_data=zeros(3,length(Time));
 
+
+%% Generate gyroscope noise using power law noise 
+
+[White_Noise,Pink_Noise,Red_Noise,gyro_noise] = calculate_gyro_noise(ARW,RRW,BI,[3 length(Time)]);
+
+for i=1:length(Time)
+    gyro_noise_data(:,i)=gyro_noise(:,i);
+    Pink(:,i)=Pink_Noise(:,i);
+end   
 %% Next we initialize the bias estimation by solving Wahba's problem n times.
 
 bias_init_counter = 0; % how many Wahba's have we solved for bias init
@@ -132,15 +151,15 @@ for cycle_index = 1:bias_wahba_loops
         y_real = real_model.msrFun(x, msrCookieFinal(mag_field_eci(:, current_timestep), ...
             sun_pos_eci(:, current_timestep), eclipse(current_timestep), [0; 0; 0]));
         y_noise = y_real + sqrt(R) * randn(size(y_real));
-        [gyro_noise, real_bias] = gyro_noise_func(real_bias, dt, sigma_u, sigma_v);
+     % [gyro_noise, real_bias] = gyro_noise_func(real_bias, dt, sigma_u, sigma_v);
 
 
-        y_noise(4:6) = y_real(4:6) + gyro_noise;
+        y_noise(4:6) = y_real(4:6) + gyro_noise(:,current_timestep);
         % sign=randi([0 1]);
         % if sign==0
         %     sign=-1;
         % end
-        y_noise(7:9) = css_noise(sun_pos_eci(:, current_timestep), x(1:4), xsat_eci(:, current_timestep), albedo(:, current_timestep), lambda);
+       [y_noise(7:9),noise] = css_noise(sun_pos_eci(:, current_timestep), x(1:4), xsat_eci(:, current_timestep), albedo(:, current_timestep), lambda);
 
         if eclipse((cycle_index - 1)*N_Timesteps+1) ~= 0
             y_noise(7:9) = zeros(3, 1);
@@ -175,6 +194,7 @@ for cycle_index = 1:bias_wahba_loops
                 current_timestep = (cycle_index - 1) * N_Timesteps + i;
 
                 q_ob = quat_EB2OB(x(1:4), Nodem, Inclm, Argpm, Mm);
+                q=q_EB2OB(x(1:4), Nodem, Inclm, Argpm, Mm);
                 [T_dist, ~, ~, ~, ~, ~, ~] = disturbances_pd(q_ob, Sun_pos_orbit, Mag_field_orbit, disturbancesEnabled);
 
                 torq = T_dist;
@@ -187,8 +207,17 @@ for cycle_index = 1:bias_wahba_loops
                 x_hat_data(:, current_timestep) = zeros(7, 1);
                 q_ob_data(:, current_timestep) = quat_EB2OB(x(1:4), nodem(1, current_timestep), ...
                     inclm(1, current_timestep), argpm(1, current_timestep), mm(1, current_timestep));
+                q_data(:, current_timestep) = q_EB2OB(x(1:4), nodem(1, current_timestep), ...
+                    inclm(1, current_timestep), argpm(1, current_timestep), mm(1, current_timestep));
+
+                R_OI = Orbit2ECI_DCM(Nodem, Inclm, Argpm);
+                R_IO = R_ECI2Orbit(Nodem, Inclm, Argpm);
+                q_io = dcm2quat(R_IO);
+                q_io = q_io/norm(q_io);
+                q_ib_data(:,current_timestep) = quatProd(q_ob_data(:,current_timestep),q_io);
                 bias_data(:, current_timestep) = real_bias;
-                gyro_noise_data(:, current_timestep) = gyro_noise;
+            %    gyro_noise_data(:, current_timestep) = gyro_noise;
+                css_noise_data(:,current_timestep)=noise;
                 q_sb_data(:, current_timestep) = q_sun_body(Sun_pos_eci, x(1:4),Const.sun_desired)';
                 R_OB = quat2dcm(q_ob');
                 sun_orbit_normalized = (Sun_pos_orbit / norm(Sun_pos_orbit));
@@ -249,17 +278,17 @@ for cycle_index = cycle_index:number_of_cycles
         Mag_field_orbit = mag_field_orbit(:, current_timestep) * 10^(-9);
 
         %% Q covariance update
-        Q_selection(Eclipse, Param.Q, Param.R_hat, mekf, Q_eclipse_load);
+  %      Q_selection(Eclipse, Param.Q, Param.R_hat, mekf, Q_eclipse_load);
 
         %% Sensor Measurements
         y_real = real_model.msrFun(x, msrCookieFinal(Mag_field_eci, Sun_pos_eci, Eclipse, [0; 0; 0]));
 
         y_noise = y_real + sqrt(R) * randn(size(y_real));
-        [gyro_noise, real_bias] = gyro_noise_func(real_bias, dt, sigma_u, sigma_v);
+      %  [gyro_noise, real_bias] = gyro_noise_func(real_bias, dt, sigma_u, sigma_v);
 
-        y_noise(4:6) = y_real(4:6) + gyro_noise;
+        y_noise(4:6) = y_real(4:6) + gyro_noise(:,current_timestep);
 
-        y_noise(7:9) = css_noise(Sun_pos_eci, x(1:4), Xsat_eci, Albedo, lambda);
+         [y_noise(7:9),noise]= css_noise(Sun_pos_eci, x(1:4), Xsat_eci, Albedo, lambda);
 
         if eclipse(current_timestep)
             y_noise(7:9) = zeros(3, 1);
@@ -278,6 +307,7 @@ for cycle_index = cycle_index:number_of_cycles
         %% Propagate the system
         [~, ~, ~, AngVel_rw_radps(3, 1), acceleration_rw(2, 1), T_rw_total] = rw_model(0, AngVel_rw_radps(3, 1)); % RW model
         q_ob = quat_EB2OB(x(1:4), Nodem, Inclm, Argpm, Mm);
+        q=q_EB2OB(x(1:4), Nodem, Inclm, Argpm, Mm);
         [T_dist, ~, ~, ad, r, sp, g] = disturbances_pd(q_ob, Sun_pos_orbit, Mag_field_orbit, disturbancesEnabled);
 
         torq = T_rw_total + T_dist;
@@ -301,10 +331,17 @@ for cycle_index = cycle_index:number_of_cycles
         x_real(:, current_timestep) = x;
         AngVel_rw_rpm(3, 1) = AngVel_rw_radps(3, 1) * 30 / pi;
         rw_ang_vel_rpm(1, current_timestep) = AngVel_rw_rpm(3, 1);
+        acc_rw(1,current_timestep)=acceleration_rw(1,1);
         Bbody_data(:, current_timestep) = y_real(1:3) * norm(mag_field_orbit(:, current_timestep)*10^(-9));
         bias_data(:, current_timestep) = real_bias;
-        gyro_noise_data(:, current_timestep) = gyro_noise;
+        R_OI = Orbit2ECI_DCM(Nodem, Inclm, Argpm);
+        R_IO = R_ECI2Orbit(Nodem, Inclm, Argpm);
+        q_io = dcm2quat(R_IO);
+        q_io = q_io/norm(q_io);
+        q_ib_data(:,current_timestep) = quatProd(q_ob_data(:,current_timestep),q_io);
+      %  gyro_noise_data(:, current_timestep) = gyro_noise;
         q_ob_data(:, current_timestep) = q_ob;
+        q_data(:,current_timestep)=q;
         q_sb_data(:, current_timestep) = q_sun_body(Sun_pos_eci, x(1:4),Const.sun_desired)';
         R_OB = quat2dcm(q_ob');
         sun_orbit_normalized = (Sun_pos_orbit / norm(Sun_pos_orbit));
@@ -312,6 +349,7 @@ for cycle_index = cycle_index:number_of_cycles
         sun_pointing_error(:, current_timestep) = acos(sun_orbit_normalized'*(R_OB' * Const.sun_desired'));
         sun_angle(:, current_timestep) = acos(sun_orbit_normalized'*(R_OB')); 
         estimated_velocity(:, current_timestep) = gyro - x_hat(5:7);
+        css_noise_data(:,current_timestep)=noise;
 
          %% Check if the time for Detumbling has come
 
@@ -322,6 +360,11 @@ for cycle_index = cycle_index:number_of_cycles
                 bdot_activation_matrix(1, current_timestep) = trigger_flag;
                 bdot_activation_matrix(2, current_timestep) = trigger_flag_raw;
             end
+
+
+        if timestep_index == 2
+            B_body_thomson = y_noise(1:3)*norm(Mag_field_orbit);
+        end
     end
 
     for timestep_index = 4:10
@@ -340,20 +383,20 @@ for cycle_index = cycle_index:number_of_cycles
         Mag_field_orbit = mag_field_orbit(:, current_timestep) * 10^(-9);
 
         %% Q covariance update
-        Q_selection(Eclipse, Param.Q, Param.R_hat, mekf, Q_eclipse_load);
+ %       Q_selection(Eclipse, Param.Q, Param.R_hat, mekf, Q_eclipse_load);
 
         %% Sensor Measurements
         y_real = real_model.msrFun(x, msrCookieFinal(Mag_field_eci, Sun_pos_eci, Eclipse, [0; 0; 0]));
 
-        [gyro_noise, real_bias] = gyro_noise_func(real_bias, dt, sigma_u, sigma_v);
-        y_noise(4:6) = y_real(4:6) + gyro_noise;
+      %  [gyro_noise, real_bias] = gyro_noise_func(real_bias, dt, sigma_u, sigma_v);
+        y_noise(4:6) = y_real(4:6) + gyro_noise(:,current_timestep);
 
         x_hat = mekf.global_state;
         x_hat(1:4) = x_hat(1:4) / norm(x_hat(1:4));
 
         %% PD function
         % Choose x_hat for determination, x for ground truth 
-    
+
         q_ob_hat = quat_EB2OB(x_hat(1:4),Nodem,Inclm,Argpm,Mm);
         % q_ob_hat = quat_EB2OB(x(1:4),Nodem,Inclm,Argpm,Mm);
 
@@ -365,15 +408,53 @@ for cycle_index = cycle_index:number_of_cycles
         AngVel_rw_rpm(2, 1) = AngVel_rw_rpm(3, 1);
 
         % Choose first PD for determination, second PD for ground truth
+        % 
+          % 
+          %          if current_timestep <3000
+          %        % 
+          %            Kp_gain= 1e-03*diag([1 1 1]);
+          %            Kd_gain= 2e-02*diag([1 1 1]);
+          %        else
+          %           Kp_gain =  1*diag([0.035,  0.034, 0.06]);
+          % % % % %  tle:sso-500-10pm
+          %          Kd_gain =   4*diag([0.035,  0.034, 0.006]);
+          % % % % 
+          %         end
+              %   Kp_gain= 1e-04*diag([1 3 3]);
+              %   Kd_gain= 2*1e-02*diag([1 1 1]);
+              % 
+              % else
+              % 
+              %     Kp_gain=diag([0.035 0.034 0.06]);
+              %     Kd_gain=4*diag([0.035 0.034 0.006]);
+              % end    
+
+
 
         [torq, T_rw, T_magnetic_effective, ~, ~, ~, AngVel_rw_rpm_next, AngVel_rw_radps_next, ...
             acceleration_rw_cur, rw_ang_momentum, init_AngVel_dz, init_accel_dz, ~, ~, ~, ...
             timeflag_dz, M, q_sb] = ...
-            PD_Sun_Pointing(q_desired, x_hat(1:4), y_noise(4:6)-mekf.global_state(5:7), y_noise(1:3)*norm(Mag_field_orbit), ...
+            PD_Sun_Pointing(q_desired, x_hat(1:4), y_noise(4:6)-mekf.global_state(5:7),y_noise(1:3)*norm(Mag_field_orbit), ...
             Const.mtq_max, Const.lim_dz, AngVel_rw_radps(2, 1), AngVel_rw_rpm(2, 1), ...
             acceleration_rw(1, 1), init_AngVel_dz, init_accel_dz, timeflag_dz, Const.rw_max_torque, ...
-            y_real(1:3)*norm(Mag_field_orbit), cycle_index, Sun_pos_eci, Const.known_rm,Const.const1_accel,Const.const2_accel,Const.const3_accel,Const.const4_accel,Const.AngVel_rw_lim,Const.sun_desired);
+            y_real(1:3)*norm(Mag_field_orbit), cycle_index, Sun_pos_eci, Const.known_rm,Const.const1_accel,Const.const2_accel,Const.const3_accel,Const.const4_accel,Const.AngVel_rw_lim,Const.sun_desired,rw_bias);
+           
 
+        % else 
+        % 
+        % 
+        % 
+        %      [torq, T_rw, T_magnetic_effective, ~, ~, ~, AngVel_rw_rpm_next, AngVel_rw_radps_next,...
+        %                 acceleration_rw_cur, rw_ang_momentum, init_AngVel_dz, init_accel_dz, ~, ~, ~, ...
+        %                 timeflag_dz,M] = ...
+        %                 PD_Nadir_Pointing(Eclipse, q_desired ,q_ob_hat, Const.w_o_io, y_noise(4:6)-mekf.global_state(5:7) , y_noise(1:3)*norm(Mag_field_orbit), ...
+        %                 Const.mtq_max, Const.lim_dz, AngVel_rw_radps(2,1), AngVel_rw_rpm(2,1), ...
+        %                 acceleration_rw(1,1), init_AngVel_dz, init_accel_dz, timeflag_dz,Const.rw_max_torque,...
+        %                 y_real(1:3)*norm(Mag_field_orbit), cycle_index, Const.known_rm,Const.const1_accel,Const.const2_accel,Const.const3_accel,Const.const4_accel,Const.AngVel_rw_lim);
+        % 
+        % 
+        % 
+        % end
         % [torq, T_rw, T_magnetic_effective, ~, ~, ~, AngVel_rw_rpm_next, AngVel_rw_radps_next, ...
         %     acceleration_rw_cur, rw_ang_momentum, init_AngVel_dz, init_accel_dz, ~, ~, ~, ...
         %     timeflag_dz, M, q_sb] = ...
@@ -384,6 +465,7 @@ for cycle_index = cycle_index:number_of_cycles
 
         %% Propagate the system
         q_ob = quat_EB2OB(x(1:4), Nodem, Inclm, Argpm, Mm);
+        q=q_EB2OB(x(1:4), Nodem, Inclm, Argpm, Mm);
         [T_dist, ~, ~, ad, r, sp, g] = disturbances_pd(q_ob, Sun_pos_orbit, Mag_field_orbit, disturbancesEnabled);
 
         torq = torq + T_dist;
@@ -409,10 +491,16 @@ for cycle_index = cycle_index:number_of_cycles
         AngVel_rw_radps(3, 1) = AngVel_rw_radps_next;
         M_data(:, current_timestep) = M;
         bias_data(:, current_timestep) = real_bias;
-        gyro_noise_data(:, current_timestep) = gyro_noise;
+        R_OI = Orbit2ECI_DCM(Nodem, Inclm, Argpm);
+        R_IO = R_ECI2Orbit(Nodem, Inclm, Argpm);
+        q_io = dcm2quat(R_IO);
+        q_io = q_io/norm(q_io);
+        q_ib_data(:,current_timestep) = quatProd(q_ob_data(:,current_timestep),q_io);
+        % gyro_noise_data(:, current_timestep) = gyro_noise;
         x_hat_data(:, current_timestep) = x_hat;
         Bbody_data(:, current_timestep) = y_real(1:3) * norm(mag_field_orbit(:, current_timestep)*10^(-9));
         q_ob_data(:, current_timestep) = q_ob;
+        q_data(:,current_timestep)=q;
         q_sb_data(:, current_timestep) = q_sun_body(Sun_pos_eci, x(1:4),Const.sun_desired)';
         R_OB = quat2dcm(q_ob');
         sun_orbit_normalized = (Sun_pos_orbit / norm(Sun_pos_orbit));
@@ -436,17 +524,33 @@ end
 %% =============================== Errors and plots =============================================== %%
 
 %% Calculation and plotting of performance error
-x_real_euler_perf = quat2eul(q_sb_data(1:4,1:length(q_sb_data))');
-x_real_euler_perf = rad2deg(x_real_euler_perf');
 
-APE = x_real_euler_perf';
-instant_error_perform = APE;
 
+
+  
+    x_real_euler_perf = zeros(length(q_ob_data), 3)';
+
+    for i=1:length(q_ob_data)-1
+         % if i<3*55450 || i>(3*55450+24000)
+            x_real_euler_perf(:,i) = quat2eul(q_sb_data(1:4,i)');
+
+        % else    
+        %     q_desired=[cos(45*pi/180),sin(45*pi/180), 0, 0 ];
+        %     x_real_euler_perf(:, i) = quat2eul(quatProd(quatconj(q_desired), q_ob_data(1:4,i))');
+        % 
+        % 
+        % end 
+    end
+
+            x_real_euler_perf = rad2deg(x_real_euler_perf');
+
+           APE = x_real_euler_perf;
+           instant_error_perform = APE;
 figure();
 for i = 1:3
     subplot(3, 1, i);
     hold on;
-    plot(Time(1:length(APE)), abs(APE(1:length(APE), i)), 'LineWidth', 1.5, 'Color', 'blue');
+    plot(Time(1:length(APE)), abs(APE(1:length(APE), i)), 'LineWidth',1.5, 'Color','blue');
     if (i == 1), title('Absolute Performance Errors', 'interpreter', 'latex', 'fontsize', 17); end
     if (i == 1), ylabel('Z-axis [deg]', 'interpreter', 'latex', 'fontsize', 14); end
     if (i == 2), ylabel('Y-axis [deg]', 'interpreter', 'latex', 'fontsize', 14); end
@@ -467,7 +571,7 @@ x_hat_euler_know(:, 1:3) = quat2eul(x_hat_data(1:4, :)');
 x_hat_euler_know(:, 1:3) = (rad2deg(x_hat_euler_know(:, 1:3)'))';
 
 instant_error_know(:, 1:3) = x_hat_euler_know(:, 1:3) - x_real_euler_know';
-instant_error_know(:, 4:6) = x_hat_data(5:7, 1:length(x_hat_data))' - bias_data';
+instant_error_know(:, 4:6) = x_hat_data(5:7, 1:length(x_hat_data))' - Pink';
 
 for i = 1:3
     for cycle_index = 1:length(instant_error_know)
@@ -505,7 +609,7 @@ for i = 1:n_dim
     if i < 5
         plot(Time, x_real(i, 1:length(Time)), 'LineWidth', 2.0, 'Color', 'blue');
     else
-        plot(Time(1:length(bias_data(1, :))), bias_data(i-4, 1:length(bias_data(1, :))))
+        plot(Time(1:length(Pink(1, :))), Pink(i-4, 1:length(Pink(1, :))))
     end
 
     plot(Time(1:length(x_hat_data(i, :))), x_hat_data(i, :), 'LineWidth', 2.0, 'Color', 'magenta');
@@ -547,7 +651,7 @@ end
         if i<5
             plot(Time,abs(x_real(i,1:length(Time)))-abs(x_hat_data(i,:)), 'LineWidth',2.0, 'Color','blue');
         else
-            plot(Time(1:length(bias_data(1,:))),abs(bias_data(i-4,1:length(bias_data(1,:))))-abs(abs(x_hat_data(i,:))))
+            plot(Time(1:length(Pink(1,:))),abs(Pink(i-4,1:length(Pink(1,:))))-abs(abs(x_hat_data(i,:))))
         end
 
         %plot(Time(1:length(x_hat_data(i,:))),x_hat_data(i,:), 'LineWidth',2.0, 'Color','magenta');
@@ -616,21 +720,21 @@ for i = 1:3
     grid on;
 end
 
-figure();
-for i = 1:3
-    subplot(3, 1, i);
-    plot(Time(1:end-1), x_real(4+i, 1:length(Time)-1) - estimated_velocity(i, 1:length(Time)-1), 'LineWidth', 2.0, 'Color', 'blue');
-    xlabel('Time [s]', 'interpreter', 'latex', 'fontsize', 12);
-    if (i == 1), ylabel('$\omega_1$ [rad/sec]', 'interpreter', 'latex', 'fontsize', 14); end
-    if (i == 2), ylabel('$\omega_2$ [rad/sec]', 'interpreter', 'latex', 'fontsize', 14); end
-    if (i == 3), ylabel('$\omega_3$ [rad/sec]', 'interpreter', 'latex', 'fontsize', 14); end
-    ylabel(['$\omega_', num2str(i), '$', '[rad/sec]'], 'interpreter', 'latex', 'fontsize', 14);
-    if (i == 1), legend('Estimation Error'); end
-    if (i == 1), title('Estimation error for angular velocity $\omega_{true} - \omega_{est}$', 'interpreter', 'latex', 'fontsize', 17); end
-    grid on;
-end
-
-%%
+% figure();
+% for i = 1:3
+%     subplot(3, 1, i);
+%     plot(Time(1:end-1), x_real(4+i, 1:length(Time)-1) - estimated_velocity(i, 1:length(Time)-1), 'LineWidth', 2.0, 'Color', 'blue');
+%     xlabel('Time [s]', 'interpreter', 'latex', 'fontsize', 12);
+%     if (i == 1), ylabel('$\omega_1$ [rad/sec]', 'interpreter', 'latex', 'fontsize', 14); end
+%     if (i == 2), ylabel('$\omega_2$ [rad/sec]', 'interpreter', 'latex', 'fontsize', 14); end
+%     if (i == 3), ylabel('$\omega_3$ [rad/sec]', 'interpreter', 'latex', 'fontsize', 14); end
+%     ylabel(['$\omega_', num2str(i), '$', '[rad/sec]'], 'interpreter', 'latex', 'fontsize', 14);
+%     if (i == 1), legend('Estimation Error'); end
+%     if (i == 1), title('Estimation error for angular velocity $\omega_{true} - \omega_{est}$', 'interpreter', 'latex', 'fontsize', 17); end
+%     grid on;
+% end
+% 
+% %
 % figure();
 % for i=1:3
 %     subplot(3,1,i);
@@ -640,7 +744,7 @@ end
 %     if (i==1), legend('Angular Velocity estimation error');end
 %     if (i==1), title('Angular Velocity estimation error'); end
 % end
-%
+% 
 % eul_diff =zeros(length(Time),3);
 % euler_hat=quat2eul(q_ob_data(1:4,:)')';
 % eul_diff=(euler_hat)*180/pi;
@@ -773,13 +877,13 @@ ylabel('Torque [Nm]', 'interpreter', 'latex', 'fontsize', 14)
 xlabel('Time [s]', 'interpreter', 'latex', 'fontsize', 12)
 grid on;
 
-%%
-%      figure()
-%      plot(Time, rw_ang_vel_rpm(1,1:length(Time)),'LineWidth',1.5, 'Color','blue');
-%      title('Angular velocity of RW', 'interpreter','latex', 'fontsize',17);
-%      ylabel('Angular Velocity [rpm]', 'interpreter','latex', 'fontsize',14);
-%      xlabel('Time [s]', 'interpreter','latex', 'fontsize',12);
-%      grid on;
+%
+     % figure()
+     % plot(Time, rw_ang_vel_rpm(1,1:length(Time)),'LineWidth',1.5, 'Color','blue');
+     % title('Angular velocity of RW', 'interpreter','latex', 'fontsize',17);
+     % ylabel('Angular Velocity [rpm]', 'interpreter','latex', 'fontsize',14);
+     % xlabel('Time [s]', 'interpreter','latex', 'fontsize',12);
+     % grid on;
 
 %% RW budget
 figure()
@@ -794,6 +898,16 @@ plot(1:length(Time), tau_rw(1, 1:length(Time)))
 title('Reaction Wheel Torque-z', 'interpreter', 'latex', 'fontsize', 17)
 ylabel('Torque [Nm]', 'interpreter', 'latex', 'fontsize', 14)
 xlabel('Time [s]', 'interpreter', 'latex', 'fontsize', 12)
+grid on;
+
+
+%% RW acceleration
+figure()
+subplot(2, 1, 1);
+plot(Time, acc_rw(1, 1:length(Time)), 'LineWidth', 1.5, 'Color', 'blue');
+title('Angular acceleration of RW', 'interpreter', 'latex', 'fontsize', 17);
+ylabel('Angular acceleration [rpm]', 'interpreter', 'latex', 'fontsize', 14);
+xlabel('Time [s]', 'interpreter', 'latex', 'fontsize', 12);
 grid on;
 
 %%  Plotting the Disturbances
@@ -1086,7 +1200,30 @@ for i=1:2
     grid on;
 end
 
+%% Plotting gyroscope noise
+figure();
+for i = 1:3
+    subplot(3, 1, i);
+    plot(Time(1:end-1), gyro_noise_data(i, 1:length(Time)-1), 'LineWidth', 2.0, 'Color', 'blue');
+    xlabel('Time [s]', 'interpreter', 'latex', 'fontsize', 12);
+    ylabel('Noise','interpreter', 'latex', 'fontsize', 14);
 
+    if (i == 1), title('Gyroscope noise(Bias+Gaussian Noise) ', 'interpreter', 'latex', 'fontsize', 17); end
+    grid on;
+end
+
+%% Plotting css noise 
+
+figure();
+for i = 1
+    subplot(1, 1, i);
+    plot(Time(1:end-1), css_noise_data(i, 1:length(Time)-1) , 'LineWidth', 2.0, 'Color', 'blue');
+    xlabel('Time [s]', 'interpreter', 'latex', 'fontsize', 12);
+    ylabel('CSS Noise [A] ', 'interpreter', 'latex', 'fontsize', 14);
+    
+    if (i == 1), title('CSS noise using poisson distribution', 'interpreter', 'latex', 'fontsize', 17); end
+    grid on;
+end
 %% Box Plot
 % % Parameters for the 3D rectangle
 % width = 1;   % Width along the X-axis
@@ -1184,3 +1321,4 @@ end
 % 
 %     pause(0.005);
 % end
+

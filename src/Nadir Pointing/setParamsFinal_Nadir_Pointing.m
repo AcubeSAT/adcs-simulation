@@ -12,17 +12,17 @@ function Param = setParamsFinal_Nadir_Pointing(I)
     %% ======= Satellite ========
 
     dt = .1;                    %Timestep for Orbit Propagator
-    orbits = 3;
+    orbits = 1;
     orbitPeriod = 5545;
     tf = orbits * orbitPeriod;  %Total Simulation Seconds
-    q_desired = [1, 0, 0, 0];   %Desired quaternion
+    q_desired = [cos(45*pi/180),sin(45*pi/180), 0, 0];   %Desired quaternion
     N_Timesteps = 10;           % Number of timesteps per cycle
 
     %% ======= Orbit Propagation ========
 
     [satrec, ~] = orbit_init();
-    [~, ~, xsat_eci, ~, ~, eclipse, ~, mag_field_eci, ~, mag_field_orbit, ~, sun_pos_eci, ~, sun_pos_orbit, ~, argpm, nodem, inclm, mm, ~, ~] = orbit_sgp4(satrec, dt, tf+dt);
-    %[~,~,xsat_eci,~,~,eclipse,~,mag_field_eci,~,mag_field_orbit,~,sun_pos_eci,~,sun_pos_orbit,~,argpm,nodem,inclm,mm,~,~] = orbit_sgp4_offset(satrec,dt,tf+dt,1000);
+    %[~, ~, xsat_eci, ~, ~, eclipse, ~, mag_field_eci, ~, mag_field_orbit, ~, sun_pos_eci, ~, sun_pos_orbit, ~, argpm, nodem, inclm, mm, ~, ~] = orbit_sgp4(satrec, dt, tf+dt);
+    [~,~,xsat_eci,~,~,eclipse,~,mag_field_eci,~,mag_field_orbit,~,sun_pos_eci,~,sun_pos_orbit,~,argpm,nodem,inclm,mm,~,~] = orbit_sgp4_offset(satrec,dt,tf+dt,1000);
 
     %% ======================= Testing Initial Quaternions =============================
     %Q0 = [0.5; -0.5; 0.5; 0.5];
@@ -34,18 +34,18 @@ function Param = setParamsFinal_Nadir_Pointing(I)
     %Q0 = [0.0493; 0.4662; -0.8777; 0.0993];% [1, 0, 0, 0] TLE -> 9PM 3-offset
     %Q0 = [-0.4197; 0.4487; -0.7725; -0.1607];% [1, 0, 0, 0] TLE -> 9PM 2-offset
     %Q0 = [0.0219; 0.6775; -0.7271; 0.1087];% [1, 0, 0, 0] TLE -> 11PM 3-offset
-    %Q0 = [0.3638; -0.6333; 0.6300; 0.2639];% [1, 0, 0, 0] TLE -> 11PM 2-offset
+    Q0 = [0.3638; -0.6333; 0.6300; 0.2639];% [1, 0, 0, 0] TLE -> 11PM 2-offset
     %Q0 = [0.8315; -0.6103; -0.0033; 0.8585];
 
     %% =============== Desired Quaternion =================================
 
-    Q0 = [-0.4493; 0.1189; -0.8854; 0.0122]; % [1, 0, 0, 0] TLE -> 6PM 2-offset %Initial Quaternion in ECI frame
+    % Q0 = [-0.4493; 0.1189; -0.8854; 0.0122]; % [1, 0, 0, 0] TLE -> 6PM 2-offset %Initial Quaternion in ECI frame
 
     %% ============== Calculations ====================================
 
     Q0 = Q0 / norm(Q0);                 %Normalised Quaternion
     init_bias = [.01; 0.15; -.08];      % bias initialization
-    vRot0 = [0; 0; 0];                  %Initial Angular Velocities from Body to ECI frame expressed in Body.
+    vRot0 = [0.035; 0.035; 0.035];      %Initial Angular Velocities from Body to ECI frame expressed in Body.
     x0 = [Q0; vRot0];                   %Initial state consists of [Quaternion;Angular Velocity]
     Q0_hat = [.6; .1; -.7; .01];        %Random Initial State Estimation
     Q0_hat = Q0_hat / norm(Q0_hat);
@@ -66,6 +66,12 @@ function Param = setParamsFinal_Nadir_Pointing(I)
     % Gyro white noise std dev  
     % sigma_v = 0.0026;  %ADXRS453
     sigma_v = 2.04e-5;   %SCHAT63T
+
+
+
+    ARW=2.27e-5; %(in (rad/sec)/sqrt(Hz))
+    RRW=3e-9;  %((in (rad/sec)*sqrt(Hz)))
+    BI=2.8e-7;
 
     %% ======= Albedo ========
 
@@ -97,7 +103,8 @@ function Param = setParamsFinal_Nadir_Pointing(I)
 
     % R Variances used in MEKF
     % R_hat_coeff=[1e-3;1e-3;1e-3;8e-3;8e-3;8e-3;5e-3;5e-3;5e-3];
-    R_hat_coeff = [.5e-3; .5e-3; .5e-3; 1e-3; 1e-3; 1e-3];
+   % R_hat_coeff = [.5e-3; .5e-3; .5e-3; 1e-3; 1e-3; 1e-3];
+ R_hat_coeff =[1;1;1;1e5;1e5;1e5];
     R_hat = R_hat_coeff .* eye(6, 6);
     % Initialize Covariance matrix
     n_dim_error = 6; % error state length
@@ -145,6 +152,9 @@ function Param = setParamsFinal_Nadir_Pointing(I)
     Param.total_limit= total_limit;
     Param.exceptions_limit= exceptions_limit;
     Param.N_Timesteps= N_Timesteps;
+    Param.ARW=ARW;
+    Param.RRW=RRW;
+    Param.BI=BI;
 
 
 end

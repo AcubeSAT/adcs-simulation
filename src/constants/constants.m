@@ -70,7 +70,7 @@ function Const = constants()
     global orbits;
 
     %m = 3.44;   % mass mentioned in STR's CDR
-    m = 4;      % mass mentioned in ADCS' CDR
+    m = 3.41;      % mass mentioned in ADCS' CDR
     
     lx = 0.1;
     ly = 0.1;
@@ -94,7 +94,7 @@ function Const = constants()
     %Jw = 2.0785e-6;
     %Jw = 1.323e-06;
     Jw = 1.5e-06; % Wittenstein
-    A = 0.12;                       
+    A = 0.3;                       
     lim_dz = 300;                   
 
     p_400 = 7.55e-12;
@@ -121,7 +121,7 @@ function Const = constants()
     % Cm =  [0.00121 0.00057 0.00188]';
 
     %% CDR inertias
-    PAI = [-1, 0.01, -0.04; 0.01, 1, 0.00; -0.04, 0.00, 1.00];
+    PAI = [0.999821, 0.016374, 0.009515;-0.016487 ,0.999792 , 0.011979;-0.009316 ,-0.012134 , 0.999883];
 
     % PMI mentioned in Structural's CDR
     % good case for STR , worst case for ADCS
@@ -129,9 +129,9 @@ function Const = constants()
 
     % PMI mentioned in ADCS' CDR
     % worst case for STR , good case for ADCS
-    PMI = diag([0.04127073921, 0.041018997570, 0.00690030456]);
+    PMI = diag([0.034574563967471,  0.034310483309863, 0.005751920137378]);
 
-    Cm = [0.00415, 0.00116, 0.0016]';
+    Cm = [-0.01970702,-0.002449076, 0.014907415]';
 
 
     for j = 1:3
@@ -150,7 +150,7 @@ function Const = constants()
     w_o_io = [0, w_o, 0]';
 
     %known_rm = [0.048 0.051 0.047];
-    known_rm = [0.01 0.01 0.01];
+    known_rm = [0.023 0.023 0.023];
 
     orbitPeriod = (2 * pi) / (w_o);
     n = orbitPeriod * orbits;
@@ -167,9 +167,9 @@ function Const = constants()
     const2_accel=50;
     const3_accel=100;
     const4_accel=200;
-    %AngVel_rw_lim = 15000;
+    %AngVel_rw_lim = 15000; %ClydeSpace
     %AngVel_rw_lim = 16380;
-    AngVel_rw_lim = 16380; % Wittenstein
+    AngVel_rw_lim = 18000; % Wittenstein
     sun_desired=[-1,1,0];
 
     %%  Passing the values of the parameters in a struct.

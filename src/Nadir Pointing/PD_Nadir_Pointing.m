@@ -61,9 +61,9 @@
 function [torque, T_rw, T_magnetic_effective, V_rw, I_rw, P_thermal_rw, AngVel_rw_rpm_new, AngVel_rw_radps_new, ...
         acceleration_rw_cur, rw_ang_momentum, init_AngVel_dz, init_accel_dz, V_mtq, I_mtq, P_thermal_mtq, ...
         timeflag_dz, M] = ...
-        PD_Nadir_Pointing(Eclipse, Kp_gain, Kd_gain, q_desired, q_orbit_body, w_o_io, w_b_ib, B_body, mtq_max, ...
+        PD_Nadir_Pointing(Eclipse,Kp_gain, Kd_gain, q_desired, q_orbit_body, w_o_io, w_b_ib, B_body, mtq_max, ...
         lim_dz, AngVel_rw_radps_cur, AngVel_rw_rpm_cur, acceleration_rw_old, init_AngVel_dz, ...
-        init_accel_dz, timeflag_dz, rw_max_torque, B_body_real, time, known_rm,const1_accel,const2_accel,const3_accel,const4_accel,AngVel_rw_lim)
+        init_accel_dz, timeflag_dz, rw_max_torque, B_body_real,B_body_previous ,time, known_rm,const1_accel,const2_accel,const3_accel,const4_accel,AngVel_rw_lim)
 
     global T_rw_data;
     global T_magnetic_data;
@@ -71,44 +71,64 @@ function [torque, T_rw, T_magnetic_effective, V_rw, I_rw, P_thermal_rw, AngVel_r
     global Jw;
     global Max_RW_torq;
 
-    if (Eclipse)
-        Kp_gain = 1.2 * Kp_gain;
-        Kd_gain = 20 .* Kd_gain;
-    end
 
+      if time<1000 || abs(B_body(3))<1e-6
+         Kp_gain = 1e-04 * diag([20, 150, 120]); % 500km
+         Kd_gain = 2*1e-03 * diag([75, 100, 75]);
+
+     end      
+
+
+    q_desired = [cos(45*pi/180),sin(45*pi/180), 0, 0]; 
     w_b_io = rotate_vector(q_orbit_body, w_o_io); % Angular velocity of the body frame w.r.t. the ECI frame, expressed in orbit frame
     w_b_ob = w_b_ib - w_b_io; % Angular velocity of the orbit frame w.r.t. the ECI frame, expressed in body frame
-
+    h_diff=Jw*[0;0;abs(AngVel_rw_radps_cur)-200];
+ 
+    % if abs(B_body(3))<1e-5
+    %     q_desired=[cos(10*pi/180) sin(10*pi/180) 0 0];
+    % end
     q_error = quatProd(quatconj(q_desired), q_orbit_body); % quaternion error
-    T_commanded = -sign(q_error(1)) * Kp_gain * q_error(2:4) - Kd_gain * w_b_ob; % PD control
+    % if rad2deg(quat2eul(q_error'))<10
+     % Kp_gain = 0.1*diag([0.0311123 ,0.0312384,0.00287639]); % 500km
+     % Kd_gain = 100*diag([0.003928052501, 0.003948290041, 0.000720041142]);
+    % else
+    % 
+    %  Kp_gain = 1e-05 * diag([20, 150, 120]); % 500km
+    %  Kd_gain = 20*1e-04 * diag([75, 100, 75]);
+    % end
+
+    T_commanded = -sign(q_error(1)) * Kp_gain * (q_error(2:4)) - Kd_gain * w_b_ob; % PD control
 
     %% Torque split
 
     b_hat = B_body / norm(B_body);
     T_rw = [0; 0; 1] * (B_body' * T_commanded) / B_body(3);
+   
+    
     T_magnetic = skew(b_hat)' * skew(b_hat) * (T_commanded - T_rw);
     M = skew(B_body) * T_magnetic / (B_body' * B_body);
 
     %%  Desaturation of the MTQs
 
-    [T_magnetic, T_rw] = mtq_saturation(T_magnetic, T_rw, T_commanded, B_body, M, mtq_max, known_rm);
+    [T_magnetic, T_rw] = mtq_saturation(T_magnetic, T_rw, T_commanded, B_body, M, mtq_max,h_diff);
 
     M = -cross(T_magnetic, B_body) / (norm(B_body))^2;
-    M = M - known_rm';
+  
     T_magnetic_effective = cross(M, B_body_real);
 
-    %%  Desaturation of the RW
 
-    if time > 1
-        [T_magnetic_effective, T_rw] = ...
-            rw_saturation(T_magnetic_effective, T_rw, acceleration_rw_old, AngVel_rw_rpm_cur, B_body, mtq_max,AngVel_rw_lim);
-
+    % %%  Desaturation of the RW
+    % 
+    % if time > 1
+    %     [T_magnetic_effective, T_rw] = ...
+    %         rw_saturation(T_magnetic_effective, T_rw, acceleration_rw_old, AngVel_rw_rpm_cur, B_body, mtq_max,AngVel_rw_lim);
+    % 
         if T_rw(3) > Max_RW_torq
             T_rw(3) = Max_RW_torq;
         elseif T_rw(3) < -Max_RW_torq
             T_rw(3) = -Max_RW_torq;
         end
-    end
+    % end
 
     %% Calculation of V_rw, I_rw, P_Rw in case of no-zero crossing
 
@@ -159,12 +179,12 @@ function [torque, T_rw, T_magnetic_effective, V_rw, I_rw, P_thermal_rw, AngVel_r
 
     [V_mtq, I_mtq, P_thermal_mtq] = mtq_model(M);
 
-    %% T_rw scaling
-    if T_rw(3) > rw_max_torque
-        T_rw(3) = rw_max_torque;
-    elseif T_rw(3) < -rw_max_torque
-        T_rw(3) = -rw_max_torque;
-    end
+    % %% T_rw scaling
+    % if T_rw(3) > rw_max_torque
+    %     T_rw(3) = rw_max_torque;
+    % elseif T_rw(3) < -rw_max_torque
+    %     T_rw(3) = -rw_max_torque;
+    % end
 
     T_rw_data = [T_rw_data, T_rw];
     T_magnetic_data = [T_magnetic_data, T_magnetic_effective];

@@ -24,7 +24,7 @@
 % it means that this sensor does not see the sun.
 % For more details, you can refer to DDJF_AOCS file.
 
-function total_sun_vector = css_noise(sun_eci, q_eci_body, xsat_eci, albedo_perc, lambda)
+function [total_sun_vector,noise] = css_noise(sun_eci, q_eci_body, xsat_eci, albedo_perc, lambda)
 
     sun_eci = sun_eci / norm(sun_eci);
     sun_body = rotate_vector(q_eci_body, sun_eci);
@@ -87,9 +87,10 @@ function total_sun_vector = css_noise(sun_eci, q_eci_body, xsat_eci, albedo_perc
             current_albedo(i) = 0;
         end
         total_current(i) = current_sun(i) + current_albedo(i);
-        total_current(i) = total_current(i) + total_current(i) * sign * 0.01 * poissrnd(lambda);
+        noise= total_current(i) * sign * 0.01* poissrnd(lambda);
+        total_current(i) = total_current(i) + total_current(i) * sign * 0.01* poissrnd(lambda);
     end
-
+    
     total_sun_vector = [total_current(1) - total_current(4), total_current(6) - total_current(5), total_current(2) - total_current(3)];
     total_sun_vector = (total_sun_vector / norm(total_sun_vector))'; % Normalized sun vector in body frame
 

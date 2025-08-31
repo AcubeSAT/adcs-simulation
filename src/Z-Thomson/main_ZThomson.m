@@ -47,6 +47,9 @@ N_Timesteps= Param.N_Timesteps;
 Kd = Param.Kd;
 Ks = Param.Ks;
 w_ref = Param.w_ref;
+ARW=Param.ARW;
+RRW=Param.RRW;
+BI=Param.BI;
 
 
 %% Initialize Global Parameters
@@ -109,6 +112,18 @@ theta_deg_arr_x= zeros(3, length(Time));
 theta_deg_arr_y= zeros(3, length(Time));
 theta_deg_arr_z= zeros(3, length(Time));
 y_noise = zeros(9,1);
+Pink=zeros(3,length(Time));
+sun_angle = zeros(3, length(Time));
+
+
+%% Generate gyroscope noise using power law noise 
+
+[White_Noise,Pink_Noise,Red_Noise,gyro_noise] = calculate_gyro_noise(ARW,RRW,BI,[3 length(Time)]);
+
+for i=1:length(Time)
+    gyro_noise_data(:,i)=gyro_noise(:,i);
+    Pink(:,i)=Pink_Noise(:,i);
+end   
 
 %% Next we initialize the bias estimation by solving Wahba's problem n times.
 
@@ -128,10 +143,10 @@ for cycle_index = 1:bias_wahba_loops
         y_real = real_model.msrFun(x, msrCookieFinal(mag_field_eci(:, current_timestep), ...
             sun_pos_eci(:, current_timestep), eclipse(current_timestep), [0; 0; 0]));
         y_noise(1:3) = y_real(1:3)*norm(Mag_field_orbit) + 1e-9*diag([15,15,15])*randn(3,1);
-        [gyro_noise, real_bias] = gyro_noise_func(real_bias, dt, sigma_u, sigma_v);
+      % [gyro_noise, real_bias] = gyro_noise_func(real_bias, dt, sigma_u, sigma_v);
 
 
-        y_noise(4:6) = y_real(4:6) + gyro_noise;
+        y_noise(4:6) = y_real(4:6) + gyro_noise(:,current_timestep);
         % sign=randi([0 1]);
         % if sign==0
         %     sign=-1;
@@ -190,7 +205,7 @@ for cycle_index = 1:bias_wahba_loops
                 q_io = q_io/norm(q_io);
                 q_ib_data(:,current_timestep) = quatProd(q_ob_data(:,current_timestep),q_io);
                 bias_data(:,current_timestep) = real_bias;
-                gyro_noise_data(:,current_timestep) = gyro_noise;
+              %  gyro_noise_data(:,current_timestep) = gyro_noise;
                 R_OB = quat2dcm(q_ob');
                  
                 % Angle between Z-Axis of b.f. and Z-Axis of o.f.
@@ -211,6 +226,7 @@ for cycle_index = 1:bias_wahba_loops
                 theta_deg_arr_x(:, current_timestep)=theta_x; %Convert to degrees
                 theta_deg_arr_y(:, current_timestep)=theta_y ;
                 theta_deg_arr_z(:, current_timestep)=theta_z ;
+%                sun_angle(:, current_timestep) = acos(R_OB*sun_orbit_normalized); 
 
             end
 %             continue
@@ -272,9 +288,9 @@ for cycle_index = cycle_index:number_of_cycles
         y_real = real_model.msrFun(x, msrCookieFinal(Mag_field_eci, Sun_pos_eci, Eclipse, [0; 0; 0]));
 
         y_noise(1:3) = y_real(1:3)*norm(Mag_field_orbit) + 1e-9*diag([15,15,15])*randn(3,1);
-        [gyro_noise, real_bias] = gyro_noise_func(real_bias, dt, sigma_u, sigma_v);
+      %  [gyro_noise, real_bias] = gyro_noise_func(real_bias, dt, sigma_u, sigma_v);
 
-        y_noise(4:6) = y_real(4:6) + gyro_noise;
+        y_noise(4:6) = y_real(4:6) + gyro_noise(:,current_timestep);
 
         y_noise(7:9) = css_noise(Sun_pos_eci, x(1:4), Xsat_eci, Albedo, lambda);
 
@@ -320,7 +336,7 @@ for cycle_index = cycle_index:number_of_cycles
         Bbody_data(:, current_timestep) = y_real(1:3) * norm(mag_field_orbit(:, current_timestep)*10^(-9));
 
         bias_data(:, current_timestep) = real_bias;
-        gyro_noise_data(:, current_timestep) = gyro_noise;
+       % gyro_noise_data(:, current_timestep) = gyro_noise;
         q_ob_data(:, current_timestep) = q_ob;
         R_OI = Orbit2ECI_DCM(Nodem, Inclm, Argpm);
         R_IO = R_ECI2Orbit(Nodem, Inclm, Argpm);
@@ -350,6 +366,7 @@ for cycle_index = cycle_index:number_of_cycles
         theta_deg_arr_z(:, current_timestep)=theta_z ;
         sun_orbit_normalized = (Sun_pos_orbit / norm(Sun_pos_orbit));
         Const.sun_desired = Const.sun_desired / norm(Const.sun_desired);
+        % sun_angle(:, current_timestep) = acos(R_OB*sun_orbit_normalized); 
 
         estimated_velocity(:, current_timestep) = gyro - x_hat(5:7);
 
@@ -380,8 +397,8 @@ for cycle_index = cycle_index:number_of_cycles
         %% Sensor Measurements
         y_real = real_model.msrFun(x, msrCookieFinal(Mag_field_eci, Sun_pos_eci, Eclipse, [0; 0; 0]));
 
-        [gyro_noise, real_bias] = gyro_noise_func(real_bias, dt, sigma_u, sigma_v);
-        y_noise(4:6) = y_real(4:6) + gyro_noise;
+       % [gyro_noise, real_bias] = gyro_noise_func(real_bias, dt, sigma_u, sigma_v);
+        y_noise(4:6) = y_real(4:6) + gyro_noise(:,current_timestep);
 
         x_hat = mekf.global_state;
         x_hat(1:4) = x_hat(1:4) / norm(x_hat(1:4));
@@ -418,7 +435,7 @@ for cycle_index = cycle_index:number_of_cycles
 
         M_data(:, current_timestep) = M;
         bias_data(:, current_timestep) = real_bias;
-        gyro_noise_data(:, current_timestep) = gyro_noise;
+       % gyro_noise_data(:, current_timestep) = gyro_noise;
         x_hat_data(:, current_timestep) = x_hat;
         Bbody_data(:, current_timestep) = y_real(1:3) * norm(mag_field_orbit(:, current_timestep)*10^(-9));
         q_ob_data(:, current_timestep) = q_ob;
@@ -452,6 +469,7 @@ for cycle_index = cycle_index:number_of_cycles
         Const.sun_desired = Const.sun_desired / norm(Const.sun_desired);
 
         estimated_velocity(:, current_timestep) = gyro - x_hat(5:7);
+        % sun_angle(:, current_timestep) = acos(R_OB*sun_orbit_normalized); 
 
 
     end
@@ -468,7 +486,7 @@ end
     x_hat_euler_know(:, 1:3) = (rad2deg(x_hat_euler_know(:, 1:3)'))';
 
     instant_error_know(:, 1:3) = x_hat_euler_know(:, 1:3) - x_real_euler_know';
-    instant_error_know(:, 4:6) = x_hat_data(5:7, 1:length(x_hat_data))' - bias_data';
+    instant_error_know(:, 4:6) = x_hat_data(5:7, 1:length(x_hat_data))' - Pink';
 
     for i=1:3
         for cycle_index=1:length(instant_error_know)
@@ -506,7 +524,7 @@ end
         if i<5
             plot(Time,x_real(i,1:length(Time)), 'LineWidth',2.0, 'Color','blue');
         else
-            plot(Time(1:length(bias_data(1,:))),bias_data(i-4,1:length(bias_data(1,:))))
+            plot(Time(1:length(Pink(1,:))),Pink(i-4,1:length(Pink(1,:))))
         end
 
         plot(Time(1:length(x_hat_data(i,:))),x_hat_data(i,:), 'LineWidth',2.0, 'Color','magenta');
@@ -526,7 +544,7 @@ end
         if i<5
             plot(Time,abs(x_real(i,1:length(Time)))-abs(x_hat_data(i,:)), 'LineWidth',2.0, 'Color','blue');
         else
-            plot(Time(1:length(bias_data(1,:))),abs(bias_data(i-4,1:length(bias_data(1,:))))-abs(abs(x_hat_data(i,:))))
+            plot(Time(1:length(Pink(1,:))),abs(Pink(i-4,1:length(Pink(1,:))))-abs(abs(x_hat_data(i,:))))
         end
 
         %plot(Time(1:length(x_hat_data(i,:))),x_hat_data(i,:), 'LineWidth',2.0, 'Color','magenta');
@@ -560,6 +578,18 @@ for i = 1:3
     ylabel(['$\omega_', num2str(i), '$', '[rad/sec]'], 'interpreter', 'latex', 'fontsize', 14);
     if (i == 1), legend('Angular Velocity'); end
     if (i == 1), title('Angular Velocities', 'interpreter', 'latex', 'fontsize', 17); end
+    grid on;
+end
+
+
+figure();
+for i = 1:3
+    subplot(3, 1, i);
+    plot(Time(1:end-1), gyro_noise_data(i, 1:length(Time)-1), 'LineWidth', 2.0, 'Color', 'blue');
+    xlabel('Time [s]', 'interpreter', 'latex', 'fontsize', 12);
+    ylabel('Noise','interpreter', 'latex', 'fontsize', 14);
+    
+    if (i == 1), title('Gyroscope noise(Bias+Gaussian Noise) ', 'interpreter', 'latex', 'fontsize', 17); end
     grid on;
 end
 
@@ -687,32 +717,78 @@ grid on
 % end
 
 
-% Conversion factor from radians to degrees
-rad_to_deg = 180 / pi;
+% % Conversion factor from radians to degrees
+% rad_to_deg = 180 / pi;
+% 
+% % Prepare data for CSV
+% Time_data = Time';                  % Column vector for Time
+% Quaternion_data = q_ob_data'; % Transpose to make rows for each timestep
+% AngVel_data = x_real(5:7,:)' * rad_to_deg;  % Convert angular velocity from rad/sec to deg/sec
+% % Transpose for similar structure
+% 
+% % Combine all data into a single matrix
+% CSV_data = [Time_data, Quaternion_data, AngVel_data];
+% 
+% % Create a header for the CSV file
+% header = 'Time Quat_w Quat_x Quat_y Quat_z AngVel_x AngVel_y AngVel_z';
+% 
+% % Write the header and data to the CSV file
+% output_filename = 'simulation_data.csv'; % Space-separated CSV file
+% fid = fopen(output_filename, 'w');
+% fprintf(fid, '%s\n', header);           % Write header
+% 
+% % Write the data row by row with space as a separator, and Time in the format xxx.xxx
+% for i = 1:size(CSV_data, 1)
+%     fprintf(fid, '%.3f ', CSV_data(i, 1));  % Time formatted to 3 decimal places
+%     fprintf(fid, '%.6f %.6f %.6f %.6f %.6f %.6f %.6f\n', CSV_data(i, 2:end)); % Other data with default precision
+% end
+% 
+% fclose(fid);
+% 
+% disp(['Data successfully written to ', output_filename]);
 
-% Prepare data for CSV
-Time_data = Time';                  % Column vector for Time
-Quaternion_data = q_ib_data'; % Transpose to make rows for each timestep
-AngVel_data = x_real(5:7,:)' * rad_to_deg;  % Convert angular velocity from rad/sec to deg/sec
-% Transpose for similar structure
 
-% Combine all data into a single matrix
-CSV_data = [Time_data, Quaternion_data, AngVel_data];
+% %% Plotting angle error per axis
+% figure()
+% subplot(3, 1, 1)
+% plot(Time(1:length(sun_angle(1,:))), rad2deg(sun_angle(1,:)), 'LineWidth', 1.5, 'Color', 'blue');
+% hold on;
+% 
+% hold off;
+% title('Angle Between +X axis and Sun Vector [deg]', 'interpreter', 'latex', 'fontsize', 17);
+% xlabel('Time [$s$]', 'interpreter', 'latex', 'fontsize', 12);
+% subplot(3, 1, 2)
+% plot(Time(1:length(sun_angle(2,:))), rad2deg(sun_angle(2,:)), 'LineWidth', 1.5, 'Color', 'blue');
+% hold on;
+% 
+% hold off;
+% title('Angle Between +Y axis and Sun Vector [deg]', 'interpreter', 'latex', 'fontsize', 17);
+% xlabel('Time [$s$]', 'interpreter', 'latex', 'fontsize', 12);
+% subplot(3, 1, 3)
+% plot(Time(1:length(sun_angle(3,:))), rad2deg(sun_angle(3,:)), 'LineWidth', 1.5, 'Color', 'blue');
+% hold on;
+% z_angle = 90; 
+% plot([Time(1), Time(end)], [z_angle, z_angle], 'r', 'LineWidth', 1.5);
+% hold off;
+% title('Angle Between +Z axis and Sun Vector [deg]', 'interpreter', 'latex', 'fontsize', 17);
+% xlabel('Time [$s$]', 'interpreter', 'latex', 'fontsize', 12);
+% grid on;
 
-% Create a header for the CSV file
-header = 'Time Quat_w Quat_x Quat_y Quat_z AngVel_x AngVel_y AngVel_z';
-
-% Write the header and data to the CSV file
-output_filename = 'simulation_data.csv'; % Space-separated CSV file
-fid = fopen(output_filename, 'w');
-fprintf(fid, '%s\n', header);           % Write header
-
-% Write the data row by row with space as a separator, and Time in the format xxx.xxx
-for i = 1:size(CSV_data, 1)
-    fprintf(fid, '%.3f ', CSV_data(i, 1));  % Time formatted to 3 decimal places
-    fprintf(fid, '%.6f %.6f %.6f %.6f %.6f %.6f %.6f\n', CSV_data(i, 2:end)); % Other data with default precision
+for i = 1:length(Time)
+    if (q_ob_data(1, i) < 0)
+        q_ob_data(:, i) = -q_ob_data(:, i);
+    end
 end
 
-fclose(fid);
-
-disp(['Data successfully written to ', output_filename]);
+figure();
+for i = 1:4
+    subplot(4, 1, i);
+    if (i == 1), title('Quaternion', 'interpreter', 'latex', 'fontsize', 17); end
+    hold on;
+    plot(Time(1:end-1), q_ob_data(i, 1:length(Time)-1), 'LineWidth', 2.0, 'Color', 'blue');
+    ylabel(['$q_{ob', num2str(i), '}$'], 'interpreter', 'latex', 'fontsize', 14);
+    xlabel('Time [s]', 'interpreter', 'latex', 'fontsize', 12)
+    %     xlim([3 number_of_cycles]);
+    hold off;
+    grid on;
+end

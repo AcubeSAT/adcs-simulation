@@ -54,6 +54,9 @@ function [APE, Time, eclipse] = Nadir_Pointing_function(Kp_gain, Kd_gain)
     total_limit = Param.total_limit;
     exceptions_limit= Param.exceptions_limit;
     N_Timesteps= Param.N_Timesteps;
+    ARW=Param.ARW;
+    RRW=Param.RRW;
+    BI=Param.BI;
 
 
     %% Initialize Global Parameters
@@ -103,7 +106,7 @@ function [APE, Time, eclipse] = Nadir_Pointing_function(Kp_gain, Kd_gain)
     timeflag_dz = 0;
     init_AngVel_dz = 0;
     init_accel_dz = 0;
-    rw_ang_momentum=0;
+    rw_ang_momentum=0.016;
     rw_ang_vel_rpm = zeros(1, length(Time));    % RW angular velocity in rpm
     tau_mtq = zeros(3, length(Time));           % Torques produced by MTQs
     tau_rw = zeros(1, length(Time));            % Torques produced by the RW
@@ -116,8 +119,8 @@ function [APE, Time, eclipse] = Nadir_Pointing_function(Kp_gain, Kd_gain)
     tau_sp = zeros(3, length(Time));
     plotter_step = 1;
     reps = length(Time);
-    AngVel_rw_radps = zeros(3, 1);              % 1 = old, 2 = cur, 3 = next
-    AngVel_rw_rpm = zeros(3, 1);
+    AngVel_rw_radps = [0;0;100];              % 1 = old, 2 = cur, 3 = next
+    AngVel_rw_rpm = [0;0;1000];
     acceleration_rw = zeros(3, 1);
     x_hat_data = zeros(7,length(Time));
     bias_data = zeros(3,length(Time));
@@ -127,6 +130,21 @@ function [APE, Time, eclipse] = Nadir_Pointing_function(Kp_gain, Kd_gain)
     threshold_times = 0;
     threshold_exceptions = 0;
     estimated_velocity = zeros(3, length(Time));
+    Pink = zeros(3,length(Time));
+    theta_deg_arr_x= zeros(3, length(Time));
+    theta_deg_arr_y= zeros(3, length(Time));
+    theta_deg_arr_z= zeros(3, length(Time));
+  
+
+
+    %% Generate gyroscope noise using power law noise 
+
+[White_Noise,Pink_Noise,Red_Noise,gyro_noise] = calculate_gyro_noise(ARW,RRW,BI,[3 length(Time)]);
+
+for i=1:length(Time)
+    gyro_noise_data(:,i)=gyro_noise(:,i);
+    Pink(:,i)=Pink_Noise(:,i);
+end   
 
     %% Next we initialize the bias estimation by solving Wahba's problem n times.
 
@@ -145,10 +163,10 @@ function [APE, Time, eclipse] = Nadir_Pointing_function(Kp_gain, Kd_gain)
             y_real = real_model.msrFun(x, msrCookieFinal(mag_field_eci(:, current_timestep), ...
                 sun_pos_eci(:, current_timestep), eclipse(current_timestep), [0; 0; 0]));
             y_noise = y_real + sqrt(R) * randn(size(y_real));
-            [gyro_noise, real_bias] = gyro_noise_func(real_bias, dt, sigma_u, sigma_v);
+         %   [gyro_noise, real_bias] = gyro_noise_func(real_bias, dt, sigma_u, sigma_v);
 
 
-            y_noise(4:6) = y_real(4:6) + gyro_noise;
+            y_noise(4:6) = y_real(4:6) + gyro_noise(:,current_timestep);
             % sign=randi([0 1]);
             % if sign==0
             %     sign=-1;
@@ -205,7 +223,7 @@ function [APE, Time, eclipse] = Nadir_Pointing_function(Kp_gain, Kd_gain)
                     q_ob_data(:,current_timestep) = quat_EB2OB(x(1:4), nodem(1,current_timestep),...
                         inclm(1,current_timestep),argpm(1,current_timestep),mm(1,current_timestep) );
                     bias_data(:,current_timestep) = real_bias;
-                    gyro_noise_data(:,current_timestep) = gyro_noise;
+                  %  gyro_noise_data(:,current_timestep) = gyro_noise;
                 end
                 continue
             end
@@ -265,16 +283,16 @@ function [APE, Time, eclipse] = Nadir_Pointing_function(Kp_gain, Kd_gain)
 
             %% Q covariance update
 
-            Q_selection(Eclipse,Param.Q,Param.R_hat,mekf,Q_eclipse_load);
+            %Q_selection(Eclipse,Param.Q,Param.R_hat,mekf,Q_eclipse_load);
 
             %% Sensor Measurements
 
             y_real = real_model.msrFun(x,msrCookieFinal(Mag_field_eci,Sun_pos_eci,Eclipse,[0;0;0]));
 
             y_noise = y_real + sqrt(R)*randn(size(y_real));
-            [gyro_noise,real_bias] = gyro_noise_func(real_bias,dt,sigma_u,sigma_v);
+         %  [gyro_noise,real_bias] = gyro_noise_func(real_bias,dt,sigma_u,sigma_v);
 
-            y_noise(4:6) = y_real(4:6) + gyro_noise;
+            y_noise(4:6) = y_real(4:6) + gyro_noise(:,current_timestep);
     
 
             y_noise(7:9) = css_noise(Sun_pos_eci,x(1:4),Xsat_eci,Albedo,lambda);
@@ -328,9 +346,30 @@ function [APE, Time, eclipse] = Nadir_Pointing_function(Kp_gain, Kd_gain)
             rw_ang_vel_rpm(1,current_timestep) = AngVel_rw_rpm(3,1);
             Bbody_data(:,current_timestep) = y_real(1:3)*norm(mag_field_orbit(:,current_timestep)*10^(-9));
             bias_data(:,current_timestep) = real_bias;
-            gyro_noise_data(:,current_timestep) = gyro_noise;
+           % gyro_noise_data(:,current_timestep) = gyro_noise;
             q_ob_data(:,current_timestep) = q_ob;
             estimated_velocity(:, current_timestep) = gyro - x_hat(5:7);
+
+             R_OB = quat2dcm(q_ob');
+                 
+                % Angle between Z-Axis of b.f. and Z-Axis of o.f.
+                x_ob=R_OB(:,1) ;
+                y_ob=R_OB(:,2);
+                z_ob=R_OB(:,3); % Extract the third column of R_OB(z-axis of orbit in body frame)
+                z_body=[0; 0; 1]; % z-axis of the body frame
+                cos_theta_x=dot(x_ob,z_body)/(norm(x_ob)*norm(z_body)); % Calculate cosine of the angle
+                cos_theta_y=dot(y_ob,z_body)/(norm(y_ob)*norm(z_body));
+                cos_theta_z=dot(z_ob,z_body)/(norm(z_ob)*norm(z_body));
+        
+                theta_x=acos(cos_theta_x); % compute angle in radians
+                theta_y=acos(cos_theta_y);
+                theta_z=acos(cos_theta_z);
+                theta_x=rad2deg(theta_x); %Convert to degrees
+                theta_y=rad2deg(theta_y) ;
+                theta_z=rad2deg(theta_z) ;
+                theta_deg_arr_x(:, current_timestep)=theta_x; %Convert to degrees
+                theta_deg_arr_y(:, current_timestep)=theta_y ;
+                theta_deg_arr_z(:, current_timestep)=theta_z ;
 
             %% Check if the time for Detumbling has come
 
@@ -342,6 +381,9 @@ function [APE, Time, eclipse] = Nadir_Pointing_function(Kp_gain, Kd_gain)
                 bdot_activation_matrix(2, current_timestep) = trigger_flag_raw;
             end
 
+             if timestep_index == 2
+            B_body_thomson = y_noise(1:3)*norm(Mag_field_orbit);
+        end
         end
 
         for timestep_index=4:10
@@ -362,14 +404,14 @@ function [APE, Time, eclipse] = Nadir_Pointing_function(Kp_gain, Kd_gain)
 
             %% Q covariance update
 
-            Q_selection(Eclipse,Param.Q,Param.R_hat,mekf,Q_eclipse_load);
+         %   Q_selection(Eclipse,Param.Q,Param.R_hat,mekf,Q_eclipse_load);
 
             %% Sensor Measurements
 
             y_real = real_model.msrFun(x,msrCookieFinal(Mag_field_eci,Sun_pos_eci,Eclipse,[0;0;0]));
 
-            [gyro_noise,real_bias] = gyro_noise_func(real_bias,dt,sigma_u,sigma_v);
-            y_noise(4:6) = y_real(4:6) + gyro_noise;
+           % [gyro_noise,real_bias] = gyro_noise_func(real_bias,dt,sigma_u,sigma_v);
+            y_noise(4:6) = y_real(4:6) + gyro_noise(:,current_timestep);
 
             x_hat = mekf.global_state;
             x_hat(1:4) = x_hat(1:4) / norm(x_hat(1:4));
@@ -380,6 +422,7 @@ function [APE, Time, eclipse] = Nadir_Pointing_function(Kp_gain, Kd_gain)
            % Choose x_hat for determination, x for ground truth 
     
            q_ob_hat = quat_EB2OB(x_hat(1:4),Nodem,Inclm,Argpm,Mm);
+           
            % q_ob_hat = quat_EB2OB(x(1:4),Nodem,Inclm,Argpm,Mm);
            acceleration_rw(1,1) = acceleration_rw(2,1);
            acceleration_rw(2,1) = acceleration_rw(3,1);
@@ -387,7 +430,7 @@ function [APE, Time, eclipse] = Nadir_Pointing_function(Kp_gain, Kd_gain)
            AngVel_rw_radps(2,1) = AngVel_rw_radps(3,1);
            AngVel_rw_rpm(1,1) = AngVel_rw_rpm(2,1);
            AngVel_rw_rpm(2,1) = AngVel_rw_rpm(3,1);
-    
+           
             
            % Choose first PD for determination, second PD for ground truth
     
@@ -397,7 +440,7 @@ function [APE, Time, eclipse] = Nadir_Pointing_function(Kp_gain, Kd_gain)
                         PD_Nadir_Pointing(Eclipse,Kp_gain, Kd_gain, q_desired ,q_ob_hat, Const.w_o_io, y_noise(4:6)-mekf.global_state(5:7) , y_noise(1:3)*norm(Mag_field_orbit), ...
                         Const.mtq_max, Const.lim_dz, AngVel_rw_radps(2,1), AngVel_rw_rpm(2,1), ...
                         acceleration_rw(1,1), init_AngVel_dz, init_accel_dz, timeflag_dz,Const.rw_max_torque,...
-                        y_real(1:3)*norm(Mag_field_orbit), cycle_index, Const.known_rm,Const.const1_accel,Const.const2_accel,Const.const3_accel,Const.const4_accel,Const.AngVel_rw_lim);
+                        y_real(1:3)*norm(Mag_field_orbit),B_body_thomson, cycle_index, Const.known_rm,Const.const1_accel,Const.const2_accel,Const.const3_accel,Const.const4_accel,Const.AngVel_rw_lim);
             
            % [torq, T_rw, T_magnetic_effective, ~, ~, ~, AngVel_rw_rpm_next, AngVel_rw_radps_next,...
            %              acceleration_rw_cur, rw_ang_momentum, init_AngVel_dz, init_accel_dz, ~, ~, ~, ...
@@ -439,11 +482,33 @@ function [APE, Time, eclipse] = Nadir_Pointing_function(Kp_gain, Kd_gain)
             AngVel_rw_radps(3,1) = AngVel_rw_radps_next;
             M_data(:,current_timestep) = M;
             bias_data(:,current_timestep) = real_bias;
-            gyro_noise_data(:,current_timestep) = gyro_noise;
+          %  gyro_noise_data(:,current_timestep) = gyro_noise;
             x_hat_data(:,current_timestep) = x_hat;
             Bbody_data(:,current_timestep) = y_real(1:3)*norm(mag_field_orbit(:,current_timestep)*10^(-9));
             q_ob_data(:,current_timestep) = q_ob;
             estimated_velocity(:,current_timestep) = gyro - x_hat(5:7);
+
+
+             R_OB = quat2dcm(q_ob');
+                 
+                % Angle between Z-Axis of b.f. and Z-Axis of o.f.
+                x_ob=R_OB(:,1) ;
+                y_ob=R_OB(:,2);
+                z_ob=R_OB(:,3); % Extract the third column of R_OB(z-axis of orbit in body frame)
+                z_body=[0; 0; 1]; % z-axis of the body frame
+                cos_theta_x=dot(x_ob,z_body)/(norm(x_ob)*norm(z_body)); % Calculate cosine of the angle
+                cos_theta_y=dot(y_ob,z_body)/(norm(y_ob)*norm(z_body));
+                cos_theta_z=dot(z_ob,z_body)/(norm(z_ob)*norm(z_body));
+        
+                theta_x=acos(cos_theta_x); % compute angle in radians
+                theta_y=acos(cos_theta_y);
+                theta_z=acos(cos_theta_z);
+                theta_x=rad2deg(theta_x); %Convert to degrees
+                theta_y=rad2deg(theta_y) ;
+                theta_z=rad2deg(theta_z) ;
+                theta_deg_arr_x(:, current_timestep)=theta_x; %Convert to degrees
+                theta_deg_arr_y(:, current_timestep)=theta_y ;
+                theta_deg_arr_z(:, current_timestep)=theta_z ;
 
             %% Check if the time for Detumbling has come
 
@@ -501,7 +566,7 @@ function [APE, Time, eclipse] = Nadir_Pointing_function(Kp_gain, Kd_gain)
     x_hat_euler_know(:, 1:3) = (rad2deg(x_hat_euler_know(:, 1:3)'))';
 
     instant_error_know(:, 1:3) = x_hat_euler_know(:, 1:3) - x_real_euler_know';
-    instant_error_know(:, 4:6) = x_hat_data(5:7, 1:length(x_hat_data))' - bias_data';
+    instant_error_know(:, 4:6) = x_hat_data(5:7, 1:length(x_hat_data))' - Pink';
 
     for i=1:3
         for cycle_index=1:length(instant_error_know)
@@ -539,7 +604,7 @@ function [APE, Time, eclipse] = Nadir_Pointing_function(Kp_gain, Kd_gain)
         if i<5
             plot(Time,x_real(i,1:length(Time)), 'LineWidth',2.0, 'Color','blue');
         else
-            plot(Time(1:length(bias_data(1,:))),bias_data(i-4,1:length(bias_data(1,:))))
+            plot(Time(1:length(Pink(1,:))),Pink(i-4,1:length(Pink(1,:))))
         end
 
         plot(Time(1:length(x_hat_data(i,:))),x_hat_data(i,:), 'LineWidth',2.0, 'Color','magenta');
@@ -566,7 +631,7 @@ function [APE, Time, eclipse] = Nadir_Pointing_function(Kp_gain, Kd_gain)
         if i<5
             plot(Time,abs(x_real(i,1:length(Time)))-abs(x_hat_data(i,:)), 'LineWidth',2.0, 'Color','blue');
         else
-            plot(Time(1:length(bias_data(1,:))),abs(bias_data(i-4,1:length(bias_data(1,:))))-abs(abs(x_hat_data(i,:))))
+            plot(Time(1:length(Pink(1,:))),abs(Pink(i-4,1:length(Pink(1,:))))-abs(abs(x_hat_data(i,:))))
         end
 
         %plot(Time(1:length(x_hat_data(i,:))),x_hat_data(i,:), 'LineWidth',2.0, 'Color','magenta');
@@ -818,7 +883,7 @@ function [APE, Time, eclipse] = Nadir_Pointing_function(Kp_gain, Kd_gain)
     %      grid on;
 
     %% RW budget
-
+     
     figure()
     subplot(2,1,1);
     plot(Time, rw_ang_vel_rpm(1,1:length(Time)),'LineWidth',1.5, 'Color','blue');
@@ -1195,4 +1260,40 @@ function [APE, Time, eclipse] = Nadir_Pointing_function(Kp_gain, Kd_gain)
     %     pause(0.005);
     % end
 
+
+    %% Plotting the Angle between Z-Axis of b.f. and Z-Axis of o.f.
+figure()
+plot(Time(1:end-1), theta_deg_arr_x(1:length(Time)-1));
+title('Angle between Z-Axis of b.f. and X-Axis of o.f.', 'interpreter', 'latex', 'fontsize', 17);
+xlabel('Time [$s$]', 'interpreter', 'latex', 'fontsize', 12);
+ylabel('Angle [degrees]', 'interpreter', 'latex', 'fontsize', 14);
+grid on
+
+figure()
+plot(Time(1:end-1), theta_deg_arr_y(1:length(Time)-1));
+title('Angle between Z-Axis of b.f. and Y-Axis of o.f.', 'interpreter', 'latex', 'fontsize', 17);
+xlabel('Time [$s$]', 'interpreter', 'latex', 'fontsize', 12);
+ylabel('Angle [degrees]', 'interpreter', 'latex', 'fontsize', 14);
+grid on
+
+
+figure()
+plot(Time(1:end-1), theta_deg_arr_z(1:length(Time)-1));
+title('Angle between Z-Axis of b.f. and Z-Axis of o.f.', 'interpreter', 'latex', 'fontsize', 17);
+xlabel('Time [$s$]', 'interpreter', 'latex', 'fontsize', 12);
+ylabel('Angle [degrees]', 'interpreter', 'latex', 'fontsize', 14);
+grid on
+
+
+    %% Plotting gyroscope noise
+figure();
+for i = 1:3
+    subplot(3, 1, i);
+    plot(Time(1:end-1), gyro_noise_data(i, 1:length(Time)-1), 'LineWidth', 2.0, 'Color', 'blue');
+    xlabel('Time [s]', 'interpreter', 'latex', 'fontsize', 12);
+    ylabel('Noise','interpreter', 'latex', 'fontsize', 14);
+    
+    if (i == 1), title('Gyroscope noise(Bias+Gaussian Noise) ', 'interpreter', 'latex', 'fontsize', 17); end
+    grid on;
+end
 end

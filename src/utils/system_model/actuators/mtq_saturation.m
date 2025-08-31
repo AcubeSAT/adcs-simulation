@@ -18,15 +18,16 @@
 %     T_rw             - Torque to be provided by the RW
 % ======================================================================== %
 
-function [T_magnetic, T_rw] = mtq_saturation(T_magnetic, T_rw, T_commanded, B_body, M, mtq_max, known_rm)
-
+function [T_magnetic, T_rw] = mtq_saturation(T_magnetic, T_rw, T_commanded, B_body, M, mtq_max,h_diff)
+    mdd=0.02;
     mtq_maxima = zeros(3, 2);
-    mtq_maxima(:, 1) = mtq_max + known_rm;
-    mtq_maxima(:, 2) = mtq_max - known_rm;
-
-    M2 = (1 / norm(T_magnetic)) * M;
+    mtq_maxima(:, 1) = [0.2,0.2,0.2]-[mdd,mdd,0];
+    mtq_maxima(:, 2) =[0.2,0.2,0.2]-[mdd,mdd,0];
+    
+  
     Tm = T_magnetic / norm(T_magnetic);
     Tw = T_rw / norm(T_rw);
+    M2 = (1 / norm(T_magnetic)) * (M);
     Kma = (Tm' - (Tw' * Tm) * Tw') * T_commanded / (1 - (Tw' * Tm)^2);
     Kwa = (Tw' - (Tm' * Tw) * Tm') * T_commanded / (1 - (Tm' * Tw)^2);
 
@@ -42,12 +43,13 @@ function [T_magnetic, T_rw] = mtq_saturation(T_magnetic, T_rw, T_commanded, B_bo
         end
         Kma_s = min(abs(Torque_split_maxima./M2));
         Kwa_s = Kma_s * Kwa / Kma;
-        Ms = Kma_s * M2;
+        
+       
+        Ms = Kma_s * M2+mdd*sign(cross(h_diff,B_body));
+       
         T_magnetic = skew(B_body)' * Ms;
         T_rw = Kwa_s .* Tw;
-    else
-        T_magnetic = Kma .* Tm;
-        T_rw = Kwa .* Tw;
+   
     end
 
 end

@@ -26,11 +26,11 @@
 function [fitness] = fitness_function_Nadir_Pointing(gain_vector)
     fitness = 0;
 
-    % Kp_gain= 1e-05*diag([gain_vector(1) gain_vector(2) gain_vector(3)]);
-    % Kd_gain= 1e-04*diag([gain_vector(4) gain_vector(5) gain_vector(6)]);
+    Kp_gain= 1e-05*diag([gain_vector(1) gain_vector(2) gain_vector(3)]);
+    Kd_gain= 1e-04*diag([gain_vector(4) gain_vector(5) gain_vector(6)]);
 
-    Kp_gain = 1e-04 * diag([3, 5, 6]);
-    Kd_gain = 1e-04 * diag([9.6, 47.6, 70]);
+    % Kp_gain = 1e-04 * diag([3, 5, 6]);
+    % Kd_gain = 1e-04 * diag([9.6, 47.6, 70]);
 
     n_dim_error = 6;
     number_of_measurments = 6;
@@ -40,7 +40,7 @@ function [fitness] = fitness_function_Nadir_Pointing(gain_vector)
     Q_eclipse_load = gain_vector(4) * eye(n_dim_error, n_dim_error);
     R_hat = [gain_vector(5); gain_vector(5); gain_vector(5); gain_vector(6); gain_vector(6); gain_vector(6)] .* eye(number_of_measurments, number_of_measurments);
 
-    [instant_error_perform, Time] = Nadir_Pointing_function(Kp_gain, Kd_gain, Q_no_eclipse, R_no_eclipse, Q_eclipse_load, R_hat);
+    [instant_error_perform, Time] = Nadir_Pointing_function(Kp_gain, Kd_gain);
     for ut_in = 21:length(Time)
 
         if abs(instant_error_perform(ut_in, 1)) >= 100 ...

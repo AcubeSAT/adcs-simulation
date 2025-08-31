@@ -12,17 +12,17 @@ function Param = setParamsFinal_Sun_Pointing(I)
     %% ======= Satellite ========
 
     dt = .1; %Timestep for Orbit Propagator
-    orbits = 1;
+    orbits =20;
     orbitPeriod = 5545;
     tf = orbits * orbitPeriod;  %Total Simulation Seconds
-    q_desired = [1, 0, 0, 0];   %Desired quaternion
+    q_desired = [1,0, 0, 0];   %Desired quaternion
     N_Timesteps = 10;           % Number of timesteps per cycle
 
     %% ======= Orbit Propagation ========
 
     [satrec, ~] = orbit_init();
-    [~, ~, xsat_eci, ~, ~, eclipse, ~, mag_field_eci, ~, mag_field_orbit, ~, sun_pos_eci, ~, sun_pos_orbit, ~, argpm, nodem, inclm, mm, ~, ~] = orbit_sgp4(satrec, dt, tf+dt);
-    %[~,~,xsat_eci,~,~,eclipse,~,mag_field_eci,~,mag_field_orbit,~,sun_pos_eci,~,sun_pos_orbit,~,argpm,nodem,inclm,mm,~,~] = orbit_sgp4_offset(satrec,dt,tf+dt,1000);
+    % [~, ~, xsat_eci, ~, ~, eclipse, ~, mag_field_eci, ~, mag_field_orbit, ~, sun_pos_eci, ~, sun_pos_orbit, ~, argpm, nodem, inclm, mm, ~, ~] = orbit_sgp4(satrec, dt, tf+dt);
+    [~,~,xsat_eci,~,~,eclipse,~,mag_field_eci,~,mag_field_orbit,~,sun_pos_eci,~,sun_pos_orbit,~,argpm,nodem,inclm,mm,~,~] = orbit_sgp4_offset(satrec,dt,tf+dt,1000);
 
     %% ======================= Testing Initial Quaternions =============================
     %Q0 = [0.5; -0.5; 0.5; 0.5];
@@ -45,7 +45,7 @@ function Param = setParamsFinal_Sun_Pointing(I)
 
     Q0 = Q0 / norm(Q0);                     %Normalised Quaternion
     init_bias = [.01; 0.15; -.08];          % bias initialization
-    vRot0 = [0; 0; 0];                      %Initial Angular Velocities from Body to ECI frame expressed in Body.
+    vRot0 = [0.035; 0.035; 0.035];                      %Initial Angular Velocities from Body to ECI frame expressed in Body.
     x0 = [Q0; vRot0];                       %Initial state consists of [Quaternion;Angular Velocity]
     Q0_hat = [.6; .1; -.7; .01];            %Random Initial State Estimation
     Q0_hat = Q0_hat / norm(Q0_hat);
@@ -60,9 +60,17 @@ function Param = setParamsFinal_Sun_Pointing(I)
     rng(1);                             % Fix the random number generator for reproducible results
     % Gyro bias std dev
     %sigma_u = 7.7570e-05;
-    sigma_u = 3.4434e-04;
+    %sigma_u = 3.4434e-04;
+    sigma_u = 2e-6;
     % Gyro white noise std dev
-    sigma_v = 0.00026;
+    %sigma_v = 0.00026;
+     sigma_v= 2e-5;
+
+
+    ARW=2.27e-5; %(in (rad/sec)/sqrt(Hz))
+    RRW=3e-9;  %((in (rad/sec)*sqrt(Hz)))
+    BI=2.8e-7;
+
 
     %% ======= Albedo ========
 
@@ -94,7 +102,7 @@ function Param = setParamsFinal_Sun_Pointing(I)
 
     % R Variances used in MEKF
     % R_hat_coeff=[1e-3;1e-3;1e-3;8e-3;8e-3;8e-3;5e-3;5e-3;5e-3];
-    R_hat_coeff = [.5e-3; .5e-3; .5e-3; 1e-3; 1e-3; 1e-3];
+    R_hat_coeff = [1;1;1;1e5;1e5;1e5];
     R_hat = R_hat_coeff .* eye(6, 6);
     % Initialize Covariance matrix
     n_dim_error = 6; % error state length
@@ -104,6 +112,10 @@ function Param = setParamsFinal_Sun_Pointing(I)
     %%  Parameters for threshold limits
     total_limit = 20;
     exceptions_limit = 2;
+
+    %% Reaction wheel 
+
+    rw_bias=500; %rad/sec
 
     %%  Passing the values of the parameters in a struct.
 
@@ -141,4 +153,8 @@ function Param = setParamsFinal_Sun_Pointing(I)
     Param.total_limit= total_limit;
     Param.exceptions_limit= exceptions_limit;
     Param.N_Timesteps= N_Timesteps;
+ Param.ARW=ARW;
+    Param.RRW=RRW;
+    Param.BI=BI;
+    Param.rw_bias=rw_bias;
 end
